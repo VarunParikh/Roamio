@@ -1,0 +1,318 @@
+<!DOCTYPE html><html class="h-full bg-[#0F1115]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="mobile_tab" name="shell-type">
+<title>Roamigo - Trips Hub</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            obsidian: "#0F1115",
+            lime: "#D4FF00",
+            cobalt: "#2563EB",
+            lavender: "#F6F4FF",
+            "sheet-bg": "#FAF9FE",
+            surface: "#FFFFFF",
+            "bubble-pink": "#FFEDF6",
+            "bubble-cyan": "#E0F7FE",
+            "bubble-yellow": "#FFF8D6"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "4xl": "2.25rem",
+            "5xl": "2.75rem"
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0F1115;
+        overscroll-behavior-y: none;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    .sheet-shadow {
+      box-shadow: 0 -18px 45px -10px rgba(15, 17, 21, 0.28), 0 -4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .card-press {
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+    }
+    .card-press:active {
+      transform: scale(0.96);
+    }
+    .pill-press {
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .pill-press:active {
+      transform: scale(0.92);
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-obsidian antialiased selection:bg-lime selection:text-obsidian min-h-screen relative overflow-x-hidden">
+<!-- TOP HERO SECTION (Layered behind: Sticky/Pinned Visual Stage) -->
+<header class="fixed top-0 left-0 right-0 z-0 h-[385px] w-full overflow-hidden bg-obsidian">
+<!-- Goa Background Img with Cinematic Gradient -->
+<div class="absolute inset-0 bg-cover bg-center scale-105" data-alt="Dreamy sunlit editorial aerial view of South Goa beach coastline with coconut palms swaying in tropical golden haze, deep turquoise Arabian Sea waves lapping warm sand" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJG0IAMuSS5Po0Lwsr8Grhnw9sK1GUlAqzVZWQxngVGMOcWHZTF1r9V-QH0kAHoVkcsVi6s65FPtUXafg3131-o45DlkgsfWG8UqvMa8pokfWgjBdvZz5YXk-zSKcJIwX-yzjkE8DMVJ3tS-ZJG_kCva9L_N1WKuI22Ty0sGRtziXU6TtMiuQ-2-0-Dpc3WBTVLjoVU11wPKFmT3ydwIyXrRWSDfpWg3ejfxFIk7ZleKK19IMgPz9s');">
+<!-- Dark gradient scrim to pop text & floating stickers -->
+<div class="absolute inset-0 bg-gradient-to-b from-obsidian/85 via-obsidian/40 to-obsidian/90"></div>
+</div>
+<!-- Header Top Row (Brand + Notifications + Ari Avatar) -->
+<div class="relative z-10 pt-safe px-5 pt-3">
+<div class="h-14 flex items-center justify-between">
+<!-- Logo with Live Pill -->
+<div class="flex items-center gap-2">
+<span class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-1">
+            roamigo<span class="text-lime text-3xl leading-none">.</span>
+</span>
+
+</div>
+<!-- Right Quick Actions & Ari Profile with Vibe Tag -->
+<div class="flex items-center gap-2.5">
+<button aria-label="Notifications" class="pill-press w-10 h-10 rounded-full bg-white/15 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-white/25">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="relative">
+<div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-lime to-cobalt shadow-lg flex items-center justify-center">
+<img class="w-full h-full rounded-full object-cover" data-alt="Ari Chen profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqQX2wkfPztv7MnZVSd4f2gSuvBOCul6oqVMz1ItpdhcN-PNv52mmqIioLbk-qEurfTLedrFrUhT_GNL-ZvurTQgI2F2kT1X71NBQcwpr3qQuBLfQpkXmKsIQUjunTI46oNQcw0BAl3J4GVTpUM5V6_PeipzmF3xhv5b9ZQnxHqXSlDv49UxQamhN_gRBP28q-H7qjAca3Bnim6XqJxWj_x_M8ozIrGaqlQ-f39rvcvLs7GIGzWCN7">
+</div>
+<span class="absolute -bottom-1 -right-1 text-[11px] bg-obsidian rounded-full px-1 shadow border border-white/20">🤙</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pinned Hero Content (Welcome + Goa Getaway Stickers) -->
+<div class="relative z-10 px-5 pt-2 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[12px] font-bold tracking-widest uppercase text-lime flex items-center gap-1.5">
+<span class="">✨</span> Active Vibe • Dec 12–16
+          </span>
+<h1 class="text-3xl font-extrabold text-white tracking-tight leading-none mt-1">
+            Goa Getaway
+          </h1>
+</div>
+<!-- Floating Glass Badge: Squad Count -->
+<div class="flex items-center -space-x-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30 shadow-md">
+<img class="w-6 h-6 rounded-full object-cover border-2 border-obsidian" data-alt="Friend 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJMn3i7jZk-75YjKkg4pfOpDfOICNickjw2pBMN1qx6ZLkwhIupM64wsdwcmtQpoNGfCfB4ACjJoSaSIphGX-ss-H1gCV3sFJvjo5yHpe7AmAlfifrncd8DYQmmzAsPACyYaZcfeu6NmuuvAJWRGMfTEUsgXKOfWydtajh0_LDcMkiziMKl_aek77qjQk5wCzCdHdIVzel7V5FKpH9hVg3gQInopJRAhFtOALghPXGGdOHbzkiRMS1">
+<div class="w-6 h-6 rounded-full bg-lime text-obsidian text-[11px] font-extrabold flex items-center justify-center border-2 border-obsidian">
+            +4
+          </div>
+<span class="pl-2.5 text-white text-[12px] font-bold">🌴 Squad</span>
+</div>
+</div>
+<!-- Hero Punchy Money Sticker Banner -->
+<div class="flex items-center justify-between pt-1">
+<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-lime text-obsidian font-extrabold text-[13px] shadow-[0_4px_16px_rgba(212,255,0,0.35)]">
+<span class="">⚡️</span>
+<span class="">+₹4,000 in your pocket</span>
+</div>
+<span class="text-white/70 text-xs font-semibold">Anjuna, South Goa</span>
+</div>
+</div>
+</header>
+<!-- SPACER to push the sheet down so hero shows naturally at scroll top -->
+<div class="h-[260px] w-full pointer-events-none"></div>
+<!-- FLOATING SCROLL-OVER BOTTOM SHEET / MAIN CONTENT -->
+<!-- Rounded-t-[44px], subtle drag handle, overlapping z-10 -->
+<main class="relative z-10 min-h-screen bg-sheet-bg rounded-t-[44px] sheet-shadow pt-3 pb-36 px-5 transition-transform">
+<!-- Playful Drag Handle / Notch -->
+<div class="w-full flex justify-center py-2 pb-4">
+<div class="w-12 h-1.5 rounded-full bg-obsidian/20 hover:bg-obsidian/30 cursor-grab active:scale-95 transition-all"></div>
+</div>
+<!-- Quick Action Pills (Punchy, Bouncy Gen-Z Pills) -->
+<section class="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-6 pt-1">
+<button class="pill-press flex items-center gap-2 px-5 h-12 rounded-full bg-obsidian text-white font-bold text-sm shadow-[0_8px_20px_-4px_rgba(15,17,21,0.3)] shrink-0">
+<span class="w-6 h-6 rounded-full bg-lime text-obsidian flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] font-black">add</span>
+</span>
+<span class="">Split Bill</span>
+</button>
+<button class="pill-press flex items-center gap-2 px-5 h-12 rounded-full bg-lime text-obsidian font-extrabold text-sm shadow-[0_8px_20px_-4px_rgba(212,255,0,0.4)] shrink-0">
+<span class="material-symbols-outlined text-[19px]">bolt</span>
+<span class="">Settle Up</span>
+</button>
+<button class="pill-press flex items-center gap-2 px-5 h-12 rounded-full bg-white text-obsidian border border-obsidian/10 font-bold text-sm shadow-sm hover:bg-lavender shrink-0">
+<span class="material-symbols-outlined text-[19px] text-cobalt">map</span>
+<span class="">Itinerary</span>
+</button>
+<button class="pill-press w-12 h-12 rounded-full bg-white text-obsidian border border-obsidian/10 flex items-center justify-center shadow-sm shrink-0">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</section>
+<!-- Playful Micro-Bento Grid: Live Trip Insights (Ultra-Rounded [32px]) -->
+<section class="grid grid-cols-2 gap-3 pb-7">
+<!-- Card 1: Latest Split -->
+<div class="card-press bg-white rounded-[32px] p-4.5 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-obsidian/5 flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-3 -top-3 w-16 h-16 rounded-full bg-bubble-yellow -z-0 opacity-70 group-hover:scale-125 transition-transform"></div>
+<div class="relative z-10 flex items-center justify-between">
+<span class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-lg">
+            ☕️
+          </span>
+<span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 font-bold text-[11px] tracking-wide">
+            TODAY
+          </span>
+</div>
+<div class="relative z-10 mt-5">
+<span class="text-[12px] font-semibold text-obsidian/60 block">Ari paid for brunch</span>
+<span class="text-2xl font-extrabold text-obsidian tracking-tight block">₹1,850</span>
+<span class="text-[12px] font-bold text-cobalt truncate block mt-0.5">Café Lilliput 🥐</span>
+</div>
+</div>
+<!-- Card 2: Group Spend -->
+<div class="card-press bg-white rounded-[32px] p-4.5 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-obsidian/5 flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute -right-3 -top-3 w-16 h-16 rounded-full bg-bubble-pink -z-0 opacity-70 group-hover:scale-125 transition-transform"></div>
+<div class="relative z-10 flex items-center justify-between">
+<span class="w-10 h-10 rounded-2xl bg-pink-100 text-pink-700 flex items-center justify-center font-bold text-lg">
+            🎉
+          </span>
+<span class="px-2.5 py-0.5 rounded-full bg-lime/80 text-obsidian font-extrabold text-[11px] tracking-wide">
+            BALANCED
+          </span>
+</div>
+<div class="relative z-10 mt-5">
+<span class="text-[12px] font-semibold text-obsidian/60 block">Squad Total</span>
+<span class="text-2xl font-extrabold text-obsidian tracking-tight block">₹28,400</span>
+<span class="text-[12px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> All evened out
+          </span>
+</div>
+</div>
+</section>
+<!-- Upcoming Escapes (Bubbly Gen-Z Aesthetic Cards) -->
+<section class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h3 class="text-xl font-extrabold text-obsidian tracking-tight">Next Adventures</h3>
+<span class="w-6 h-6 rounded-full bg-obsidian text-lime text-xs font-black flex items-center justify-center">2</span>
+</div>
+<button class="pill-press px-3 py-1 rounded-full bg-cobalt/10 text-cobalt font-extrabold text-xs hover:bg-cobalt/15">
+          See All ✨
+        </button>
+</div>
+<!-- Upcoming Card 1: Amalfi Coast -->
+<div class="card-press bg-white rounded-[32px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-obsidian/5 flex items-center gap-4 relative overflow-hidden group">
+<div class="relative w-24 h-24 rounded-[24px] overflow-hidden shrink-0 shadow-inner">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Amalfi Coast coastal road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6SVt8_y11BbJuAbVEBpIL2UbihzQGqM6sWXenYPqtYe5IvDXgDiXmZfTWm2kreJkRuAcmBN1r3Em2CoIQ2t8SXtV-62sHXfSXQdpPTwGTDoINTmQ0sWc-TBtJRaTJV11uY0sHZeCImPLeLhdugi4n9L4SV35hV0g3YAuVXBx213ELLLsox0CbhYSx8YZ9QJgAprFckvDQBjGR9Y9JO5H4KQJTO0exqAdyEe5ne37dXhTxAiChpAJ3">
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-obsidian/70 backdrop-blur-md text-[10px] font-bold text-white">
+            🍋 18 May
+          </span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex items-start justify-between gap-1">
+<div>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-cobalt">Summer Eurotrip</span>
+<h4 class="text-lg font-extrabold text-obsidian tracking-tight leading-snug truncate">Amalfi Coast</h4>
+</div>
+<button aria-label="Open Amalfi" class="pill-press w-8 h-8 rounded-full bg-lavender text-obsidian flex items-center justify-center hover:bg-lime">
+<span class="material-symbols-outlined text-[16px] font-bold">arrow_outward</span>
+</button>
+</div>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-3 py-1 rounded-full bg-slate-100 text-obsidian font-extrabold text-xs">
+              €2,400 <span class="font-normal text-obsidian/60">pool</span>
+</span>
+<span class="px-2.5 py-1 rounded-full bg-bubble-pink text-pink-700 font-bold text-xs">
+              👯 5 friends
+            </span>
+</div>
+</div>
+</div>
+<!-- Upcoming Card 2: Kyoto Autumn -->
+<div class="card-press bg-white rounded-[32px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-obsidian/5 flex items-center gap-4 relative overflow-hidden group">
+<div class="relative w-24 h-24 rounded-[24px] overflow-hidden shrink-0 shadow-inner">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" data-alt="Kyoto Autumn pathway" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9wCaxNjhKePaWiNs59ResIDp1L90sfJcqMiSB9wttkQJXZ1yh6dyvDE3uj_s08dmYRQMjzRI1rz1tLG5-JqRxXn2WPhp0l8ifxXeIvnjQyx68vcxiln04Zd9DnlgqSWRRaNbZ2p59hIUFNg7TzkuDcV685mZYE1eNUfjACi4wI5uiwPXcvZJZhjcZTz0qdRL555-qUk8soLSLevDj1TxNAUm2zulaBw-St7eH44xjoFJCQ_OK8l4b">
+<span class="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-obsidian/70 backdrop-blur-md text-[10px] font-bold text-white">
+            🍁 04 Oct
+          </span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex items-start justify-between gap-1">
+<div>
+<span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600">Zen Season</span>
+<h4 class="text-lg font-extrabold text-obsidian tracking-tight leading-snug truncate">Kyoto Autumn</h4>
+</div>
+<button aria-label="Open Kyoto" class="pill-press w-8 h-8 rounded-full bg-lavender text-obsidian flex items-center justify-center hover:bg-lime">
+<span class="material-symbols-outlined text-[16px] font-bold">arrow_outward</span>
+</button>
+</div>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-3 py-1 rounded-full bg-bubble-yellow text-amber-900 font-extrabold text-xs">
+              🍵 Drafting plan
+            </span>
+<span class="px-2.5 py-1 rounded-full bg-slate-100 text-obsidian font-bold text-xs">
+              Ari + Ken
+            </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Playful Gen-Z "New Trip" CTA Bubble -->
+<section class="mt-6 p-5 rounded-[36px] bg-gradient-to-r from-obsidian via-obsidian/95 to-slate-900 text-white flex items-center justify-between shadow-xl relative overflow-hidden">
+<!-- Decorative Glow -->
+<div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-lime/20 blur-xl pointer-events-none"></div>
+<div class="flex items-center gap-3.5 relative z-10">
+<div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-lime text-2xl shadow-inner">
+          🚀
+        </div>
+<div>
+<p class="font-extrabold text-white text-[15px] leading-tight">Got travel itch?</p>
+<p class="text-xs text-white/70 font-medium mt-0.5">Start an itinerary with the gang</p>
+</div>
+</div>
+<button class="pill-press relative z-10 px-4 h-11 rounded-full bg-lime text-obsidian font-extrabold text-xs flex items-center gap-1.5 shadow-[0_4px_16px_rgba(212,255,0,0.4)]">
+<span class="material-symbols-outlined text-[16px] font-black">add</span>
+<span class="">Create</span>
+</button>
+</section>
+</main>
+<!-- FLOATING ULTRA-ROUNDED GEN-Z BOTTOM DOCK (Above everything) -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe pointer-events-none flex justify-center px-4" data-active-classes="bg-lime text-obsidian shadow-lg">
+<div class="pointer-events-auto mx-auto mb-3 bg-obsidian/90 backdrop-blur-2xl rounded-full p-2 shadow-[0_20px_45px_-10px_rgba(0,0,0,0.5)] border border-white/10 flex items-center gap-1.5">
+<!-- Active: Trips -->
+<a aria-current="page" class="pill-press flex items-center gap-2 px-4 h-11 rounded-full bg-lime text-obsidian font-extrabold text-xs shadow-md" data-path="trips" href="#">
+<span class="material-symbols-outlined text-[19px]">explore</span>
+<span class="">Trips</span>
+</a>
+<!-- Expenses -->
+<a class="pill-press flex items-center gap-1.5 px-3.5 h-11 rounded-full text-white/75 hover:text-white font-bold text-xs" data-path="expenses" href="#">
+<span class="material-symbols-outlined text-[19px]">account_balance_wallet</span>
+<span class="">Split</span>
+</a>
+<!-- Itinerary -->
+<a class="pill-press flex items-center gap-1.5 px-3.5 h-11 rounded-full text-white/75 hover:text-white font-bold text-xs" data-path="itinerary" href="#">
+<span class="material-symbols-outlined text-[19px]">calendar_today</span>
+<span class="">Plans</span>
+</a>
+<!-- Profile -->
+<a class="pill-press flex items-center gap-1.5 px-3.5 h-11 rounded-full text-white/75 hover:text-white font-bold text-xs" data-path="profile" href="#">
+<span class="material-symbols-outlined text-[19px]">face</span>
+<span class="">You</span>
+</a>
+</div>
+</nav>
+
+
+</body></html>

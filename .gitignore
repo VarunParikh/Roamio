@@ -1,0 +1,19 @@
+.DS_Store
+*.iml
+.idea/
+.vscode/
+# Flutter
+app/build/
+app/.dart_tool/
+app/.flutter-plugins*
+app/android/app/google-services.json
+app/android/key.properties
+*.jks
+*.keystore
+# Firebase
+firebase/node_modules/
+firebase/functions/node_modules/
+firebase/functions/lib/
+.firebase/
+*-debug.log
+.env*
