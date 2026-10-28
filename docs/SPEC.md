@@ -203,7 +203,7 @@ Each item is written so it can become a test.
 - Per tab: `net_i = paid_i − share_i`. The adventure balance is the sum of nets converted into base currency. **The sum of all balances is always exactly 0** (property-tested).
 - A settlement of amount `s` from A to B adds `s` to A's balance and subtracts `s` from B's, so the zero-sum rule still holds.
 - **Who pays whom:** greedy match of largest debtor to largest creditor, giving at most n−1 transfers.
-- **Worked example:** ₹3,000 paid by Ari ₹2,000 + Ben ₹1,000; shares Ari 50%, Ben 25%, Pal Kiko 25% → Ari +₹500, Ben −₹250, Kiko −₹750.
+- **Worked example:** ₹3,000 paid by Ari ₹2,000 + Ben ₹1,000; shares Ari 50%, Ben 25%, Pal Kiko 25% → Ari +₹500, Ben +₹250, Kiko −₹750 (sums to zero).
 
 ---
 
