@@ -18,6 +18,7 @@ New dependencies · data-model changes after first deploy · anything that adds 
 Commit secrets, `google-services.json`, keystores or `.env` files · skip or delete failing tests · let the UI be the only guard on private data.
 
 ## Commands
-- App: `cd app && dart format --set-exit-if-changed . && flutter analyze && flutter test`
+- App: `cd app && fvm dart format --set-exit-if-changed . && fvm flutter analyze && fvm flutter test` (Flutter pinned in `app/.fvmrc`; builds need `JAVA_HOME=/opt/homebrew/opt/openjdk@17`)
+- Run dev build: `cd app && fvm flutter run --flavor dev`
 - Backend: `cd firebase && npm test`
 - Toolchain paths and setup: [docs/SETUP.md](docs/SETUP.md)

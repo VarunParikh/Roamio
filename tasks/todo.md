@@ -26,7 +26,7 @@ Common verification commands:
   - Verify: `firebase projects:list` shows both; Firestore location reads asia-south1.
   - Files: `docs/SETUP.md`, `firebase/.firebaserc`
 
-- [ ] **Task 4: Scaffold the Flutter app** — M · Deps: 1, 3
+- [x] **Task 4: Scaffold the Flutter app** — M · Deps: 1, 3
   - Acceptance: `app/` with dev/prod flavors, package `app.roamio.android`, minSdk 26; Roamio theme from `design/DESIGN.md` (colours, Plus Jakarta Sans, radii); go_router shell with floating Home · Split · You bottom bar and placeholder screens; Riverpod; lints configured.
   - Verify: `flutter run --flavor dev` shows the bottom bar on the emulator; analyze + test clean.
   - Files: `app/pubspec.yaml`, `app/lib/main.dart`, `app/lib/core/theme/roamio_theme.dart`, `app/lib/core/router/app_router.dart`, `app/lib/core/ui/bottom_bar.dart`
