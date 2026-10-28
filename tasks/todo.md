@@ -36,7 +36,7 @@ Common verification commands:
   - Verify: `cd firebase && npm test` passes; `firebase emulators:start` runs.
   - Files: `firebase/firebase.json`, `firebase/firestore.rules`, `firebase/storage.rules`, `firebase/functions/src/index.ts`, `firebase/test/rules.test.ts`
 
-- [ ] **Task 6: CI pipeline** — S · Deps: 4, 5
+- [x] **Task 6: CI pipeline** — S · Deps: 4, 5
   - Acceptance: GitHub Actions runs format, analyze, Flutter tests and backend tests on every PR and push to `main`; branch protection requires it.
   - Verify: a test PR shows all checks green.
   - Files: `.github/workflows/ci.yml`
