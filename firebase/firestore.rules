@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Default deny. Each collection gets its own match block, with allow + deny
+// tests in test/rules/, as the data model is built (Task 9 onwards).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

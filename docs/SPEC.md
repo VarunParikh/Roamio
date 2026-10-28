@@ -341,8 +341,8 @@ TypeScript (functions): strict mode, ESLint + Prettier.
 |---|---|---|---|
 | Unit | `flutter_test` | split math, FX conversion, validation, settlement | **100%** line coverage on `domain/splits`; property test: balances always sum to 0 |
 | Widget | `flutter_test` | each screen's states (empty, loading, error, offline, populated) | every screen |
-| Security rules | `@firebase/rules-unit-testing` + emulator | budgets private, pals can't write, only leads manage squad, minors' pending state blocks data access | every rule has allow + deny tests |
-| Functions | Jest + emulator | invite join, banner, FX, budget alerts, consent flow, deletion | ≥ 80% |
+| Security rules | `@firebase/rules-unit-testing` + Vitest + emulator | budgets private, pals can't write, only leads manage squad, minors' pending state blocks data access | every rule has allow + deny tests |
+| Functions | Vitest + emulator | invite join, banner, FX, budget alerts, consent flow, deletion | ≥ 80% |
 | Integration | `integration_test` on emulator | the 6 journeys in §15 | all pass before each release |
 | Manual pilot | 10 users, real phones | full trip simulation | feedback form + Crashlytics review |
 

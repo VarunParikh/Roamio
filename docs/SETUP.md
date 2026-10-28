@@ -7,7 +7,8 @@ Verified 2026-10-27 on macOS 27.0.1, MacBook M5.
 | Tool | Version | Installed with |
 |---|---|---|
 | Homebrew | 7.0.9 | pre-installed |
-| OpenJDK | 17.0.21 | `brew install openjdk@17` |
+| OpenJDK 17 (Flutter/Android builds) | 17.0.21 | `brew install openjdk@17` |
+| OpenJDK 21 (Firebase emulators) | 21.0.13 | `brew install openjdk@21` |
 | FVM | 4.3.2 | `brew tap leoafarias/fvm && brew install fvm` |
 | Flutter / Dart | 3.47.8 / 3.13.7 (stable) | `fvm install stable && fvm global stable` |
 | Firebase CLI | 15.34.1 | `npm install -g firebase-tools` |
@@ -57,6 +58,16 @@ flutter doctor
 Expected: ✓ Android toolchain, ✓ Connected device. Xcode warnings are expected until Phase 3 (iOS).
 
 ## 5. Firebase
+
+Backend tests run against local emulators (project `demo-roamio`, no cloud access):
+
+```bash
+cd firebase && npm ci && npm --prefix functions ci
+JAVA_HOME=/opt/homebrew/opt/openjdk@21 npm test
+```
+
+Emulator UI while developing: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 firebase emulators:start --project demo-roamio` → http://127.0.0.1:4000
+
 
 | | Dev | Prod |
 |---|---|---|

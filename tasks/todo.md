@@ -31,7 +31,7 @@ Common verification commands:
   - Verify: `flutter run --flavor dev` shows the bottom bar on the emulator; analyze + test clean.
   - Files: `app/pubspec.yaml`, `app/lib/main.dart`, `app/lib/core/theme/roamio_theme.dart`, `app/lib/core/router/app_router.dart`, `app/lib/core/ui/bottom_bar.dart`
 
-- [ ] **Task 5: Scaffold the Firebase backend** — M · Deps: 1, 3
+- [x] **Task 5: Scaffold the Firebase backend** — M · Deps: 1, 3
   - Acceptance: `firebase/` with default-deny Firestore and Storage rules, TypeScript functions (asia-south1) with one health function, emulator config, rules-test harness with one passing deny test.
   - Verify: `cd firebase && npm test` passes; `firebase emulators:start` runs.
   - Files: `firebase/firebase.json`, `firebase/firestore.rules`, `firebase/storage.rules`, `firebase/functions/src/index.ts`, `firebase/test/rules.test.ts`

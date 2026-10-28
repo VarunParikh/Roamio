@@ -20,5 +20,5 @@ Commit secrets, `google-services.json`, keystores or `.env` files · skip or del
 ## Commands
 - App: `cd app && fvm dart format --set-exit-if-changed . && fvm flutter analyze && fvm flutter test` (Flutter pinned in `app/.fvmrc`; builds need `JAVA_HOME=/opt/homebrew/opt/openjdk@17`)
 - Run dev build: `cd app && fvm flutter run --flavor dev`
-- Backend: `cd firebase && npm test`
+- Backend: `cd firebase && JAVA_HOME=/opt/homebrew/opt/openjdk@21 npm test` (emulators need Java 21; Flutter needs 17)
 - Toolchain paths and setup: [docs/SETUP.md](docs/SETUP.md)
