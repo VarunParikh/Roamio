@@ -56,6 +56,33 @@ flutter doctor
 
 Expected: ✓ Android toolchain, ✓ Connected device. Xcode warnings are expected until Phase 3 (iOS).
 
-## 5. Firebase and accounts
+## 5. Firebase
 
-Covered in Task 3 (to be added here).
+| | Dev | Prod |
+|---|---|---|
+| Project ID | `roamio-dev-varun` | `roamio-prod-varun` |
+| Display name | Roamio dev | Roamio |
+| Plan | Spark (free) — backend work uses local emulators | Blaze, prepaid via UPI, billing account `0120E9-C10B02-C3ADB8` |
+| Firestore | `(default)`, Native, asia-south1 | `(default)`, Native, asia-south1 |
+| Storage | — (needs Blaze; use emulator) | `roamio-prod-varun.firebasestorage.app`, asia-south1 |
+| Android app | `app.roamio.android.dev` (`1:201519690104:android:368076d8280e6bb50a988d`) | `app.roamio.android` (`1:852804538232:android:43ab98815b8f08b15dc28d`) |
+| Sign-in methods | Google, Email/Password | Google, Email/Password |
+| SHA fingerprints | debug keystore SHA-1 + SHA-256 | release key — added in Task 42 |
+| Gemini in Firebase, Google Analytics | on (owner decision — keep on) | on (owner decision — keep on) |
+
+Aliases live in `firebase/.firebaserc`; use `-P dev` / `-P prod`.
+
+`google-services.json` is **never committed**. Download it locally with
+`firebase apps:sdkconfig ANDROID <app-id> -P <alias>`; CI injects it from secrets.
+
+### Secrets (Cloud Secret Manager, prod)
+
+| Secret | Used by | Set with |
+|---|---|---|
+| `UNSPLASH_ACCESS_KEY` | banner function (Task 16) | `firebase functions:secrets:set UNSPLASH_ACCESS_KEY -P prod` |
+
+Unsplash app "Roamio" is in demo mode (50 requests/hour). For the dev emulator, put secrets in
+`firebase/functions/.secret.local` (gitignored), never in code.
+
+New machine: a debug keystore's SHA fingerprints must be added to the dev app
+(`firebase apps:android:sha:create <dev-app-id> <sha> -P dev`) or Google sign-in fails.

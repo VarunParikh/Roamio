@@ -21,7 +21,7 @@ Common verification commands:
   - Verify: `git status` clean; repo page shows README.
   - Files: `README.md`, `CLAUDE.md`, moved folders
 
-- [ ] **Task 3: Create Firebase projects (guided)** — S · Deps: 1 · 👤 owner creates accounts
+- [x] **Task 3: Create Firebase projects (guided)** — S · Deps: 1 · 👤 owner creates accounts
   - Acceptance: `roamio-dev` and `roamio-prod` exist on Blaze with a ₹500/month budget alert; Firestore + Storage in asia-south1; Google and email/password sign-in enabled; Android apps registered as `app.roamio.android` (+ `.dev`); Unsplash developer app created; keys stored as GitHub Actions secrets, never in the repo.
   - Verify: `firebase projects:list` shows both; Firestore location reads asia-south1.
   - Files: `docs/SETUP.md`, `firebase/.firebaserc`
