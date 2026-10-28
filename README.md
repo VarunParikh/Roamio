@@ -1,5 +1,7 @@
 # Roamio
 
+[![CI](https://github.com/VarunParikh/Roamio/actions/workflows/ci.yml/badge.svg)](https://github.com/VarunParikh/Roamio/actions/workflows/ci.yml)
+
 **Split bills. Not friendships.**
 *Instant peer splits. Zero awkward math.*
 
