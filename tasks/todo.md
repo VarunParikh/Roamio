@@ -48,7 +48,7 @@ Common verification commands:
 
 ## Phase 1 — Core logic (highest risk first)
 
-- [ ] **Task 7: Money, currency and FX conversion** — S · Deps: 4
+- [x] **Task 7: Money, currency and FX conversion** — S · Deps: 4
   - Acceptance: `Money` (minor units + ISO code, per-currency decimals, e.g. JPY 0, KWD 3); conversion via a USD-based rate table with half-even rounding; formatting with symbol from the countries data.
   - Verify: unit tests incl. 0-decimal and 3-decimal currencies; 100% coverage of `domain/money`.
   - Files: `app/lib/features/splits/domain/money.dart`, `fx_converter.dart`, tests
