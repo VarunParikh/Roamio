@@ -53,7 +53,7 @@ Common verification commands:
   - Verify: unit tests incl. 0-decimal and 3-decimal currencies; 100% coverage of `domain/money`.
   - Files: `app/lib/features/splits/domain/money.dart`, `fx_converter.dart`, tests
 
-- [ ] **Task 8: Split engine** — M · Deps: 7
+- [x] **Task 8: Split engine** — M · Deps: 7
   - Acceptance: equal and custom-% (basis points) shares with deterministic remainder distribution; multiple payers validated to total the amount; settlements; per-person balances in base currency; minimum-transfer suggestions (≤ n−1). Spec §6 worked example passes.
   - Verify: unit tests + property test (random tabs ⇒ balances sum to 0, shares sum to amount); 100% line coverage of `domain/splits`.
   - Files: `app/lib/features/splits/domain/split_engine.dart`, `tab_models.dart`, `settlement_planner.dart`, tests
