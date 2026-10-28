@@ -58,7 +58,7 @@ Common verification commands:
   - Verify: unit tests + property test (random tabs ⇒ balances sum to 0, shares sum to amount); 100% line coverage of `domain/splits`.
   - Files: `app/lib/features/splits/domain/split_engine.dart`, `tab_models.dart`, `settlement_planner.dart`, tests
 
-- [ ] **Task 9: Data model and security rules** — M · Deps: 5
+- [x] **Task 9: Data model and security rules** — M · Deps: 5
   - Acceptance: `docs/DATA_MODEL.md` (collections: users, adventures, members, pals, tabs, settlements, budgets, activity, invites, fx_rates, banners, parentalConsents, auditLog); rules: only members read an adventure; only leads manage squad/adventure; budgets readable only by owner; pals can't exist as auth users; minors in `pending_parental_consent` can read nothing but their own profile; tab writes validated (amount > 0, ≤ 4 memories). ADR-001 (Firebase) and ADR-002 (offline model) written.
   - Verify: rules tests with allow + deny cases for every collection pass.
   - Files: `docs/DATA_MODEL.md`, `docs/adr/001-*.md`, `docs/adr/002-*.md`, `firebase/firestore.rules`, `firebase/test/rules/*.test.ts`

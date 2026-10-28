@@ -27,17 +27,19 @@ describe("Firestore default deny", () => {
     await assertFails(setDoc(doc(db, "adventures/a1"), { name: "Bangkok" }));
   });
 
-  it("blocks signed-in users until a collection has its own rules", async () => {
+  it("blocks collections that have no rules of their own", async () => {
     const db = env.authenticatedContext("alice").firestore();
-    await assertFails(getDoc(doc(db, "users/alice")));
-    await assertFails(setDoc(doc(db, "users/alice"), { name: "Alice" }));
+    await assertFails(getDoc(doc(db, "secrets/x")));
+    await assertFails(setDoc(doc(db, "secrets/x"), { a: 1 }));
   });
 });
 
 describe("Storage default deny", () => {
   it("blocks uploads and downloads for everyone", async () => {
     const storage = env.authenticatedContext("alice").storage();
-    await assertFails(uploadString(ref(storage, "users/alice/avatar.webp"), "x"));
+    await assertFails(
+      uploadString(ref(storage, "users/alice/avatar.webp"), "x"),
+    );
     await assertFails(getBytes(ref(storage, "users/alice/avatar.webp")));
   });
 });

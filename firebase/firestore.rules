@@ -1,11 +1,207 @@
 rules_version = '2';
 
-// Default deny. Each collection gets its own match block, with allow + deny
-// tests in test/rules/, as the data model is built (Task 9 onwards).
+// Roamio security rules — the privacy boundary (CLAUDE.md, spec §8).
+// Data model: docs/DATA_MODEL.md. Every rule has allow + deny tests in
+// test/rules/firestore.test.ts. Anything not matched below is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    // ---------- helpers ----------
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function account(uid) { return get(/databases/$(database)/documents/users/$(uid)/private/account).data; }
+    function ageStatus() {
+      return exists(/databases/$(database)/documents/users/$(me())/private/account)
+        ? account(me()).get('ageStatus', 'none') : 'none';
+    }
+    // Signed in and not waiting for parental consent (spec §7).
+    function isActive() { return signedIn() && ageStatus() in ['adult', 'minor_active']; }
+    function isAdult() { return signedIn() && ageStatus() == 'adult'; }
+
+    function adventure(aid) { return get(/databases/$(database)/documents/adventures/$(aid)).data; }
+    function isMember(aid) { return isActive() && me() in adventure(aid).memberUids; }
+    function isLead(aid) {
+      let a = adventure(aid);
+      return isMember(aid) && (a.leaderUid == me() || me() in a.coLeadUids);
+    }
+    function isPal(aid, id) { return exists(/databases/$(database)/documents/adventures/$(aid)/pals/$(id)); }
+    function inSquad(aid, id) { return id in adventure(aid).memberUids || isPal(aid, id); }
+
+    function incoming() { return request.resource.data; }
+    function changed() { return incoming().diff(resource.data).affectedKeys(); }
+    function isDate(v) { return v is string && v.matches('^\\d{4}-\\d{2}-\\d{2}$'); }
+    function isCurrency(v) { return v is string && v.matches('^[A-Z]{3}$'); }
+    function isText(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+
+    // ---------- users ----------
+    match /users/{uid} {
+      function validProfile() {
+        return incoming().keys().hasOnly(['name', 'photoUrl', 'bio'])
+          && isText(incoming().name, 1, 60)
+          && (incoming().get('photoUrl', null) == null || incoming().photoUrl is string)
+          && isText(incoming().get('bio', ''), 0, 200);
+      }
+      allow read: if signedIn() && (me() == uid || isActive());
+      allow create, update: if signedIn() && me() == uid && validProfile();
+
+      match /private/account {
+        allow read: if signedIn() && me() == uid;
+        allow create: if signedIn() && me() == uid
+          && incoming().keys().hasAll(['dob'])
+          && incoming().keys().hasOnly(
+               ['dob', 'profileCurrency', 'consents', 'noticeVersion', 'createdAt', 'fcmTokens'])
+          && isDate(incoming().dob);
+        allow update: if signedIn() && me() == uid
+          && changed().hasOnly(['profileCurrency', 'consents', 'fcmTokens'])
+          && (!('profileCurrency' in changed()) || isCurrency(incoming().profileCurrency));
+      }
+
+      match /invites/{code} {
+        allow read, delete: if signedIn() && me() == uid;
+        allow create, update: if signedIn() && me() == uid
+          && incoming().keys().hasOnly(['code', 'addedAt'])
+          && incoming().code == code;
+      }
+    }
+
+    // ---------- adventures ----------
+    match /adventures/{aid} {
+      function validMetadata() {
+        return isText(incoming().name, 1, 80)
+          && isText(incoming().get('description', ''), 0, 500)
+          && isDate(incoming().startDate) && isDate(incoming().endDate)
+          && incoming().endDate >= incoming().startDate
+          && isCurrency(incoming().baseCurrency);
+      }
+
+      allow read: if isMember(aid);
+      allow create: if isActive()
+        && incoming().keys().hasAll(['name', 'countryCode', 'startDate', 'endDate',
+             'baseCurrency', 'createdBy', 'leaderUid', 'coLeadUids', 'memberUids'])
+        && incoming().keys().hasOnly(['name', 'description', 'countryCode', 'city',
+             'startDate', 'endDate', 'baseCurrency', 'bannerUrl', 'createdBy', 'createdAt',
+             'leaderUid', 'coLeadUids', 'memberUids'])
+        && incoming().createdBy == me()
+        && incoming().leaderUid == me()
+        && incoming().memberUids == [me()]
+        && incoming().coLeadUids == []
+        && validMetadata();
+      // Membership, roles and hasTabs change only through Cloud Functions.
+      allow update: if isLead(aid)
+        && changed().hasOnly(['name', 'description', 'city', 'startDate', 'endDate',
+             'bannerUrl', 'baseCurrency'])
+        && validMetadata()
+        && (!('baseCurrency' in changed()) || resource.data.get('hasTabs', false) == false);
+
+      match /members/{uid} {
+        allow read: if isMember(aid);
+      }
+
+      match /activity/{id} {
+        allow read: if isMember(aid);
+      }
+
+      match /pals/{pid} {
+        allow read: if isMember(aid);
+        allow create: if isLead(aid)
+          && incoming().keys().hasOnly(['nickname', 'addedBy', 'status', 'createdAt'])
+          && isText(incoming().nickname, 1, 30)
+          && incoming().addedBy == me()
+          && incoming().status == 'active';
+        allow update: if isLead(aid)
+          && changed().hasOnly(['nickname', 'status'])
+          && isText(incoming().nickname, 1, 30)
+          && incoming().status in ['active', 'left'];
+      }
+
+      match /tabs/{tid} {
+        // Shape only; sums and membership of payers/participants are checked
+        // by the split engine and a function trigger (DATA_MODEL.md).
+        function validTab() {
+          let t = incoming();
+          return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
+                   'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
+                   'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted'])
+            && t.amountMinor is int && t.amountMinor > 0
+            && isCurrency(t.currency)
+            && isDate(t.date) && isDate(t.fxDate)
+            && t.payers is list && t.payers.size() >= 1 && t.payers.size() <= 50
+            && t.participants is list && t.participants.size() >= 1
+            && t.participants.size() <= 50
+            && (t.get('percentBp', null) == null || t.percentBp is map)
+            && t.get('memories', []) is list && t.get('memories', []).size() <= 4
+            && isText(t.get('description', ''), 0, 200)
+            && (!('location' in t) || isAdult());
+        }
+
+        allow read: if isMember(aid);
+        allow create: if isMember(aid)
+          && validTab()
+          && incoming().createdBy == me()
+          && incoming().deleted == false;
+        allow update: if isMember(aid) && (
+          // the creator edits their own tab
+          (resource.data.createdBy == me() && validTab()
+            && incoming().createdBy == resource.data.createdBy)
+          // a lead soft-deletes any tab
+          || (isLead(aid) && changed().hasOnly(['deleted', 'updatedAt'])
+            && incoming().deleted == true)
+        );
+      }
+
+      match /settlements/{sid} {
+        function validSettlement() {
+          let s = incoming();
+          return s.keys().hasOnly(['from', 'to', 'amountMinor', 'currency', 'recordedBy',
+                   'createdAt', 'undone'])
+            && s.amountMinor is int && s.amountMinor > 0
+            && s.currency == adventure(aid).baseCurrency
+            && s.from != s.to
+            && inSquad(aid, s.from) && inSquad(aid, s.to)
+            && s.recordedBy == me()
+            && s.undone == false;
+        }
+        function mayRecord(s) {
+          return me() in [s.from, s.to]
+            || (isLead(aid) && (isPal(aid, s.from) || isPal(aid, s.to)));
+        }
+
+        allow read: if isMember(aid);
+        allow create: if isMember(aid) && validSettlement() && mayRecord(incoming());
+        allow update: if isMember(aid)
+          && changed().hasOnly(['undone', 'undoneBy'])
+          && incoming().undone == true
+          && incoming().undoneBy == me()
+          && (me() in [resource.data.from, resource.data.to] || isLead(aid));
+      }
+
+      // Personal budgets are visible to their owner only (UC-19).
+      match /budgets/{uid} {
+        allow read, delete: if isMember(aid) && me() == uid;
+        allow create, update: if isMember(aid) && me() == uid
+          && incoming().keys().hasOnly(['amountMinor', 'currency', 'updatedAt', 'alertsSent'])
+          && incoming().get('alertsSent', []) == (resource == null
+               ? [] : resource.data.get('alertsSent', []))
+          && incoming().amountMinor is int && incoming().amountMinor > 0
+          && isCurrency(incoming().currency);
+      }
+    }
+
+    // ---------- shared, server-written data ----------
+    match /invites/{code} {
+      allow get: if isActive();
+    }
+
+    match /fx_rates/{date} {
+      allow read: if isActive();
+    }
+
+    match /banners/{country} {
+      allow read: if isActive();
+    }
+
+    match /parentalConsents/{childUid} {
+      allow read: if signedIn() && (me() == childUid || resource.data.parentUid == me());
     }
   }
 }
