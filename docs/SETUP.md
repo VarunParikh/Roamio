@@ -75,7 +75,7 @@ so start the emulators under that ID or the server triggers won't see its writes
 
 ```bash
 cd firebase && npm --prefix functions run build
-JAVA_HOME=/opt/homebrew/opt/openjdk@21 firebase emulators:start -P dev --only auth,firestore,functions
+JAVA_HOME=/opt/homebrew/opt/openjdk@21 firebase emulators:start -P dev --only auth,firestore,functions,storage
 # in another terminal
 cd app && JAVA_HOME=/opt/homebrew/opt/openjdk@17 fvm flutter run --flavor dev --dart-define=USE_EMULATORS=true
 ```

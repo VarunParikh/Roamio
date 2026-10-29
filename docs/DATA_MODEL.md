@@ -32,6 +32,18 @@ Conventions:
 
 Anything not listed is denied.
 
+## Storage (photos)
+
+Rules: [firebase/storage.rules](../firebase/storage.rules) · Tests: [firebase/test/rules/storage.test.ts](../firebase/test/rules/storage.test.ts). Every file is WebP, at most 1 MB, compressed and EXIF-stripped on the device, and written once (no overwrite or delete from the app). The rules read Firestore to decide access, so the first deploy must let Storage read Firestore (the CLI offers to grant this).
+
+| Path | Read | Create |
+|---|---|---|
+| `adventures/{aid}/tabs/{tid}/{id}.webp` | members | the tab's creator (the link goes into the tab's `memories`) |
+| `adventures/{aid}/banner/{id}.webp` | members | leads (the link goes into `bannerUrl`) |
+| `users/{uid}/avatar/{id}.webp` | active users; owner always | owner |
+
+Photos added offline wait in an on-device queue (`app/lib/core/images/upload_queue.dart`) that survives restarts and retries with backoff (5 s doubling to 30 min); the link is written to the document once the upload succeeds.
+
 ## What rules can't check (enforced elsewhere)
 
 Firestore rules can't loop over arrays, so these are checked by the app's split engine (`problemsWith`) and re-checked by the `checkTab` Cloud Function trigger, which soft-deletes a failing tab and logs `tab_rejected` (it also sets the adventure's `hasTabs`):

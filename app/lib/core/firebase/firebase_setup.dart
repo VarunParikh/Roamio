@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:roamio/core/config/flavor.dart';
 
 /// `--dart-define=USE_EMULATORS=true` points a dev build at the local
@@ -22,5 +23,6 @@ Future<void> setUpFirebase() async {
     await FirebaseAuth.instance.useAuthEmulator(_emulatorHost, 9099);
     FirebaseFirestore.instance.useFirestoreEmulator(_emulatorHost, 8080);
     roamioFunctions.useFunctionsEmulator(_emulatorHost, 5001);
+    await FirebaseStorage.instance.useStorageEmulator(_emulatorHost, 9199);
   }
 }
