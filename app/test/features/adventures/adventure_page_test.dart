@@ -40,6 +40,7 @@ TabEntry _tab(
   MapPoint? location,
   List<String> memories = const [],
   bool deleted = false,
+  DateTime? updatedAt,
 }) => TabEntry(
   id: id,
   description: description,
@@ -49,6 +50,7 @@ TabEntry _tab(
   location: location,
   memories: memories,
   deleted: deleted,
+  updatedAt: updatedAt,
   split: TabSplit(
     amount: Money(amount, 'THB'),
     payers: [Payment(paidBy, amount)],
@@ -58,6 +60,8 @@ TabEntry _tab(
   ),
 );
 
+final _dinnerSavedAt = DateTime.utc(2026, 10, 29, 9);
+
 List<TabEntry> _tabs() => [
   _tab(
     't1',
@@ -66,6 +70,7 @@ List<TabEntry> _tabs() => [
     paidBy: 'bob',
     amount: 90000,
     sharing: const ['ari', 'bob', 'kiko'],
+    updatedAt: _dinnerSavedAt,
   ),
   _tab(
     't2',
@@ -231,6 +236,8 @@ void main() {
       expect(tab.amountMinor, 90000);
       expect(tab.participants, ['ari', 'bob', 'kiko']);
       expect(tab.payers.single.payer, 'bob');
+      // so the server can tell if this edit replaced a newer one (UC-32)
+      expect(tab.basedOn, _dinnerSavedAt);
       expect(find.text('Dinner at Jay Fai'), findsWidgets);
     });
 
