@@ -18,6 +18,8 @@ import 'package:roamio/features/consent/data/firebase_consent_service.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:roamio/features/squad/data/firebase_squad_service.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 Future<void> main() async {
@@ -41,6 +43,13 @@ Future<void> main() async {
         ),
         inviteServiceProvider.overrideWithValue(
           FirebaseInviteService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
+            roamioFunctions,
+          ),
+        ),
+        squadServiceProvider.overrideWithValue(
+          FirebaseSquadService(
             FirebaseAuth.instance,
             FirebaseFirestore.instance,
             roamioFunctions,

@@ -43,17 +43,46 @@ class InvitesList extends ConsumerWidget {
   }
 }
 
-class _InviteCard extends ConsumerWidget {
+class _InviteCard extends ConsumerStatefulWidget {
   const new({required this.code});
 
   final String code;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_InviteCard> createState() => _InviteCardState();
+}
+
+class _InviteCardState extends ConsumerState<_InviteCard> {
+  bool _joining = false;
+
+  String get code => widget.code;
+
+  Future<void> _join(InviteDetails d) async {
+    setState(() => _joining = true);
+    try {
+      await ref.read(inviteServiceProvider).join(code);
+      if (mounted) {
+        showAuthMessage(
+          context,
+          'You’re in! ${d.adventureName} is now on your Home.',
+        );
+      }
+    } on InviteException catch (e) {
+      if (mounted) {
+        showAuthMessage(context, e.message);
+        setState(() => _joining = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final details = ref.watch(inviteDetailsProvider(code));
     final forget = TextButton(
-      onPressed: () => ref.read(inviteServiceProvider).forgetCode(code),
+      onPressed: _joining
+          ? null
+          : () => ref.read(inviteServiceProvider).forgetCode(code),
       child: const Text('Remove'),
     );
     return Card(
@@ -93,17 +122,23 @@ class _InviteCard extends ConsumerWidget {
                   '${formatDateRange(d.startDate, d.endDate)}',
                   style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        'Joining a squad arrives in the next update.',
-                        style: text.bodySmall?.copyWith(
-                          color: RoamioColors.slate,
-                        ),
+                      child: FilledButton(
+                        onPressed: _joining ? null : () => _join(d),
+                        child: _joining
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Join squad'),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     forget,
                   ],
                 ),

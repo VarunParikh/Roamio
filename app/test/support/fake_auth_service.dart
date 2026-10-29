@@ -13,11 +13,13 @@ import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_invite_service.dart';
+import 'fake_squad_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -122,6 +124,7 @@ Future<void> pumpRoamio(
   FakeInviteService? invites,
   List<String>? shared,
   String? clipboard,
+  FakeSquadService? squad,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -135,6 +138,7 @@ Future<void> pumpRoamio(
           adventures ?? FakeAdventureService(),
         ),
         inviteServiceProvider.overrideWithValue(invites ?? FakeInviteService()),
+        squadServiceProvider.overrideWithValue(squad ?? FakeSquadService()),
         shareTextProvider.overrideWithValue((text) async => shared?.add(text)),
         readClipboardProvider.overrideWithValue(() async => clipboard),
         consentServiceProvider.overrideWithValue(

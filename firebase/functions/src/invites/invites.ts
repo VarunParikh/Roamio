@@ -12,7 +12,7 @@ export const INVITE_DAYS = 14;
 
 const db = () => getFirestore();
 
-function uidOf(request: { auth?: { uid: string } }): string {
+export function uidOf(request: { auth?: { uid: string } }): string {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first.");
   return request.auth.uid;
 }
@@ -98,7 +98,7 @@ export const revokeInvite = onCall(async (request) => {
   return { ok: true };
 });
 
-async function usableInvite(input: unknown): Promise<DocumentSnapshot> {
+export async function usableInvite(input: unknown): Promise<DocumentSnapshot> {
   const code = normaliseCode(String(input ?? ""));
   if (!code)
     throw new HttpsError("invalid-argument", "That doesn't look like a Roamio invite code.");
