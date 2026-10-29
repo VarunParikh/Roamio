@@ -19,14 +19,15 @@ export type ConsentTiming = {
   withdrawnAt?: number;
 };
 
-export function isExpired(requestedAt: number, now: number): boolean {
-  return now - requestedAt >= CONSENT_DAYS * DAY_MS;
+export function isExpired(requestedAt: number, now: number, days = CONSENT_DAYS): boolean {
+  return now - requestedAt >= days * DAY_MS;
 }
 
 /** What the daily sweep should do with one consent request at [now]. */
 export function nextConsentAction(
   c: ConsentTiming,
   now: number,
+  days = CONSENT_DAYS,
 ): "remind" | "expire" | "delete" | null {
   if (c.status === "withdrawn") {
     return c.withdrawnAt !== undefined && now - c.withdrawnAt >= WITHDRAW_GRACE_HOURS * HOUR_MS
@@ -34,7 +35,7 @@ export function nextConsentAction(
       : null;
   }
   if (c.status !== "requested") return null;
-  if (isExpired(c.requestedAt, now)) return "expire";
+  if (isExpired(c.requestedAt, now, days)) return "expire";
   const daysWaiting = (now - c.requestedAt) / DAY_MS;
   const due = REMINDER_DAYS.filter((day) => daysWaiting >= day).length;
   return c.remindersSent < due ? "remind" : null;

@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
@@ -80,6 +82,9 @@ Future<void> main() async {
             FirebaseFirestore.instance,
             roamioFunctions,
           ),
+        ),
+        remoteConfigSourceProvider.overrideWithValue(
+          FirebaseRemoteConfigSource(FirebaseRemoteConfig.instance),
         ),
         privacyServiceProvider.overrideWithValue(
           FirebasePrivacyService(roamioFunctions),
