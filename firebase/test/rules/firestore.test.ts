@@ -250,6 +250,39 @@ describe("users/{uid}/private/account", () => {
     );
   });
 
+  it("an adult may nominate one person, change them, or remove them (DPDP §14)", async () => {
+    const own = doc(as("bob"), "users/bob/private/account");
+    const sam = { name: "Sam Rao", email: "sam@example.com" };
+    await assertSucceeds(updateDoc(own, { nominee: sam }));
+    await assertSucceeds(updateDoc(own, { nominee: { ...sam, name: "Sam R." } }));
+    await assertSucceeds(updateDoc(own, { nominee: null }));
+  });
+
+  it("refuses a malformed nominee, a minor's, or anyone else's", async () => {
+    const own = doc(as("bob"), "users/bob/private/account");
+    const sam = { name: "Sam Rao", email: "sam@example.com" };
+    await assertFails(updateDoc(own, { nominee: { ...sam, email: "not-an-email" } }));
+    await assertFails(updateDoc(own, { nominee: { ...sam, name: "" } }));
+    await assertFails(updateDoc(own, { nominee: { ...sam, name: "x".repeat(81) } }));
+    await assertFails(updateDoc(own, { nominee: { ...sam, phone: "123" } }));
+    await assertFails(updateDoc(own, { nominee: { name: "Sam" } }));
+    await assertFails(updateDoc(own, { nominee: "Sam" }));
+    // A parent or guardian acts for an under-18 (spec §7), not a nominee.
+    await assertFails(
+      updateDoc(doc(as("mia"), "users/mia/private/account"), { nominee: sam }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "users/bob/private/account"), { nominee: sam }),
+    );
+    // Not at sign-up either.
+    await assertFails(
+      setDoc(doc(as("nora"), "users/nora/private/account"), {
+        ...fresh,
+        nominee: sam,
+      }),
+    );
+  });
+
   it("is private to its owner", async () => {
     await assertSucceeds(getDoc(doc(as("bob"), "users/bob/private/account")));
     await assertFails(getDoc(doc(as("alice"), "users/bob/private/account")));
