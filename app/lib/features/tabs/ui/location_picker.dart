@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
+import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 
-/// "Add location" for a tab (spec UC-21). Shown only to adults (§7.2);
-/// reads the location once, when tapped, after Android's permission prompt.
+/// "Add location" for a tab (spec UC-21). Shown only to adults (§7.2) who
+/// have switched Location on in You (§8); reads the location once, when
+/// tapped, after Android's permission prompt.
 class LocationPicker extends ConsumerStatefulWidget {
   const new({required this.point, required this.onChanged, super.key});
 
@@ -81,6 +84,7 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
     if (!ref.watch(privacyPolicyProvider).allowsLocation) {
       return const SizedBox.shrink();
     }
+    final allowed = ref.watch(locationAllowedProvider).value ?? false;
     if (widget.point != null) {
       return Row(
         children: [
@@ -96,6 +100,13 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
             onPressed: () => widget.onChanged(null),
           ),
         ],
+      );
+    }
+    if (!allowed) {
+      return Text(
+        'Location is off. Turn it on in You to tag where tabs happen.',
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: RoamioColors.slate),
       );
     }
     return OutlinedButton.icon(
