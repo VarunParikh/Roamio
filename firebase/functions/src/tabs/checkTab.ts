@@ -1,4 +1,9 @@
-import { FieldValue, getFirestore, type DocumentData, type Timestamp } from "firebase-admin/firestore";
+import {
+  FieldValue,
+  getFirestore,
+  type DocumentData,
+  type Timestamp,
+} from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/firestore";
 import { logger } from "firebase-functions";
 
