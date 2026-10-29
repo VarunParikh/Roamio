@@ -103,6 +103,13 @@ Aliases live in `firebase/.firebaserc`; use `-P dev` / `-P prod`.
 `google-services.json` is **never committed**. Download it locally with
 `firebase apps:sdkconfig ANDROID <app-id> -P <alias>`; CI injects it from secrets.
 
+### Email (parental consent)
+
+Functions queue emails in the `mail` collection (Trigger Email extension format) instead of
+calling a provider. To send them, install the **Trigger Email from Firestore** extension on prod
+with the chosen provider's SMTP settings, collection `mail`. Until then, emails wait in the
+collection; in the emulator you can read them in the Emulator UI → Firestore → `mail`.
+
 ### Secrets (Cloud Secret Manager, prod)
 
 | Secret | Used by | Set with |

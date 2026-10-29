@@ -1,8 +1,9 @@
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { onDocumentCreated } from "firebase-functions/firestore";
 import { bracketFor, todayInIndia } from "./age";
+import { deleteUserCompletely } from "./deleteUser";
+
+const NOT_FOUND = 5; // gRPC status code
 
 /**
  * Sets the server-only `ageStatus` from the date of birth a new account gives
@@ -18,18 +19,18 @@ export const setAgeStatus = onDocumentCreated("users/{uid}/private/account", asy
   switch (bracket) {
     case "adult":
     case "minor":
-      await snapshot.ref.update({ ageStatus: bracket === "adult" ? "adult" : "minor_pending" });
+      await snapshot.ref
+        .update({ ageStatus: bracket === "adult" ? "adult" : "minor_pending" })
+        // The record may already be gone (e.g. the account was deleted at once).
+        .catch((e: { code?: number }) => {
+          if (e.code !== NOT_FOUND) throw e;
+        });
       return;
     case "invalid":
       await snapshot.ref.delete();
       return;
     case "underThirteen":
       logger.info("Removing under-13 sign-up", { uid });
-      await getFirestore().recursiveDelete(getFirestore().doc(`users/${uid}`));
-      await getAuth()
-        .deleteUser(uid)
-        .catch((e: { code?: string }) => {
-          if (e.code !== "auth/user-not-found") throw e;
-        });
+      await deleteUserCompletely(uid);
   }
 });
