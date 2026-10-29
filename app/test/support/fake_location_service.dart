@@ -7,6 +7,20 @@ class FakeLocationService implements LocationService {
   final List<LocationResult> results;
   final List<String> calls = [];
 
+  /// Where [currentIfAllowed] says the phone is; null when location isn't
+  /// already allowed.
+  MapPoint? allowed;
+
+  /// Background reads that never ask (the Home weather), kept apart from
+  /// [calls] so tests of the location flow see only that flow.
+  int backgroundReads = 0;
+
+  @override
+  Future<MapPoint?> currentIfAllowed() async {
+    backgroundReads++;
+    return allowed;
+  }
+
   @override
   Future<LocationResult> current() async {
     calls.add('current');
