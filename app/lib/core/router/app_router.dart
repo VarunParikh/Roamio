@@ -22,6 +22,7 @@ import 'package:roamio/features/splash/ui/splash_screen.dart';
 import 'package:roamio/features/splits/ui/split_screen.dart';
 import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
+import 'package:roamio/features/updates/update_gate.dart';
 
 abstract final class Routes {
   static const String home = AuthRoutes.home;
@@ -138,14 +139,16 @@ final _routes = <RouteBase>[
     builder: (_, _) => const PrivacyCentreScreen(),
   ),
   StatefulShellRoute.indexedStack(
-    builder: (context, state, shell) => Scaffold(
-      extendBody: true,
-      body: shell,
-      bottomNavigationBar: RoamioBottomBar(
-        items: _tabs,
-        currentIndex: shell.currentIndex,
-        onSelected: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
+    builder: (context, state, shell) => UpdateGate(
+      child: Scaffold(
+        extendBody: true,
+        body: shell,
+        bottomNavigationBar: RoamioBottomBar(
+          items: _tabs,
+          currentIndex: shell.currentIndex,
+          onSelected: (i) =>
+              shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        ),
       ),
     ),
     branches: [

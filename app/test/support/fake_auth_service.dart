@@ -32,6 +32,7 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/updates/update_checker.dart';
 import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
@@ -51,6 +52,7 @@ import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
 import 'fake_sync.dart';
 import 'fake_tab_service.dart';
+import 'fake_update_store.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -181,6 +183,8 @@ Future<void> pumpRoamio(
   FakePrivacyService? privacy,
   FetchJson? weatherFetch,
   bool weatherEnabled = true,
+  UpdateChecker? updates,
+  Map<String, String>? remoteConfig,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -242,7 +246,17 @@ Future<void> pumpRoamio(
         weatherEnabledProvider.overrideWithValue(weatherEnabled),
         // Remote Config unreachable: every in-app default applies.
         remoteConfigSourceProvider.overrideWithValue(
-          const UnreachableRemoteConfig(),
+          remoteConfig == null
+              ? const UnreachableRemoteConfig()
+              : FixedRemoteConfig(remoteConfig),
+        ),
+        // GitHub unreachable unless a test passes [updates]: no popup.
+        updateCheckerProvider.overrideWithValue(
+          updates ??
+              UpdateChecker(
+                (_) async => throw Exception('no web'),
+                FakeUpdateStore(),
+              ),
         ),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
@@ -265,4 +279,14 @@ class UnreachableRemoteConfig implements RemoteConfigSource {
 
   @override
   Future<Map<String, String>> load() async => throw Exception('offline');
+}
+
+/// Remote Config that answers with [values].
+class FixedRemoteConfig implements RemoteConfigSource {
+  const new(this.values);
+
+  final Map<String, String> values;
+
+  @override
+  Future<Map<String, String>> load() async => values;
 }

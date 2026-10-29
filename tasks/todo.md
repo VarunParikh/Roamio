@@ -254,10 +254,11 @@ Common verification commands:
   - Files: `app/lib/core/config/remote_config.dart`, `docs/REMOTE_CONFIG.md`, test
   - Done: `firebase_remote_config` (owner-approved). App keys `ocr_enabled`, `weather_enabled`, `export_enabled`, `cta_pulse_enabled`, `min_supported_version`, `category_order`; server keys `budget_alert_thresholds`, `invite_validity_days`, `consent_link_validity_days` via the Admin SDK's server template (no new backend dependency). Every key has a default; bad values fall back. No copy-text keys yet. Not tried against the real Remote Config.
 
-- [ ] **Task 38: Update popup** — S · Deps: 37 · UC-34
+- [x] **Task 38: Update popup** — S · Deps: 37 · UC-34
   - Acceptance: checks GitHub latest release at most once per 24 h; dismissible popup with notes and Download; blocking when below `min_supported_version`.
   - Verify: unit tests for version comparison and throttling.
   - Files: `app/lib/features/updates/**`, tests
+  - Done: on opening the main tabs, asks GitHub's latest release of `VarunParikh/Roamio` (public, no key) at most once per 24 h, remembered in a small file; failures stay quiet and retry next launch. Popup shows the version, release notes and Download update (the release's `.apk`, else its page); Later hides that version for good. Below `min_supported_version` it can't be closed, even offline. The version is the `appVersion` constant (a test keeps it equal to pubspec.yaml), so no new dependency. Not tried on a device.
 
 ### ✅ Checkpoint 5 — Journeys D and F pass manually
 - [ ] Offline → Sync works across two devices · [ ] Budget alert reaches only its owner · [ ] Export + delete work · [ ] Owner approves
