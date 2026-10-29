@@ -12,8 +12,12 @@ class FakeAdventureService implements AdventureService {
   final _changes = StreamController<List<Adventure>>.broadcast();
   bool failNext = false;
 
+  /// The adventure list can't be loaded (Home's error state).
+  bool failToLoad = false;
+
   @override
   Stream<List<Adventure>> myAdventures() async* {
+    if (failToLoad) throw Exception('adventures unavailable');
     yield adventures;
     yield* _changes.stream;
   }

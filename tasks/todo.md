@@ -267,10 +267,11 @@ Common verification commands:
 
 ## Phase 6 — Polish & ship
 
-- [ ] **Task 39: UX pass** — M · Deps: 38
+- [x] **Task 39: UX pass** — M · Deps: 38
   - Acceptance: one primary chartreuse CTA per screen with 3-cycle pulse (respects reduced motion); every screen's empty/error/offline state has one next action (checklist in `tasks/screen_states.md`); TalkBack labels, 48 dp targets, 4.5:1 contrast.
   - Verify: checklist complete; widget test sweep for states.
   - Files: `app/lib/core/ui/primary_button.dart`, `tasks/screen_states.md`, screens as needed
+  - Done: `tasks/screen_states.md` lists every screen's primary button and each empty/error/offline state with its one next action and test. Fixed dead ends: tab detail, Add/Edit tab and Edit adventure now show "This adventure isn't available" + Back to Home instead of spinning; Split shows "We couldn't work out the split" + Try again (the split provider now passes load errors through); Activity has Try again on error and Back to the adventure when empty; Split with no adventures offers New Adventure. Contrast: coral/mint were too light for text (3.5:1, 2.5:1), so text uses new `coralText`/`mintText` shades (6.0:1, 5.3:1); fills keep coral/mint. Flutter's tap-target, label and contrast guidelines pass on Sign in, Home, adventure page, Add tab, Activity, Split, You and Privacy centre; every icon button has a tooltip. Not checked on a device: TalkBack reading order, pulse feel, hero text over real banner photos.
 
 - [ ] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
   - Acceptance: `PRIVACY_NOTICE.md` (adult + child versions), `BREACH_RESPONSE.md`, README updated (setup, run, release), ADRs current; notice published on Hosting.

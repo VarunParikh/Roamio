@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
@@ -18,14 +19,14 @@ class ActivityScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
     final adventure = ref
         .watch(myAdventuresProvider)
         .value
         ?.where((a) => a.id == adventureId)
         .firstOrNull;
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
-    final entries = ref.watch(activityProvider(adventureId)).value;
+    final activity = ref.watch(activityProvider(adventureId));
+    final entries = activity.value;
     final labels = adventure == null
         ? const <String, String>{}
         : squadLabels(ref, adventure);
@@ -42,13 +43,24 @@ class ActivityScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Activity')),
-      body: entries == null
+      body: activity.hasError && entries == null
+          ? _Next(
+              text: 'We couldn’t load the activity.',
+              action: OutlinedButton(
+                onPressed: () => ref.invalidate(activityProvider(adventureId)),
+                child: const Text('Try again'),
+              ),
+            )
+          : entries == null
           ? const Center(child: CircularProgressIndicator())
           : lines.isEmpty
-          ? Center(
-              child: Text(
-                'Nothing has happened yet.',
-                style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
+          ? _Next(
+              text: 'Nothing has happened yet.',
+              action: OutlinedButton(
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go('/adventures/$adventureId'),
+                child: const Text('Back to the adventure'),
               ),
             )
           : ListView.separated(
@@ -66,4 +78,31 @@ class ActivityScreen extends ConsumerWidget {
             ),
     );
   }
+}
+
+/// An empty or error state with its one next action (spec §12).
+class _Next extends StatelessWidget {
+  const new({required this.text, required this.action});
+
+  final String text;
+  final Widget action;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(color: RoamioColors.slate),
+        ),
+        const SizedBox(height: 16),
+        action,
+      ],
+    ),
+  );
 }
