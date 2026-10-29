@@ -240,6 +240,7 @@ Common verification commands:
   - Acceptance: download my data (JSON + photos zip via function), also offered to a parent for each linked child (deferred from Task 12); delete account (function: erase profile/photos/budgets, tabs keep "Deleted user"); nominate a person; grievance contact; per-purpose consent toggles; audit log entries kept 1 year.
   - Verify: functions tests for export and deletion (balances unchanged after deletion).
   - Files: `app/lib/features/profile/ui/privacy_centre.dart`, `firebase/functions/src/privacy/*.ts`, tests
+  - Progress: `deleteMyAccount` (#35); `exportMyData` JSON + photo zip parts, own data or a linked child's (Task 35b). Not yet: adventures someone has left are missing from the export.
 
 - [ ] **Task 36: Weather** — XS · Deps: 15 · UC-7
   - Acceptance: Open-Meteo on the Hero card, cached 30 min, hidden on failure, city-based for minors or without permission.

@@ -32,6 +32,10 @@ Conventions:
 
 Anything not listed is denied.
 
+## Data export (spec UC-29)
+
+`exportMyData` (callable) builds a person's data on demand and stores nothing: the JSON (profile, private account, invites, notifications, and per adventure they are in: role, tabs they added, paid or share, transfers they are part of, their own budget, activity about them; their consent record and linked children without `tokenHash`; audit entries about them), then their photos (profile photos and memories on tabs they added) as stored zips of at most 6 MB each, one call per part. A parent may pass `childUid` for a child whose consent is `granted`. Every JSON download writes `auditLog` `data_exported` (actor = caller, target = whose data). Adventures someone has left are not in the export yet.
+
 ## Storage (photos)
 
 Rules: [firebase/storage.rules](../firebase/storage.rules) · Tests: [firebase/test/rules/storage.test.ts](../firebase/test/rules/storage.test.ts). Every file is WebP, at most 1 MB, compressed and EXIF-stripped on the device, and written once (no overwrite or delete from the app). The rules read Firestore to decide access, so the first deploy must let Storage read Firestore (the CLI offers to grant this).

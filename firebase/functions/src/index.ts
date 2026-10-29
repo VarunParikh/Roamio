@@ -21,6 +21,7 @@ export { consentSweep } from "./consent/sweep";
 export { checkTab } from "./tabs/checkTab";
 export { budgetOnChange, budgetOnTab } from "./budget/budget";
 export { dailyFxRates } from "./fx/rates";
+export { exportMyData } from "./privacy/exportData";
 export { settlementActivity } from "./splits/settlements";
 export {
   demoteCoLead,
