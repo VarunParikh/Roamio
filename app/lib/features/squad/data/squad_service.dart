@@ -18,6 +18,14 @@ class JoinCard {
   final String memberName;
 }
 
+/// Someone on the trip without the app: a nickname only (spec UC-18).
+class Pal {
+  const new({required this.id, required this.nickname});
+
+  final String id;
+  final String nickname;
+}
+
 /// A squad action failed; [message] is safe to show as-is.
 class SquadException implements Exception {
   new(this.message);
@@ -53,6 +61,18 @@ abstract interface class SquadService {
 
   /// Display names for [uids], from their public profiles.
   Future<Map<String, String>> namesOf(List<String> uids);
+
+  /// The adventure's active pals, A to Z.
+  Stream<List<Pal>> pals(String adventureId);
+
+  /// Leads only (spec UC-18). Works offline and syncs later.
+  Future<void> addPal(String adventureId, String nickname);
+
+  Future<void> renamePal(String adventureId, String palId, String nickname);
+
+  /// Marks the pal Left: pals are never deleted, so tabs keep their history
+  /// (spec UC-16).
+  Future<void> removePal(String adventureId, String palId);
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.
@@ -65,6 +85,11 @@ final squadServiceProvider = Provider<SquadService>(
 final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
     FutureProvider.family<Map<String, String>, String>(
       (ref, uids) => ref.watch(squadServiceProvider).namesOf(uids.split(',')),
+    );
+
+final StreamProviderFamily<List<Pal>, String> palsProvider =
+    StreamProvider.family<List<Pal>, String>(
+      (ref, adventureId) => ref.watch(squadServiceProvider).pals(adventureId),
     );
 
 final joinCardsProvider = StreamProvider<List<JoinCard>>(
