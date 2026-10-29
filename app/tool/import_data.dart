@@ -163,6 +163,12 @@ const _encoder = JsonEncoder.withIndent('  ');
 String countriesJson(List<Country> countries) =>
     '${_encoder.convert([for (final c in countries) c.toJson()])}\n';
 
+/// The slice the server needs to search for banner photos (spec §9.2).
+String serverCountriesJson(List<Country> countries) =>
+    '${_encoder.convert({
+      for (final c in countries) c.code: {'name': c.name, 'landmark': c.landmark},
+    })}\n';
+
 String categoriesJson(List<Category> categories) =>
     '${_encoder.convert([for (final c in categories) c.toJson()])}\n';
 
@@ -177,6 +183,9 @@ void main() {
       .writeAsStringSync(countriesJson(countries));
   File('assets/data/categories.json')
       .writeAsStringSync(categoriesJson(categories));
+  File('../firebase/functions/src/data/countries.json')
+    ..createSync(recursive: true)
+    ..writeAsStringSync(serverCountriesJson(countries));
   stdout.writeln(
     'Wrote ${countries.length} countries and ${categories.length} categories.',
   );

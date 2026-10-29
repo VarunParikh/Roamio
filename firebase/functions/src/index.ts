@@ -8,6 +8,7 @@ initializeApp();
 
 export { acceptAdultNotice, birthdaySweep } from "./auth/birthdays";
 export { setAgeStatus } from "./auth/setAgeStatus";
+export { getBanner } from "./banners/getBanner";
 export {
   decideParentalConsent,
   describeConsentRequest,

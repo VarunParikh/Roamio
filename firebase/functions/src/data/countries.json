@@ -1,0 +1,782 @@
+{
+  "AF": {
+    "name": "Afghanistan",
+    "landmark": "Band-e Amir Lakes & Minaret of Jam"
+  },
+  "AL": {
+    "name": "Albania",
+    "landmark": "Rozafa Castle & Berat Old Town"
+  },
+  "DZ": {
+    "name": "Algeria",
+    "landmark": "Monument of the Martyrs (Maqam Echahid)"
+  },
+  "AD": {
+    "name": "Andorra",
+    "landmark": "Sanctuary of Meritxell & Madriu-Perafita-Claror Valley"
+  },
+  "AO": {
+    "name": "Angola",
+    "landmark": "Kalandula Falls & Miradouro da Lua"
+  },
+  "AG": {
+    "name": "Antigua and Barbuda",
+    "landmark": "Nelson's Dockyard (English Harbour)"
+  },
+  "AR": {
+    "name": "Argentina",
+    "landmark": "Iguazu Falls & Perito Moreno Glacier"
+  },
+  "AM": {
+    "name": "Armenia",
+    "landmark": "Khor Virap Monastery (Mount Ararat backdrop)"
+  },
+  "AU": {
+    "name": "Australia",
+    "landmark": "Sydney Opera House & Uluru (Ayers Rock)"
+  },
+  "AT": {
+    "name": "Austria",
+    "landmark": "Schönbrunn Palace & Hallstatt Village"
+  },
+  "AZ": {
+    "name": "Azerbaijan",
+    "landmark": "Flame Towers & Maiden Tower (Baku)"
+  },
+  "BS": {
+    "name": "Bahamas",
+    "landmark": "Dean's Blue Hole & Atlantis Paradise Island"
+  },
+  "BH": {
+    "name": "Bahrain",
+    "landmark": "Tree of Life (Shajarat-al-Hayat) & Qal'at al-Bahrain"
+  },
+  "BD": {
+    "name": "Bangladesh",
+    "landmark": "Ahsan Manzil (Pink Palace) & Sundarbans Mangroves"
+  },
+  "BB": {
+    "name": "Barbados",
+    "landmark": "Harrison's Cave & Historic Bridgetown"
+  },
+  "BY": {
+    "name": "Belarus",
+    "landmark": "Mir Castle Complex & Brest Fortress"
+  },
+  "BE": {
+    "name": "Belgium",
+    "landmark": "Grand Place & Atomium (Brussels)"
+  },
+  "BZ": {
+    "name": "Belize",
+    "landmark": "Great Blue Hole & Xunantunich Mayan Ruins"
+  },
+  "BJ": {
+    "name": "Benin",
+    "landmark": "Royal Palaces of Abomey & Ganvié Stilt Village"
+  },
+  "BT": {
+    "name": "Bhutan",
+    "landmark": "Paro Taktsang (Tiger's Nest Monastery)"
+  },
+  "BO": {
+    "name": "Bolivia",
+    "landmark": "Salar de Uyuni (Salt Flats) & Tiwanaku Ruins"
+  },
+  "BA": {
+    "name": "Bosnia and Herzegovina",
+    "landmark": "Stari Most (Old Bridge of Mostar)"
+  },
+  "BW": {
+    "name": "Botswana",
+    "landmark": "Okavango Delta & Chobe National Park"
+  },
+  "BR": {
+    "name": "Brazil",
+    "landmark": "Christ the Redeemer & Sugarloaf Mountain"
+  },
+  "BN": {
+    "name": "Brunei",
+    "landmark": "Sultan Omar Ali Saifuddien Mosque"
+  },
+  "BG": {
+    "name": "Bulgaria",
+    "landmark": "Rila Monastery & Alexander Nevsky Cathedral"
+  },
+  "BF": {
+    "name": "Burkina Faso",
+    "landmark": "Sindou Peaks & Grand Mosque of Bobo-Dioulasso"
+  },
+  "BI": {
+    "name": "Burundi",
+    "landmark": "Rusumo Falls & Lake Tanganyika Shoreline"
+  },
+  "CV": {
+    "name": "Cabo Verde",
+    "landmark": "Pico do Fogo (Active Stratovolcano)"
+  },
+  "KH": {
+    "name": "Cambodia",
+    "landmark": "Angkor Wat (Siem Reap)"
+  },
+  "CM": {
+    "name": "Cameroon",
+    "landmark": "Mount Cameroon & Rhumsiki Peaks"
+  },
+  "CA": {
+    "name": "Canada",
+    "landmark": "Niagara Falls & CN Tower (Toronto)"
+  },
+  "CF": {
+    "name": "Central African Republic",
+    "landmark": "Dzanga-Sangha National Park & Boali Falls"
+  },
+  "TD": {
+    "name": "Chad",
+    "landmark": "Ennedi Plateau (Rock Arches) & Lake Chad"
+  },
+  "CL": {
+    "name": "Chile",
+    "landmark": "Torres del Paine & Moai of Easter Island"
+  },
+  "CN": {
+    "name": "China",
+    "landmark": "Great Wall of China & The Forbidden City"
+  },
+  "CO": {
+    "name": "Colombia",
+    "landmark": "Cocora Valley (Wax Palms) & Ciudad Perdida"
+  },
+  "KM": {
+    "name": "Comoros",
+    "landmark": "Mount Karthala & Lac Salé (Salt Lake)"
+  },
+  "CD": {
+    "name": "Congo, Democratic Republic of the",
+    "landmark": "Mount Nyiragongo (Lava Lake) & Virunga Park"
+  },
+  "CG": {
+    "name": "Congo, Republic of the",
+    "landmark": "Basilique Sainte-Anne & Odzala-Kokoua Park"
+  },
+  "CR": {
+    "name": "Costa Rica",
+    "landmark": "Arenal Volcano & Manuel Antonio National Park"
+  },
+  "HR": {
+    "name": "Croatia",
+    "landmark": "Walls of Dubrovnik & Plitvice Lakes"
+  },
+  "CU": {
+    "name": "Cuba",
+    "landmark": "El Capitolio & Old Havana (Habana Vieja)"
+  },
+  "CY": {
+    "name": "Cyprus",
+    "landmark": "Aphrodite's Rock (Petra tou Romiou) & Kourion"
+  },
+  "CZ": {
+    "name": "Czech Republic (Czechia)",
+    "landmark": "Charles Bridge & Prague Castle"
+  },
+  "DK": {
+    "name": "Denmark",
+    "landmark": "Nyhavn Waterfront & The Little Mermaid"
+  },
+  "DJ": {
+    "name": "Djibouti",
+    "landmark": "Lake Assal & Lake Abbe Limestone Chimneys"
+  },
+  "DM": {
+    "name": "Dominica",
+    "landmark": "Boiling Lake & Morne Trois Pitons"
+  },
+  "DO": {
+    "name": "Dominican Republic",
+    "landmark": "Alcázar de Colón & Pico Duarte"
+  },
+  "TL": {
+    "name": "East Timor (Timor-Leste)",
+    "landmark": "Cristo Rei of Dili & Atauro Island Coral Reefs"
+  },
+  "EC": {
+    "name": "Ecuador",
+    "landmark": "Galápagos Islands & Cotopaxi Volcano"
+  },
+  "EG": {
+    "name": "Egypt",
+    "landmark": "Great Pyramids of Giza & The Sphinx"
+  },
+  "SV": {
+    "name": "El Salvador",
+    "landmark": "Santa Ana Volcano (Ilamatepec) & Joya de Cerén"
+  },
+  "GQ": {
+    "name": "Equatorial Guinea",
+    "landmark": "Basílica de la Inmaculada Concepción & Pico Basile"
+  },
+  "ER": {
+    "name": "Eritrea",
+    "landmark": "Fiat Tagliero Building & Asmara Art Deco Quarter"
+  },
+  "EE": {
+    "name": "Estonia",
+    "landmark": "Tallinn Old Town (Vanalinn) & Alexander Nevsky Cathedral"
+  },
+  "SZ": {
+    "name": "Eswatini",
+    "landmark": "Sibebe Rock & Mlilwane Wildlife Sanctuary"
+  },
+  "ET": {
+    "name": "Ethiopia",
+    "landmark": "Rock-Hewn Churches of Lalibela & Simien Mountains"
+  },
+  "FJ": {
+    "name": "Fiji",
+    "landmark": "Sri Siva Subramaniya Temple & Mamanuca Islands"
+  },
+  "FI": {
+    "name": "Finland",
+    "landmark": "Suomenlinna Fortress & Helsinki Cathedral"
+  },
+  "FR": {
+    "name": "France",
+    "landmark": "Eiffel Tower & Mont Saint-Michel"
+  },
+  "GA": {
+    "name": "Gabon",
+    "landmark": "Loango National Park (\"Surfing Hippos Beach\")"
+  },
+  "GM": {
+    "name": "Gambia",
+    "landmark": "Kunta Kinteh Island & Senegambian Stone Circles"
+  },
+  "GE": {
+    "name": "Georgia",
+    "landmark": "Gergeti Trinity Church (Stepantsminda) & Narikala"
+  },
+  "DE": {
+    "name": "Germany",
+    "landmark": "Brandenburg Gate & Neuschwanstein Castle"
+  },
+  "GH": {
+    "name": "Ghana",
+    "landmark": "Cape Coast Castle & Black Star Square (Accra)"
+  },
+  "GR": {
+    "name": "Greece",
+    "landmark": "Parthenon (Acropolis of Athens) & Santorini Caldera"
+  },
+  "GD": {
+    "name": "Grenada",
+    "landmark": "Grand Anse Beach & Fort George (St. George's)"
+  },
+  "GT": {
+    "name": "Guatemala",
+    "landmark": "Tikal Temple I (Temple of the Great Jaguar)"
+  },
+  "GN": {
+    "name": "Guinea",
+    "landmark": "Fouta Djallon Highlands & Chutes de Tinkisso"
+  },
+  "GW": {
+    "name": "Guinea-Bissau",
+    "landmark": "Bijagós Archipelago & Fortaleza de São José da Amura"
+  },
+  "GY": {
+    "name": "Guyana",
+    "landmark": "Kaieteur Falls & St. George's Cathedral"
+  },
+  "HT": {
+    "name": "Haiti",
+    "landmark": "Citadelle Laferrière & Sans-Souci Palace"
+  },
+  "VA": {
+    "name": "Holy See (Vatican City)",
+    "landmark": "St. Peter's Basilica & Sistine Chapel"
+  },
+  "HN": {
+    "name": "Honduras",
+    "landmark": "Copán Mayan Ruins & Roatán Barrier Reef"
+  },
+  "HU": {
+    "name": "Hungary",
+    "landmark": "Hungarian Parliament Building & Fisherman's Bastion"
+  },
+  "IS": {
+    "name": "Iceland",
+    "landmark": "Blue Lagoon & Gullfoss Waterfall (Golden Circle)"
+  },
+  "IN": {
+    "name": "India",
+    "landmark": "Red Fort (Delhi) & Taj Mahal (Agra)"
+  },
+  "ID": {
+    "name": "Indonesia",
+    "landmark": "Borobudur Temple & Uluwatu Temple (Bali)"
+  },
+  "IR": {
+    "name": "Iran",
+    "landmark": "Persepolis & Naqsh-e Jahan Square (Isfahan)"
+  },
+  "IQ": {
+    "name": "Iraq",
+    "landmark": "Ziggurat of Ur & Ishtar Gate Remains (Babylon)"
+  },
+  "IE": {
+    "name": "Ireland",
+    "landmark": "Cliffs of Moher & Trinity College Long Room"
+  },
+  "IL": {
+    "name": "Israel",
+    "landmark": "Western Wall & Dome of the Rock / Old City"
+  },
+  "IT": {
+    "name": "Italy",
+    "landmark": "Colosseum (Rome) & Leaning Tower of Pisa"
+  },
+  "CI": {
+    "name": "Ivory Coast (Côte d'Ivoire)",
+    "landmark": "Basilica of Our Lady of Peace (Yamoussoukro)"
+  },
+  "JM": {
+    "name": "Jamaica",
+    "landmark": "Dunn's River Falls & Blue Mountain Peak"
+  },
+  "JP": {
+    "name": "Japan",
+    "landmark": "Mount Fuji with Cherry Blossoms & Fushimi Inari"
+  },
+  "JO": {
+    "name": "Jordan",
+    "landmark": "The Treasury (Al-Khazneh, Petra) & Wadi Rum"
+  },
+  "KZ": {
+    "name": "Kazakhstan",
+    "landmark": "Baiterek Tower (Astana) & Charyn Canyon"
+  },
+  "KE": {
+    "name": "Kenya",
+    "landmark": "Maasai Mara Wildlife Reserve & Mount Kenya"
+  },
+  "KI": {
+    "name": "Kiribati",
+    "landmark": "Millennium Island (Caroline Atoll)"
+  },
+  "KW": {
+    "name": "Kuwait",
+    "landmark": "Kuwait Towers & Grand Mosque of Kuwait"
+  },
+  "KG": {
+    "name": "Kyrgyzstan",
+    "landmark": "Ala Archa Gorge & Lake Issyk-Kul"
+  },
+  "LA": {
+    "name": "Laos",
+    "landmark": "Kuang Si Falls & Pha That Luang (Vientiane)"
+  },
+  "LV": {
+    "name": "Latvia",
+    "landmark": "Freedom Monument (Milda) & Rundāle Palace"
+  },
+  "LB": {
+    "name": "Lebanon",
+    "landmark": "Temple of Bacchus (Baalbek) & Jeita Grotto"
+  },
+  "LS": {
+    "name": "Lesotho",
+    "landmark": "Maletsunyane Falls (Semonkong) & Thaba Bosiu"
+  },
+  "LR": {
+    "name": "Liberia",
+    "landmark": "Providence Island & Mount Nimba Strict Reserve"
+  },
+  "LY": {
+    "name": "Libya",
+    "landmark": "Leptis Magna Roman Ruins & Arch of Marcus Aurelius"
+  },
+  "LI": {
+    "name": "Liechtenstein",
+    "landmark": "Vaduz Castle (Schloss Vaduz)"
+  },
+  "LT": {
+    "name": "Lithuania",
+    "landmark": "Trakai Island Castle & Hill of Crosses"
+  },
+  "LU": {
+    "name": "Luxembourg",
+    "landmark": "Bock Casemates & Adolphe Bridge"
+  },
+  "MG": {
+    "name": "Madagascar",
+    "landmark": "Avenue of the Baobabs & Tsingy de Bemaraha"
+  },
+  "MW": {
+    "name": "Malawi",
+    "landmark": "Lake Malawi National Park & Mount Mulanje"
+  },
+  "MY": {
+    "name": "Malaysia",
+    "landmark": "Petronas Twin Towers & Batu Caves (Kuala Lumpur)"
+  },
+  "MV": {
+    "name": "Maldives",
+    "landmark": "Overwater Villas of Malé Atoll & Old Friday Mosque"
+  },
+  "ML": {
+    "name": "Mali",
+    "landmark": "Great Mosque of Djenné & Cliffs of Bandiagara"
+  },
+  "MT": {
+    "name": "Malta",
+    "landmark": "Saint John's Co-Cathedral & Blue Grotto"
+  },
+  "MH": {
+    "name": "Marshall Islands",
+    "landmark": "Majuro Atoll Lagoon & Laura Beach"
+  },
+  "MR": {
+    "name": "Mauritania",
+    "landmark": "Richat Structure (Eye of the Sahara) & Chinguetti"
+  },
+  "MU": {
+    "name": "Mauritius",
+    "landmark": "Le Morne Brabant & Seven Coloured Earths (Chamarel)"
+  },
+  "MX": {
+    "name": "Mexico",
+    "landmark": "Chichen Itza (El Castillo) & Angel of Independence"
+  },
+  "FM": {
+    "name": "Micronesia",
+    "landmark": "Nan Madol Ruins (Pohnpei)"
+  },
+  "MD": {
+    "name": "Moldova",
+    "landmark": "Orheiul Vechi Monastic Complex & Cricova Cellars"
+  },
+  "MC": {
+    "name": "Monaco",
+    "landmark": "Monte Carlo Casino & Prince's Palace of Monaco"
+  },
+  "MN": {
+    "name": "Mongolia",
+    "landmark": "Genghis Khan Equestrian Statue & Gobi Sand Dunes"
+  },
+  "ME": {
+    "name": "Montenegro",
+    "landmark": "Bay of Kotor & Ostrog Monastery"
+  },
+  "MA": {
+    "name": "Morocco",
+    "landmark": "Hassan II Mosque (Casablanca) & Jemaa el-Fnaa"
+  },
+  "MZ": {
+    "name": "Mozambique",
+    "landmark": "Bazaruto Archipelago & Island of Mozambique"
+  },
+  "MM": {
+    "name": "Myanmar (Burma)",
+    "landmark": "Shwedagon Pagoda (Yangon) & Bagan Temple Plains"
+  },
+  "NA": {
+    "name": "Namibia",
+    "landmark": "Sossusvlei Sand Dunes (Dune 45) & Deadvlei"
+  },
+  "NR": {
+    "name": "Nauru",
+    "landmark": "Command Ridge & Anibare Bay Pinnacles"
+  },
+  "NP": {
+    "name": "Nepal",
+    "landmark": "Mount Everest (Sagarmatha) & Boudhanath Stupa"
+  },
+  "NL": {
+    "name": "Netherlands",
+    "landmark": "Windmills of Kinderdijk & Keukenhof Tulip Gardens"
+  },
+  "NZ": {
+    "name": "New Zealand",
+    "landmark": "Milford Sound (Piopiotahi) & Mount Cook (Aoraki)"
+  },
+  "NI": {
+    "name": "Nicaragua",
+    "landmark": "Masaya Volcano & Granada Cathedral of Assumption"
+  },
+  "NE": {
+    "name": "Niger",
+    "landmark": "Grand Mosque of Agadez & Aïr and Ténéré Reserve"
+  },
+  "NG": {
+    "name": "Nigeria",
+    "landmark": "Zuma Rock (Abuja) & Olumo Rock (Abeokuta)"
+  },
+  "KP": {
+    "name": "North Korea",
+    "landmark": "Juche Tower & Ryugyong Hotel (Pyongyang)"
+  },
+  "MK": {
+    "name": "North Macedonia",
+    "landmark": "Church of Saint John at Kaneo (Lake Ohrid)"
+  },
+  "NO": {
+    "name": "Norway",
+    "landmark": "Geirangerfjord & Trolltunga Rock Ledge"
+  },
+  "OM": {
+    "name": "Oman",
+    "landmark": "Sultan Qaboos Grand Mosque & Nizwa Fort"
+  },
+  "PK": {
+    "name": "Pakistan",
+    "landmark": "Badshahi Mosque & K2 (Godwin-Austen Peak)"
+  },
+  "PW": {
+    "name": "Palau",
+    "landmark": "Rock Islands Southern Lagoon (Chelbacheb)"
+  },
+  "PS": {
+    "name": "Palestine",
+    "landmark": "Church of the Nativity (Bethlehem) & Hisham's Palace"
+  },
+  "PA": {
+    "name": "Panama",
+    "landmark": "Miraflores Locks (Panama Canal) & Casco Viejo"
+  },
+  "PG": {
+    "name": "Papua New Guinea",
+    "landmark": "Mount Wilhelm & Rabaul Caldera (Tavurvur Volcano)"
+  },
+  "PY": {
+    "name": "Paraguay",
+    "landmark": "Itaipu Dam & Jesuit Missions of La Santísima Trinidad"
+  },
+  "PE": {
+    "name": "Peru",
+    "landmark": "Machu Picchu & Rainbow Mountain (Vinicunca)"
+  },
+  "PH": {
+    "name": "Philippines",
+    "landmark": "Banaue Rice Terraces & Mayon Volcano"
+  },
+  "PL": {
+    "name": "Poland",
+    "landmark": "Wawel Royal Castle (Kraków) & Wieliczka Salt Mine"
+  },
+  "PT": {
+    "name": "Portugal",
+    "landmark": "Belém Tower (Lisbon) & Pena Palace (Sintra)"
+  },
+  "QA": {
+    "name": "Qatar",
+    "landmark": "Museum of Islamic Art & Souq Waqif (Doha)"
+  },
+  "RO": {
+    "name": "Romania",
+    "landmark": "Bran Castle (\"Dracula's Castle\") & Palace of Parliament"
+  },
+  "RU": {
+    "name": "Russia",
+    "landmark": "Saint Basil's Cathedral & Winter Palace (Hermitage)"
+  },
+  "RW": {
+    "name": "Rwanda",
+    "landmark": "Volcanoes National Park & Kigali Genocide Memorial"
+  },
+  "KN": {
+    "name": "Saint Kitts and Nevis",
+    "landmark": "Brimstone Hill Fortress National Park"
+  },
+  "LC": {
+    "name": "Saint Lucia",
+    "landmark": "The Pitons (Gros Piton & Petit Piton)"
+  },
+  "VC": {
+    "name": "Saint Vincent and the Grenadines",
+    "landmark": "La Soufrière Volcano & Tobago Cays Marine Park"
+  },
+  "WS": {
+    "name": "Samoa",
+    "landmark": "To-Sua Ocean Trench & Robert Louis Stevenson Museum"
+  },
+  "SM": {
+    "name": "San Marino",
+    "landmark": "The Three Towers of San Marino (Guaita Fortress)"
+  },
+  "ST": {
+    "name": "São Tomé and Príncipe",
+    "landmark": "Pico Cão Grande (Great Dog Peak)"
+  },
+  "SA": {
+    "name": "Saudi Arabia",
+    "landmark": "Kaaba in Masjid al-Haram (Mecca) & Hegra (AlUla)"
+  },
+  "SN": {
+    "name": "Senegal",
+    "landmark": "African Renaissance Monument & Gorée Island"
+  },
+  "RS": {
+    "name": "Serbia",
+    "landmark": "Belgrade Fortress (Kalemegdan) & Temple of Saint Sava"
+  },
+  "SC": {
+    "name": "Seychelles",
+    "landmark": "Anse Source d'Argent (La Digue)"
+  },
+  "SL": {
+    "name": "Sierra Leone",
+    "landmark": "Cotton Tree Landmark (Freetown) & Banana Islands"
+  },
+  "SG": {
+    "name": "Singapore",
+    "landmark": "Marina Bay Sands & Supertree Grove (Gardens by Bay)"
+  },
+  "SK": {
+    "name": "Slovakia",
+    "landmark": "Spiš Castle & Bojnice Romantic Castle"
+  },
+  "SI": {
+    "name": "Slovenia",
+    "landmark": "Lake Bled (with Island Church) & Predjama Castle"
+  },
+  "SB": {
+    "name": "Solomon Islands",
+    "landmark": "Marovo Lagoon & Tenaru Falls"
+  },
+  "SO": {
+    "name": "Somalia",
+    "landmark": "Laas Geel Cave Paintings & Mogadishu Lighthouse"
+  },
+  "ZA": {
+    "name": "South Africa",
+    "landmark": "Table Mountain (Cape Town) & Kruger National Park"
+  },
+  "KR": {
+    "name": "South Korea",
+    "landmark": "Gyeongbokgung Palace & N Seoul Tower"
+  },
+  "SS": {
+    "name": "South Sudan",
+    "landmark": "The Sudd Wetland & Boma National Park"
+  },
+  "ES": {
+    "name": "Spain",
+    "landmark": "Sagrada Família (Barcelona) & Alhambra (Granada)"
+  },
+  "LK": {
+    "name": "Sri Lanka",
+    "landmark": "Sigiriya (Lion Rock Fortress) & Temple of the Tooth"
+  },
+  "SD": {
+    "name": "Sudan",
+    "landmark": "Meroë Pyramids & Confluence of the Nile (Khartoum)"
+  },
+  "SR": {
+    "name": "Suriname",
+    "landmark": "Saint Peter and Paul Cathedral & Brownsberg Park"
+  },
+  "SE": {
+    "name": "Sweden",
+    "landmark": "Vasa Museum (Stockholm) & Drottningholm Palace"
+  },
+  "CH": {
+    "name": "Switzerland",
+    "landmark": "The Matterhorn & Chapel Bridge (Lucerne)"
+  },
+  "SY": {
+    "name": "Syria",
+    "landmark": "Palmyra Ancient Colonnades & Citadel of Aleppo"
+  },
+  "TJ": {
+    "name": "Tajikistan",
+    "landmark": "Pamir Highway (Roof of the World) & Iskanderkul"
+  },
+  "TZ": {
+    "name": "Tanzania",
+    "landmark": "Mount Kilimanjaro & Serengeti National Park"
+  },
+  "TH": {
+    "name": "Thailand",
+    "landmark": "Grand Palace & Wat Arun (Bangkok)"
+  },
+  "TG": {
+    "name": "Togo",
+    "landmark": "Koutammakou (Batamariba Mud Tower-Houses)"
+  },
+  "TO": {
+    "name": "Tonga",
+    "landmark": "Ha'amonga 'a Maui Trilithon & Mapu'a 'a Vaea"
+  },
+  "TT": {
+    "name": "Trinidad and Tobago",
+    "landmark": "Pitch Lake & Pigeon Point Heritage Park"
+  },
+  "TN": {
+    "name": "Tunisia",
+    "landmark": "Amphitheatre of El Jem & Ruins of Carthage"
+  },
+  "TR": {
+    "name": "Turkey",
+    "landmark": "Hagia Sophia (Istanbul) & Cappadocia Fairy Chimneys"
+  },
+  "TM": {
+    "name": "Turkmenistan",
+    "landmark": "Darvaza Gas Crater (\"Door to Hell\")"
+  },
+  "TV": {
+    "name": "Tuvalu",
+    "landmark": "Funafuti Conservation Area & Marine Lagoon"
+  },
+  "UG": {
+    "name": "Uganda",
+    "landmark": "Bwindi Impenetrable Forest & Murchison Falls"
+  },
+  "UA": {
+    "name": "Ukraine",
+    "landmark": "Kyiv Pechersk Lavra & Saint Sophia Cathedral"
+  },
+  "AE": {
+    "name": "United Arab Emirates",
+    "landmark": "Burj Khalifa & Sheikh Zayed Grand Mosque"
+  },
+  "GB": {
+    "name": "United Kingdom",
+    "landmark": "Big Ben (Elizabeth Tower) & Stonehenge"
+  },
+  "US": {
+    "name": "United States",
+    "landmark": "Golden Gate Bridge & Statue of Liberty"
+  },
+  "UY": {
+    "name": "Uruguay",
+    "landmark": "Casapueblo (Punta Ballena) & Colonia del Sacramento"
+  },
+  "UZ": {
+    "name": "Uzbekistan",
+    "landmark": "Registan Square (Samarkand) & Ark of Bukhara"
+  },
+  "VU": {
+    "name": "Vanuatu",
+    "landmark": "Mount Yasur Active Volcano (Tanna) & Champagne Beach"
+  },
+  "VE": {
+    "name": "Venezuela",
+    "landmark": "Angel Falls (Salto Ángel) & Mount Roraima"
+  },
+  "VN": {
+    "name": "Vietnam",
+    "landmark": "Ha Long Bay & Golden Bridge (Hands of God, Da Nang)"
+  },
+  "YE": {
+    "name": "Yemen",
+    "landmark": "Old Walled City of Shibam (\"Manhattan of Desert\")"
+  },
+  "ZM": {
+    "name": "Zambia",
+    "landmark": "Victoria Falls (Mosi-oa-Tunya) & South Luangwa"
+  },
+  "ZW": {
+    "name": "Zimbabwe",
+    "landmark": "Great Zimbabwe Ruins & Victoria Falls (Zambezi)"
+  }
+}
