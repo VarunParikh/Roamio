@@ -23,6 +23,7 @@ import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/consent/data/firebase_consent_service.dart';
+import 'package:roamio/features/home/data/weather_client.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
@@ -36,6 +37,7 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/updates/update_checker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -82,6 +84,9 @@ Future<void> main() async {
             FirebaseFirestore.instance,
             roamioFunctions,
           ),
+        ),
+        updateCheckerProvider.overrideWithValue(
+          UpdateChecker(fetchJsonOverHttp, FileUpdateStore()),
         ),
         remoteConfigSourceProvider.overrideWithValue(
           FirebaseRemoteConfigSource(FirebaseRemoteConfig.instance),
