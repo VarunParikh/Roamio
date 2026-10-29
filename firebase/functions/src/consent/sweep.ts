@@ -1,6 +1,7 @@
 import { getFirestore, type Timestamp } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { onSchedule } from "firebase-functions/scheduler";
+import { purgeOldAuditLog } from "../privacy/auditRetention";
 import { deleteChild, emailParent } from "./consent";
 import { nextConsentAction } from "./rules";
 import { hashToken, newToken } from "./token";
@@ -45,7 +46,18 @@ export async function runConsentSweep(now: Date): Promise<void> {
   }
 }
 
+/**
+ * The daily privacy jobs. The audit-log clean-up (spec §8) rides along here
+ * rather than having its own job: the project's three schedules are
+ * Cloud Scheduler's free allowance.
+ */
+export async function runDailySweep(now: Date): Promise<void> {
+  await runConsentSweep(now);
+  const removed = await purgeOldAuditLog(now);
+  if (removed > 0) logger.info("Removed audit log entries older than a year", { removed });
+}
+
 export const consentSweep = onSchedule(
   { schedule: "every day 09:00", timeZone: "Asia/Kolkata" },
-  () => runConsentSweep(new Date()),
+  () => runDailySweep(new Date()),
 );
