@@ -68,6 +68,10 @@ beforeAll(async () => {
     },
   );
   token = ((await res.json()) as { idToken: string }).idToken;
+
+  // Warm-up: the emulator's first call looks up the Unsplash secret in
+  // Secret Manager, which CI can't reach; let that happen outside the tests.
+  await getBanner("FR");
 });
 
 afterAll(() => new Promise<void>((r) => mock.close(() => r())));
@@ -103,7 +107,9 @@ describe("getBanner (spec §9.2)", () => {
     expect(url.searchParams.get("q")).toBe("80");
 
     const search = requests.find((u) => u.startsWith("/search/photos"));
-    expect(new URL(search ?? "", "http://x").searchParams.get("query")).toBe("Grand Palace Thailand");
+    expect(new URL(search ?? "", "http://x").searchParams.get("query")).toBe(
+      "Grand Palace Thailand",
+    );
     expect(requests.some((u) => u.startsWith("/photos/123/download"))).toBe(
       true,
     );
