@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/features/tabs/data/receipt_parser.dart';
 
 /// Reads the text on a photo of a bill, on the phone (spec UC-21: Scan
@@ -8,9 +9,10 @@ abstract interface class ReceiptScanner {
   Future<String> readText(String imagePath);
 }
 
-/// Remote Config `ocr_enabled` (spec §11); on by default until Task 37
-/// wires Remote Config, so the app works without it.
-final ocrEnabledProvider = Provider<bool>((ref) => true);
+/// Remote Config `ocr_enabled` (spec §11), on unless switched off there.
+final ocrEnabledProvider = Provider<bool>(
+  (ref) => ref.watch(appConfigProvider).ocrEnabled,
+);
 
 final receiptScannerProvider = Provider<ReceiptScanner>(
   (ref) => MlKitReceiptScanner(),

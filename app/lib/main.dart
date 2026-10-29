@@ -1,18 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
+import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
+import 'package:roamio/features/adventures/data/firebase_activity_service.dart';
 import 'package:roamio/features/adventures/data/firebase_adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
@@ -21,6 +25,7 @@ import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/consent/data/firebase_consent_service.dart';
+import 'package:roamio/features/home/data/weather_client.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
@@ -34,6 +39,7 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/updates/update_checker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -81,8 +87,17 @@ Future<void> main() async {
             roamioFunctions,
           ),
         ),
+        updateCheckerProvider.overrideWithValue(
+          UpdateChecker(fetchJsonOverHttp, FileUpdateStore()),
+        ),
+        remoteConfigSourceProvider.overrideWithValue(
+          FirebaseRemoteConfigSource(FirebaseRemoteConfig.instance),
+        ),
         privacyServiceProvider.overrideWithValue(
           FirebasePrivacyService(roamioFunctions),
+        ),
+        activityServiceProvider.overrideWithValue(
+          FirebaseActivityService(FirebaseFirestore.instance),
         ),
         squadServiceProvider.overrideWithValue(
           FirebaseSquadService(

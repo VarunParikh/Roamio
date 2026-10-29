@@ -5,17 +5,21 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/location/location_service.dart';
+import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/home/data/weather_client.dart';
+import 'package:roamio/features/home/data/weather_provider.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
@@ -29,8 +33,10 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/updates/update_checker.dart';
 import 'package:roamio/main.dart';
 
+import 'fake_activity_service.dart';
 import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
 import 'fake_budget_service.dart';
@@ -48,6 +54,7 @@ import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
 import 'fake_sync.dart';
 import 'fake_tab_service.dart';
+import 'fake_update_store.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -176,6 +183,11 @@ Future<void> pumpRoamio(
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
   FakePrivacyService? privacy,
+  FakeActivityService? activity,
+  FetchJson? weatherFetch,
+  bool weatherEnabled = true,
+  UpdateChecker? updates,
+  Map<String, String>? remoteConfig,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -230,6 +242,28 @@ Future<void> pumpRoamio(
         ),
         networkSwitchProvider.overrideWithValue(network ?? FakeNetworkSwitch()),
         photoFlushProvider.overrideWithValue(() async {}),
+        activityServiceProvider.overrideWithValue(
+          activity ?? FakeActivityService(),
+        ),
+        // Never the real network: unavailable unless a test answers.
+        weatherClientProvider.overrideWithValue(
+          WeatherClient(weatherFetch ?? (_) async => throw Exception('no web')),
+        ),
+        weatherEnabledProvider.overrideWithValue(weatherEnabled),
+        // Remote Config unreachable: every in-app default applies.
+        remoteConfigSourceProvider.overrideWithValue(
+          remoteConfig == null
+              ? const UnreachableRemoteConfig()
+              : FixedRemoteConfig(remoteConfig),
+        ),
+        // GitHub unreachable unless a test passes [updates]: no popup.
+        updateCheckerProvider.overrideWithValue(
+          updates ??
+              UpdateChecker(
+                (_) async => throw Exception('no web'),
+                FakeUpdateStore(),
+              ),
+        ),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
         ),
@@ -243,4 +277,22 @@ Future<void> pumpRoamio(
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
   }
+}
+
+/// Remote Config that can't be reached, as on a first launch offline.
+class UnreachableRemoteConfig implements RemoteConfigSource {
+  const new();
+
+  @override
+  Future<Map<String, String>> load() async => throw Exception('offline');
+}
+
+/// Remote Config that answers with [values].
+class FixedRemoteConfig implements RemoteConfigSource {
+  const new(this.values);
+
+  final Map<String, String> values;
+
+  @override
+  Future<Map<String, String>> load() async => values;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/ui/bottom_bar.dart';
+import 'package:roamio/features/adventures/ui/activity_screen.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
 import 'package:roamio/features/adventures/ui/edit_adventure.dart';
@@ -22,6 +23,7 @@ import 'package:roamio/features/splash/ui/splash_screen.dart';
 import 'package:roamio/features/splits/ui/split_screen.dart';
 import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
+import 'package:roamio/features/updates/update_gate.dart';
 
 abstract final class Routes {
   static const String home = AuthRoutes.home;
@@ -100,6 +102,11 @@ final _routes = <RouteBase>[
             EditAdventureScreen(adventureId: state.pathParameters['id']!),
       ),
       GoRoute(
+        path: 'activity',
+        builder: (_, state) =>
+            ActivityScreen(adventureId: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: 'tabs/new',
         builder: (_, state) =>
             AddTabScreen(adventureId: state.pathParameters['id']!),
@@ -138,14 +145,16 @@ final _routes = <RouteBase>[
     builder: (_, _) => const PrivacyCentreScreen(),
   ),
   StatefulShellRoute.indexedStack(
-    builder: (context, state, shell) => Scaffold(
-      extendBody: true,
-      body: shell,
-      bottomNavigationBar: RoamioBottomBar(
-        items: _tabs,
-        currentIndex: shell.currentIndex,
-        onSelected: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
+    builder: (context, state, shell) => UpdateGate(
+      child: Scaffold(
+        extendBody: true,
+        body: shell,
+        bottomNavigationBar: RoamioBottomBar(
+          items: _tabs,
+          currentIndex: shell.currentIndex,
+          onSelected: (i) =>
+              shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        ),
       ),
     ),
     branches: [

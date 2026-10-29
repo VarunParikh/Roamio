@@ -228,7 +228,7 @@ Common verification commands:
   - Acceptance: spike confirms `disableNetwork`/`enableNetwork` behaviour; offline banner + Sync button with the spec's exact text; queued tabs, settlements and photos upload on Sync; online-only actions disabled with reason; overwritten edits logged in activity.
   - Verify: integration test in airplane mode on emulator (Journey D).
   - Files: `app/lib/features/sync/**`, `app/lib/core/connectivity/*.dart`, tests
-  - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason, Sync retries photos regardless of backoff — all unit/widget tested. **Still open:** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (need a device/emulator), and an activity feed screen that shows `tab_edit_replaced` (the server writes it; owner approved the optional `baseUpdatedAt` field). It only arises when one creator edits the same tab from two devices: a lead's delete can't be overwritten because the rules reject edits to a deleted tab.
+  - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason (including a join card's Make co-lead/Remove and account deletion in the Privacy centre), Sync retries photos regardless of backoff — all unit/widget tested. **Still open (device/emulator only):** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test. The activity screen (adventure page → Activity) now shows `tab_edit_replaced` and every other activity type (#47).
 
 - [x] **Task 34: You page** — S · Deps: 22 · UC-28
   - Acceptance: photo, name, description, profile currency, notification and location toggles.
@@ -242,20 +242,23 @@ Common verification commands:
   - Files: `app/lib/features/profile/ui/privacy_centre.dart`, `firebase/functions/src/privacy/*.ts`, tests
   - Done: #35 `deleteMyAccount`; #37 + #41 `exportMyData` (JSON + ≤ 6 MB photo zips, own or a granted child's, includes adventures left via `leftUids`); #38 Privacy centre screen (download, delete, notification/location/camera switches); #39 "Deleted user" and names of people who left; #40 audit log purged after 1 year inside the daily `consentSweep`; nominee (`account.nominee`, adults only, Task 35g). Grievance email stays a placeholder (`grievance@roamio.example`): the owner moved it to the next phase (Task 40). Not run on a device or real Firebase yet.
 
-- [ ] **Task 36: Weather** — XS · Deps: 15 · UC-7
+- [x] **Task 36: Weather** — XS · Deps: 15 · UC-7
   - Acceptance: Open-Meteo on the Hero card, cached 30 min, hidden on failure, city-based for minors or without permission.
   - Verify: unit test of the client with a mocked response and failure.
   - Files: `app/lib/features/home/data/weather_client.dart`, test
+  - Done: Open-Meteo via Dart's own HTTP client (no new dependency, no key, no Firebase cost); a "☀️ 30°C" pill on the Hero card; 30-minute cache; failures and loading show nothing. Uses where the phone is only for an adult with the Location switch on and permission already granted (never asks), rounded to ~1 km; otherwise the adventure's city (or country) via Open-Meteo's place search. `weather_enabled` defaults on until Task 37. The privacy notice (Task 40) should name Open-Meteo. Not tried on a device.
 
-- [ ] **Task 37: Remote config** — S · Deps: 4 · Spec §11
+- [x] **Task 37: Remote config** — S · Deps: 4 · Spec §11
   - Acceptance: all keys wired with in-app defaults; `docs/REMOTE_CONFIG.md` lists every key.
   - Verify: unit test that defaults load when fetch fails.
   - Files: `app/lib/core/config/remote_config.dart`, `docs/REMOTE_CONFIG.md`, test
+  - Done: `firebase_remote_config` (owner-approved). App keys `ocr_enabled`, `weather_enabled`, `export_enabled`, `cta_pulse_enabled`, `min_supported_version`, `category_order`; server keys `budget_alert_thresholds`, `invite_validity_days`, `consent_link_validity_days` via the Admin SDK's server template (no new backend dependency). Every key has a default; bad values fall back. No copy-text keys yet. Not tried against the real Remote Config.
 
-- [ ] **Task 38: Update popup** — S · Deps: 37 · UC-34
+- [x] **Task 38: Update popup** — S · Deps: 37 · UC-34
   - Acceptance: checks GitHub latest release at most once per 24 h; dismissible popup with notes and Download; blocking when below `min_supported_version`.
   - Verify: unit tests for version comparison and throttling.
   - Files: `app/lib/features/updates/**`, tests
+  - Done: on opening the main tabs, asks GitHub's latest release of `VarunParikh/Roamio` (public, no key) at most once per 24 h, remembered in a small file; failures stay quiet and retry next launch. Popup shows the version, release notes and Download update (the release's `.apk`, else its page); Later hides that version for good. Below `min_supported_version` it can't be closed, even offline. The version is the `appVersion` constant (a test keeps it equal to pubspec.yaml), so no new dependency. Not tried on a device.
 
 ### ✅ Checkpoint 5 — Journeys D and F pass manually
 - [ ] Offline → Sync works across two devices · [ ] Budget alert reaches only its owner · [ ] Export + delete work · [ ] Owner approves

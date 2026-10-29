@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
+import '../../support/fake_squad_service.dart';
 import '../../support/fake_sync.dart';
 
 const _syncText =
@@ -142,6 +144,41 @@ void main() {
       );
       expect(tester.widget<ButtonStyleButton>(leave).onPressed, isNull);
       expect(find.byTooltip('Options'), findsNothing);
+    });
+
+    testWidgets('a join card’s Make co-lead and Remove, with the reason', (
+      tester,
+    ) async {
+      final squad = FakeSquadService([
+        const JoinCard(
+          id: 'bkk_joined_bob',
+          adventureId: 'bkk',
+          adventureName: 'Bangkok trip',
+          memberUid: 'bob',
+          memberName: 'Bob Lee',
+        ),
+      ]);
+      await pumpRoamio(
+        tester,
+        FakeAuthService(initial: readyFacts),
+        adventures: FakeAdventureService([_bangkok]),
+        squad: squad,
+        connectivity: FakeConnectivity(online: false),
+      );
+
+      expect(find.text('Bob Lee joined your squad'), findsOneWidget);
+      for (final label in ['Make co-lead', 'Remove']) {
+        final button = find.ancestor(
+          of: find.text(label),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        );
+        expect(tester.widget<ButtonStyleButton>(button).onPressed, isNull);
+      }
+      expect(find.textContaining('Needs a connection'), findsWidgets);
+      // Dismissing only hides the card, so it still works offline.
+      await tester.tap(find.byTooltip('Dismiss'));
+      await tester.pumpAndSettle();
+      expect(squad.cards, isEmpty);
     });
 
     testWidgets('entering an invite code', (tester) async {

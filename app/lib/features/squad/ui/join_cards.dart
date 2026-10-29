@@ -6,6 +6,8 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 /// "Name joined your squad" cards on Home for leads (spec UC-14).
 class JoinCardsList extends ConsumerWidget {
@@ -100,6 +102,9 @@ class _JoinCardViewState extends ConsumerState<_JoinCardView> {
     final c = widget.card;
     final text = Theme.of(context).textTheme;
     final squad = ref.read(squadServiceProvider);
+    // Role changes need the server (UC-33); dismissing works offline.
+    final offline = ref.watch(isOfflineProvider);
+    final locked = _busy || offline;
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
@@ -131,7 +136,7 @@ class _JoinCardViewState extends ConsumerState<_JoinCardView> {
                 if (widget.isLeader) ...[
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _busy
+                      onPressed: locked
                           ? null
                           : () => _act(
                               () =>
@@ -144,11 +149,12 @@ class _JoinCardViewState extends ConsumerState<_JoinCardView> {
                   const SizedBox(width: 8),
                 ],
                 TextButton(
-                  onPressed: _busy ? null : _remove,
+                  onPressed: locked ? null : _remove,
                   child: const Text('Remove'),
                 ),
               ],
             ),
+            if (offline) const NeedsConnectionNote(),
           ],
         ),
       ),
