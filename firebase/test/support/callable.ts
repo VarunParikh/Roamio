@@ -12,7 +12,10 @@ beforeAll(() => {
 
 export type Person = { uid: string; token: string };
 
-export async function person(name: string, ageStatus = "adult"): Promise<Person> {
+export async function person(
+  name: string,
+  ageStatus = "adult",
+): Promise<Person> {
   const email = `${name.toLowerCase()}${++n}.${Date.now()}@example.com`;
   const user = await getAuth().createUser({
     email,
@@ -43,7 +46,10 @@ export async function person(name: string, ageStatus = "adult"): Promise<Person>
   };
 }
 
-export async function adventure(leader: Person, extra: Record<string, unknown> = {}) {
+export async function adventure(
+  leader: Person,
+  extra: Record<string, unknown> = {},
+) {
   const ref = getFirestore().collection("adventures").doc();
   await ref.set({
     name: "College group Bangkok adventure",
@@ -65,7 +71,11 @@ type Result = {
   error?: { status: string; message: string };
 };
 
-export async function call(name: string, data: unknown, as?: Person): Promise<Result> {
+export async function call(
+  name: string,
+  data: unknown,
+  as?: Person,
+): Promise<Result> {
   const res = await fetch(`${FUNCTIONS}/${name}`, {
     method: "POST",
     headers: {
@@ -76,4 +86,3 @@ export async function call(name: string, data: unknown, as?: Person): Promise<Re
   });
   return (await res.json()) as Result;
 }
-

@@ -26,10 +26,16 @@ describe("sendPush", () => {
     const cara = await person("Cara");
     await db()
       .doc(`users/${ari.uid}/private/account`)
-      .set({ fcmTokens: ["ari-phone"], consents: { notifications: true } }, { merge: true });
+      .set(
+        { fcmTokens: ["ari-phone"], consents: { notifications: true } },
+        { merge: true },
+      );
     await db()
       .doc(`users/${cara.uid}/private/account`)
-      .set({ fcmTokens: ["cara-phone"], consents: { notifications: false } }, { merge: true });
+      .set(
+        { fcmTokens: ["cara-phone"], consents: { notifications: false } },
+        { merge: true },
+      );
 
     const sent = await sendPush([ari.uid, cara.uid, "nobody"], {
       title: "Bob joined your squad",
@@ -46,9 +52,16 @@ describe("joinAdventure still joins when push can't be sent", () => {
     const bob = await person("Bob");
     await db()
       .doc(`users/${ari.uid}/private/account`)
-      .set({ fcmTokens: ["ari-phone"], consents: { notifications: true } }, { merge: true });
+      .set(
+        { fcmTokens: ["ari-phone"], consents: { notifications: true } },
+        { merge: true },
+      );
     const id = await adventure(ari);
-    const code = String((await call("createInvite", { adventureId: id }, ari)).result?.code);
-    expect((await call("joinAdventure", { code }, bob)).result?.alreadyMember).toBe(false);
+    const code = String(
+      (await call("createInvite", { adventureId: id }, ari)).result?.code,
+    );
+    expect(
+      (await call("joinAdventure", { code }, bob)).result?.alreadyMember,
+    ).toBe(false);
   });
 });

@@ -35,6 +35,8 @@ const put = (
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
+    // Storage rules read Firestore through the emulator's own project, so
+    // these stay on it; the bill trigger can't affect what they check.
     projectId: "demo-roamio",
     firestore: { rules: readFileSync("firestore.rules", "utf8") },
     storage: { rules: readFileSync("storage.rules", "utf8") },
