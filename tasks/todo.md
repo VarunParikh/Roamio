@@ -104,7 +104,7 @@ Common verification commands:
   - Verify: test asserts 195 countries and every currency code is valid ISO 4217.
   - Files: `tools/import_data.dart`, `app/assets/data/*.json`, test
 
-- [ ] **Task 15: Create adventure and Home** — M · Deps: 10, 14 · UC-5, 6, 8
+- [x] **Task 15: Create adventure and Home** — M · Deps: 10, 14 · UC-5, 6, 8
   - Acceptance: 3-step create flow (country/city → name/description → dates; base currency auto-filled, editable); creator becomes Squad Leader; Home shows greeting, Hero, upcoming, past (collapsed), invites; empty state with one pulsing New Adventure button.
   - Verify: widget tests for empty/populated Home and each create step's validation (end ≥ start).
   - Files: `app/lib/features/adventures/**`, `app/lib/features/home/**`, tests
