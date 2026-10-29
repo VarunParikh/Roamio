@@ -80,6 +80,15 @@ final squadServiceProvider = Provider<SquadService>(
   (ref) => throw UnimplementedError('squadServiceProvider must be overridden'),
 );
 
+/// Shown for someone who deleted their account: tabs keep their id so
+/// balances stay right, but their profile is gone (spec §8).
+const deletedUserName = 'Deleted user';
+
+/// The name to show for a `users/{uid}` profile; null means it's gone.
+String nameFromProfile(Map<String, dynamic>? profile) => profile == null
+    ? deletedUserName
+    : (profile['name'] as String?) ?? 'Someone';
+
 /// Names for a squad, keyed by the comma-joined uids so it reloads when
 /// the squad changes.
 final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =

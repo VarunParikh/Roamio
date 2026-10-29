@@ -6,18 +6,37 @@ import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 
-/// Display names for a squad's members and pals, for tab rows and details.
+/// Display names for everyone on an adventure's tabs and transfers: its
+/// members, its pals, and people who have left or deleted their account
+/// ("Deleted user").
 Map<String, String> squadLabels(WidgetRef ref, Adventure adventure) {
   final names =
       ref.watch(squadNamesProvider(adventure.memberUids.join(','))).value ??
       const <String, String>{};
   final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
-  return {...names, for (final p in pals) p.id: p.nickname};
+  final known = {...adventure.memberUids, for (final p in pals) p.id};
+  final tabs = ref.watch(tabsProvider(adventure.id)).value ?? const [];
+  final transfers =
+      ref.watch(settlementsProvider(adventure.id)).value ?? const [];
+  // Looked up apart from the members, so the members' names don't reload.
+  final others = {
+    for (final t in tabs) ...[
+      ...t.split.participants,
+      for (final p in t.split.payers) p.payer,
+    ],
+    for (final s in transfers) ...[s.from, s.to],
+  }.difference(known).toList()..sort();
+  final otherNames = others.isEmpty
+      ? const <String, String>{}
+      : ref.watch(squadNamesProvider(others.join(','))).value ??
+            const <String, String>{};
+  return {...otherNames, ...names, for (final p in pals) p.id: p.nickname};
 }
 
 /// Formats [money] with its currency's symbol when one is known.

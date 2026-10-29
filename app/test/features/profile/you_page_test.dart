@@ -81,10 +81,23 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(dropdown);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('IDR').last);
+      // Menus open on the selected item (INR), so pick one just after it.
+      await tester.tap(find.text('JPY').last);
       await tester.pumpAndSettle();
 
-      expect(profile.currencySaved, ['IDR']);
+      expect(profile.currencySaved, ['JPY']);
+    });
+
+    testWidgets('with the camera switched off, only the gallery is offered', (
+      tester,
+    ) async {
+      await _openYou(tester, profile: FakeProfileService(camera: false));
+
+      await tester.tap(find.byTooltip('Change photo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Take a photo'), findsNothing);
+      expect(find.text('Choose from gallery'), findsOneWidget);
     });
 
     testWidgets('a new photo is compressed and queued as your avatar', (

@@ -25,7 +25,7 @@ const notMember = () =>
 const leaderOnly = (what: string) =>
   new HttpsError("permission-denied", `Only the squad leader can ${what}.`);
 
-async function loadSquad(tx: Transaction, adventureId: unknown): Promise<Squad> {
+export async function loadSquad(tx: Transaction, adventureId: unknown): Promise<Squad> {
   const adventure = await tx.get(db().doc(`adventures/${String(adventureId ?? "")}`));
   if (!adventure.exists) throw new HttpsError("not-found", "This adventure no longer exists.");
   return {
@@ -66,7 +66,7 @@ async function hasTabHistory(tx: Transaction, squad: Squad, memberUid: string): 
 }
 
 /** Takes someone out of the squad: Left if they have tab history, otherwise gone. */
-async function dropMember(
+export async function dropMember(
   tx: Transaction,
   squad: Squad,
   memberUid: string,
@@ -77,6 +77,8 @@ async function dropMember(
   const ref = squad.adventure.ref;
   const member = ref.collection("members").doc(memberUid);
   clearJoinCards(tx, squad, memberUid);
+  // A budget only makes sense inside the squad, so it goes with the member.
+  tx.delete(ref.collection("budgets").doc(memberUid));
   tx.update(ref, {
     memberUids: FieldValue.arrayRemove(memberUid),
     coLeadUids: FieldValue.arrayRemove(memberUid),

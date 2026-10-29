@@ -1,14 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 
 /// Most photos one tab can hold (spec UC-21).
 const maxMemories = 4;
 
 /// Up to [maxMemories] photos picked for a tab, shown as thumbnails until
 /// the tab is saved; the photo pipeline then compresses and uploads them.
-class MemoriesPicker extends StatelessWidget {
+class MemoriesPicker extends ConsumerWidget {
   const new({
     required this.paths,
     required this.onAdd,
@@ -26,7 +28,10 @@ class MemoriesPicker extends StatelessWidget {
   final ValueChanged<bool> onAdd;
   final ValueChanged<int> onRemove;
 
-  Future<void> _choose(BuildContext context) async {
+  Future<void> _choose(
+    BuildContext context, {
+    required bool cameraAllowed,
+  }) async {
     final camera = await showModalBottomSheet<bool>(
       context: context,
       useRootNavigator: true,
@@ -35,11 +40,12 @@ class MemoriesPicker extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take a photo'),
-              onTap: () => Navigator.pop(context, true),
-            ),
+            if (cameraAllowed)
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.pop(context, true),
+              ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: const Text('Choose from gallery'),
@@ -53,7 +59,8 @@ class MemoriesPicker extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cameraAllowed = ref.watch(cameraAllowedProvider).value ?? true;
     final full = paths.length + alreadySaved >= maxMemories;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,7 +106,9 @@ class MemoriesPicker extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         OutlinedButton.icon(
-          onPressed: full ? null : () => _choose(context),
+          onPressed: full
+              ? null
+              : () => _choose(context, cameraAllowed: cameraAllowed),
           icon: const Icon(Icons.add_a_photo_outlined),
           label: const Text('Add photo'),
         ),

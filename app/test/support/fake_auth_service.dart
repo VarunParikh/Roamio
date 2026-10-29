@@ -20,6 +20,7 @@ import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/notifications/data/notification_service.dart';
+import 'package:roamio/features/profile/data/privacy_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
@@ -39,6 +40,7 @@ import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
 import 'fake_photo_pipeline.dart';
+import 'fake_privacy_service.dart';
 import 'fake_profile_service.dart';
 import 'fake_receipt_scanner.dart';
 import 'fake_settlement_service.dart';
@@ -173,6 +175,7 @@ Future<void> pumpRoamio(
   FakeConnectivity? connectivity,
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
+  FakePrivacyService? privacy,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -227,6 +230,9 @@ Future<void> pumpRoamio(
         ),
         networkSwitchProvider.overrideWithValue(network ?? FakeNetworkSwitch()),
         photoFlushProvider.overrideWithValue(() async {}),
+        privacyServiceProvider.overrideWithValue(
+          privacy ?? FakePrivacyService(),
+        ),
       ],
       child: const RoamioApp(),
     ),

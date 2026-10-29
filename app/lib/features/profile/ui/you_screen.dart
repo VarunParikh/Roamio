@@ -4,18 +4,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/images/upload_queue.dart';
-import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
-import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/profile/ui/consent_switches.dart';
+import 'package:roamio/features/profile/ui/privacy_centre.dart';
 
 final StreamProvider<List<LinkedChild>> _linkedChildrenProvider =
     StreamProvider.autoDispose<List<LinkedChild>>(
@@ -24,7 +25,7 @@ final StreamProvider<List<LinkedChild>> _linkedChildrenProvider =
 
 /// The You tab (spec UC-28): photo, name, description, profile currency,
 /// notification and location switches, then Linked children (spec §7.3)
-/// and signing out. The privacy centre arrives in Task 35.
+/// the Privacy centre link and signing out.
 class YouScreen extends ConsumerStatefulWidget {
   const new({super.key});
 
@@ -61,17 +62,19 @@ class _YouScreenState extends ConsumerState<YouScreen> {
   }
 
   Future<void> _changePhoto() async {
+    final cameraAllowed = ref.read(cameraAllowedProvider).value ?? true;
     final camera = await showModalBottomSheet<bool>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take a photo'),
-              onTap: () => Navigator.pop(context, true),
-            ),
+            if (cameraAllowed)
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.pop(context, true),
+              ),
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
               title: const Text('Choose from gallery'),
@@ -105,21 +108,6 @@ class _YouScreenState extends ConsumerState<YouScreen> {
     }
   }
 
-  Future<void> _setNotifications({required bool on}) async {
-    final service = ref.read(notificationServiceProvider);
-    if (!on) {
-      await service.decline();
-      return;
-    }
-    final granted = await service.turnOn();
-    if (!granted && mounted) {
-      showAuthMessage(
-        context,
-        'Notifications are off. You can allow them in settings later.',
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -135,10 +123,6 @@ class _YouScreenState extends ConsumerState<YouScreen> {
       ...?ref.watch(countriesProvider).value?.currencies,
       currency,
     }.toList()..sort();
-    final notifications = ref.watch(notificationConsentProvider).value == true;
-    final allowsLocation = ref.watch(privacyPolicyProvider).allowsLocation;
-    final location =
-        allowsLocation && (ref.watch(locationAllowedProvider).value ?? false);
     final photoUrl = profile?.photoUrl;
     final initial = _name.text.trim().characters.firstOrNull ?? '?';
 
@@ -217,32 +201,16 @@ class _YouScreenState extends ConsumerState<YouScreen> {
           const SizedBox(height: 16),
           PrimaryButton(label: 'Save profile', onPressed: _save),
           const SizedBox(height: 24),
-          SwitchListTile(
+          const ConsentSwitches(),
+          ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Notifications'),
+            leading: const Icon(Icons.shield_outlined),
+            title: const Text('Privacy centre'),
             subtitle: const Text(
-              'Alerts when friends join and when you near your budget.',
+              'Download or delete your data, and how to reach us.',
             ),
-            value: notifications,
-            onChanged: (on) => unawaited(_setNotifications(on: on)),
-          ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Location'),
-            subtitle: Text(
-              allowsLocation
-                  ? 'Lets you add where a tab happened. Android still asks '
-                        'when you use it.'
-                  : 'Location is always off for under-18 accounts.',
-            ),
-            value: location,
-            onChanged: allowsLocation
-                ? (on) => unawaited(
-                    ref
-                        .read(profileServiceProvider)
-                        .setLocationAllowed(allowed: on),
-                  )
-                : null,
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(privacyCentreRoute),
           ),
           if (children.isNotEmpty) ...[
             const SizedBox(height: 32),

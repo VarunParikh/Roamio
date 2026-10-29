@@ -16,6 +16,7 @@ import 'package:roamio/features/auth/ui/verify_email_screen.dart';
 import 'package:roamio/features/consent/ui/parent_consent_screen.dart';
 import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/invites/ui/invite_link_screen.dart';
+import 'package:roamio/features/profile/ui/privacy_centre.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
 import 'package:roamio/features/splits/ui/split_screen.dart';
@@ -131,6 +132,10 @@ final _routes = <RouteBase>[
       childUid: state.uri.queryParameters['c'] ?? '',
       token: state.uri.queryParameters['t'] ?? '',
     ),
+  ),
+  GoRoute(
+    path: privacyCentreRoute,
+    builder: (_, _) => const PrivacyCentreScreen(),
   ),
   StatefulShellRoute.indexedStack(
     builder: (context, state, shell) => Scaffold(

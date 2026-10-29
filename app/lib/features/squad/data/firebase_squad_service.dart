@@ -64,9 +64,7 @@ class FirebaseSquadService implements SquadService {
     final docs = await Future.wait(
       uids.map((uid) => _db.doc('users/$uid').get()),
     );
-    return {
-      for (final d in docs) d.id: (d.data()?['name'] as String?) ?? 'Someone',
-    };
+    return {for (final d in docs) d.id: nameFromProfile(d.data())};
   }
 
   CollectionReference<Map<String, dynamic>> _pals(String adventureId) =>
