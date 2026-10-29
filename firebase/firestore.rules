@@ -83,7 +83,16 @@ service cloud.firestore {
           && isText(incoming().get('description', ''), 0, 500)
           && isDate(incoming().startDate) && isDate(incoming().endDate)
           && incoming().endDate >= incoming().startDate
-          && isCurrency(incoming().baseCurrency);
+          && isCurrency(incoming().baseCurrency)
+          && isBanner(incoming().get('bannerUrl', null));
+      }
+
+      // Only our own stored photo, never an outside link that could track
+      // members when it loads; local addresses are the dev emulator.
+      function isBanner(v) {
+        return v == null || (v is string && v.size() <= 1000 && (
+          v.matches('^https://firebasestorage[.]googleapis[.]com/.*')
+          || v.matches('^http://(10[.]0[.]2[.]2|127[.]0[.]0[.]1|localhost):9199/.*')));
       }
 
       // Checks the document itself, so "my adventures" queries

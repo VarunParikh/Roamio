@@ -142,10 +142,11 @@ Common verification commands:
   - Files: `app/lib/features/adventures/ui/edit_adventure.dart`, `firebase/firestore.rules`, tests
   - Done: edit name, description, city, dates, currency (locked with tabs); country fixed; `tabsOpenOn` (end + 7 days) ready for Task 23. Own-photo banner split out below.
 
-- [ ] **Task 21b: Lead replaces the banner with their own photo** — S · Deps: 21 · UC-10
+- [x] **Task 21b: Lead replaces the banner with their own photo** — S · Deps: 21 · UC-10
   - Acceptance: leads pick a photo; it's compressed and EXIF-stripped on device, uploaded to Storage, and replaces `bannerUrl`; "Use country photo" resets it.
   - Needs owner OK: new dependencies (photo picker, image compression) and Storage use (cost).
   - Verify: storage rules allow + deny tests (leads only, image type, size cap); widget test.
+  - Done: Edit adventure → "Use my own photo" / "Use country photo"; rules also limit `bannerUrl` to our own Storage links so no outside tracking image can be set.
 
 ### ✅ Checkpoint 3 — Journeys A and B pass manually
 - [ ] Create → share → join (fresh install) → promote co-lead → add pal · [ ] Owner approves

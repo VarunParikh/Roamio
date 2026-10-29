@@ -31,6 +31,9 @@ abstract interface class AdventureService {
 
   /// Leads edit the details (UC-10). The country can't change.
   Future<void> update(String adventureId, AdventureEdit edit);
+
+  /// Drops a lead's own banner photo, so the country photo shows again.
+  Future<void> resetBanner(String adventureId);
 }
 
 /// What a lead can change about an adventure (UC-10).
