@@ -6,9 +6,7 @@ import {
 } from "firebase-admin/firestore";
 import { HttpsError, onCall, onRequest } from "firebase-functions/https";
 import { newCode, normaliseCode } from "./code";
-
-/** How long a shared invite link works (spec UC-9). */
-export const INVITE_DAYS = 14;
+import { serverConfig } from "../config";
 
 const db = () => getFirestore();
 
@@ -55,7 +53,8 @@ export const createInvite = onCall(async (request) => {
     }
   }
 
-  const expiresAt = Timestamp.fromMillis(Date.now() + INVITE_DAYS * 86_400_000);
+  const { inviteDays } = await serverConfig();
+  const expiresAt = Timestamp.fromMillis(Date.now() + inviteDays * 86_400_000);
   const leaderName = await firstNameOf(adventure.get("leaderUid"));
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = newCode();

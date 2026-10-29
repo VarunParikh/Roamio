@@ -82,6 +82,17 @@ class AdventurePage extends ConsumerWidget {
                   InviteSection(adventure: adventure, myUid: myUid),
                   const SizedBox(height: 24),
                   SquadSection(adventure: adventure, myUid: myUid),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.history),
+                      title: const Text('Activity'),
+                      subtitle: const Text('Who joined, changes and payments'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          context.push('/adventures/${adventure.id}/activity'),
+                    ),
+                  ),
                 ],
               ),
             ),

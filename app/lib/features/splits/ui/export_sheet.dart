@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
@@ -10,9 +11,10 @@ import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 import 'package:share_plus/share_plus.dart';
 
-/// Remote Config `export_enabled` (spec §11); on by default until Task 37
-/// wires Remote Config.
-final exportEnabledProvider = Provider<bool>((ref) => true);
+/// Remote Config `export_enabled` (spec §11), on unless switched off there.
+final exportEnabledProvider = Provider<bool>(
+  (ref) => ref.watch(appConfigProvider).exportEnabled,
+);
 
 /// Sends files to Android's share sheet; overridden in `main.dart` and
 /// tests. Takes the files and the names they should have.

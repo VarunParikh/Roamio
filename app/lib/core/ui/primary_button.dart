@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 
 /// The one chartreuse call-to-action a screen may have (CLAUDE.md, spec §12).
 /// Shows a spinner while [busy]; disabled when [onPressed] is null. With
 /// [pulse] it breathes three times to draw the eye, unless the system asks
-/// for reduced motion.
-class PrimaryButton extends StatefulWidget {
+/// for reduced motion or Remote Config `cta_pulse_enabled` is off.
+class PrimaryButton extends ConsumerStatefulWidget {
   const new({
     required this.label,
     required this.onPressed,
@@ -22,10 +24,10 @@ class PrimaryButton extends StatefulWidget {
   final bool pulse;
 
   @override
-  State<PrimaryButton> createState() => _PrimaryButtonState();
+  ConsumerState<PrimaryButton> createState() => _PrimaryButtonState();
 }
 
-class _PrimaryButtonState extends State<PrimaryButton>
+class _PrimaryButtonState extends ConsumerState<PrimaryButton>
     with SingleTickerProviderStateMixin {
   late final _controller = AnimationController(
     vsync: this,
@@ -40,7 +42,8 @@ class _PrimaryButtonState extends State<PrimaryButton>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final reduced = MediaQuery.disableAnimationsOf(context);
-    if (widget.pulse && !reduced && !_controller.isAnimating) {
+    final allowed = ref.read(appConfigProvider).ctaPulse;
+    if (widget.pulse && allowed && !reduced && !_controller.isAnimating) {
       // 1.6 s per breath (out and back), three times, then still.
       _controller.repeat(reverse: true, count: 3);
     }

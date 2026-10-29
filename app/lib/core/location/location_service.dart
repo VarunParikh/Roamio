@@ -42,6 +42,10 @@ class LocationFailed extends LocationResult {
 abstract interface class LocationService {
   Future<LocationResult> current();
 
+  /// Where the phone is, only if location is already allowed and on; never
+  /// asks. Null otherwise. For background uses such as the weather (UC-7).
+  Future<MapPoint?> currentIfAllowed();
+
   /// Opens the phone's location settings to switch services on.
   Future<void> openLocationSettings();
 
@@ -78,6 +82,29 @@ class DeviceLocationService implements LocationService {
       return Located(MapPoint(p.latitude, p.longitude));
     } on Exception {
       return const LocationFailed();
+    }
+  }
+
+  @override
+  Future<MapPoint?> currentIfAllowed() async {
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.always &&
+          permission != LocationPermission.whileInUse) {
+        return null;
+      }
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
+      final p =
+          await Geolocator.getLastKnownPosition() ??
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 10),
+            ),
+          );
+      return MapPoint(p.latitude, p.longitude);
+    } on Exception {
+      return null;
     }
   }
 
