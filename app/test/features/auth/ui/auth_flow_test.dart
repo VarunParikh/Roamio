@@ -34,7 +34,7 @@ void main() {
         ),
         'Almost there! 🙌',
       ),
-      'adult → home': (readyFacts, 'Hey there 👋'),
+      'adult → home': (readyFacts, 'Hey Ari 👋'),
     };
 
     for (final MapEntry(key: name, value: (facts, expected)) in cases.entries) {
@@ -58,7 +58,7 @@ void main() {
 
       auth.emit(readyFacts);
       await tester.pumpAndSettle();
-      expect(find.text('Hey there 👋'), findsOneWidget);
+      expect(find.text('Hey Ari 👋'), findsOneWidget);
     });
 
     testWidgets('signing out from anywhere returns to sign in', (tester) async {

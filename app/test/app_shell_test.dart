@@ -10,7 +10,7 @@ void main() {
   testWidgets('starts on Home with the bottom bar', (tester) async {
     await pumpApp(tester);
 
-    expect(find.text('Hey there 👋'), findsOneWidget);
+    expect(find.text('Hey Ari 👋'), findsOneWidget);
     for (final label in ['Home', 'Split', 'You']) {
       expect(find.text(label), findsOneWidget);
     }
@@ -35,7 +35,7 @@ void main() {
 
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
-    expect(find.text('Hey there 👋'), findsOneWidget);
+    expect(find.text('Hey Ari 👋'), findsOneWidget);
   });
 
   testWidgets('shows a DEV banner in dev builds', (tester) async {

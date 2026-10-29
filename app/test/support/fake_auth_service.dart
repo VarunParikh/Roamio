@@ -1,13 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/data/countries.dart';
+import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/main.dart';
 
+import 'fake_adventure_service.dart';
 import 'fake_consent_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
@@ -93,6 +98,15 @@ const readyFacts = SessionFacts(
   ageStatus: 'adult',
 );
 
+/// The real bundled countries, read straight from disk: a large asset loads
+/// on a background isolate, which widget tests' fake clock never advances.
+final testCountries = Countries(
+  (jsonDecode(File('assets/data/countries.json').readAsStringSync()) as List)
+      .cast<Map<String, dynamic>>()
+      .map(Country.fromJson)
+      .toList(),
+);
+
 /// Pumps the whole app with [auth] and a fixed "today" of 29 Oct 2026.
 /// Pass `settle: false` on the splash screen, whose spinner never settles.
 Future<void> pumpRoamio(
@@ -100,6 +114,7 @@ Future<void> pumpRoamio(
   FakeAuthService auth, {
   bool settle = true,
   FakeConsentService? consent,
+  FakeAdventureService? adventures,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -108,6 +123,10 @@ Future<void> pumpRoamio(
     ProviderScope(
       overrides: [
         authServiceProvider.overrideWithValue(auth),
+        countriesProvider.overrideWith((ref) => testCountries),
+        adventureServiceProvider.overrideWithValue(
+          adventures ?? FakeAdventureService(),
+        ),
         consentServiceProvider.overrideWithValue(
           consent ?? FakeConsentService(),
         ),

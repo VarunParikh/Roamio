@@ -11,9 +11,11 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
   type Firestore,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
@@ -316,6 +318,25 @@ describe("adventures", () => {
         memberUids: ["pete"],
       }),
     );
+  });
+
+  it("members list their own adventures; nobody lists everyone's", async () => {
+    const mine = query(
+      collection(as("bob"), "adventures"),
+      where("memberUids", "array-contains", "bob"),
+    );
+    await assertSucceeds(getDocs(mine));
+    await assertFails(getDocs(collection(as("bob"), "adventures")));
+    const someoneElses = query(
+      collection(as("dan"), "adventures"),
+      where("memberUids", "array-contains", "bob"),
+    );
+    await assertFails(getDocs(someoneElses));
+    const pending = query(
+      collection(as("pete"), "adventures"),
+      where("memberUids", "array-contains", "pete"),
+    );
+    await assertFails(getDocs(pending));
   });
 
   it("only members can read it", async () => {

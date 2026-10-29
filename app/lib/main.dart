@@ -8,6 +8,8 @@ import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
+import 'package:roamio/features/adventures/data/adventure_service.dart';
+import 'package:roamio/features/adventures/data/firebase_adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
@@ -25,6 +27,12 @@ Future<void> main() async {
             FirebaseAuth.instance,
             FirebaseFirestore.instance,
             GoogleSignIn.instance,
+          ),
+        ),
+        adventureServiceProvider.overrideWithValue(
+          FirebaseAdventureService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
           ),
         ),
         consentServiceProvider.overrideWithValue(

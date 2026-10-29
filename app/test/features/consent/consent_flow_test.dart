@@ -196,7 +196,7 @@ void main() {
       expect(find.text('This request has expired.'), findsOneWidget);
       await tester.tap(find.text('Go to Roamio'));
       await tester.pumpAndSettle();
-      expect(find.text('Hey there 👋'), findsOneWidget);
+      expect(find.text('Hey Ari 👋'), findsOneWidget);
     });
   });
 
