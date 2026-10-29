@@ -224,9 +224,17 @@ void main() {
       tester,
     ) async {
       final consent = await openYou(tester);
+      await tester.scrollUntilVisible(
+        find.text('Withdraw'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Mia Rao'), findsOneWidget);
       expect(find.text('Consent given 29 Oct 2026'), findsOneWidget);
 
+      await tester.ensureVisible(find.text('Withdraw'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Withdraw'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Keep consent'));
@@ -244,6 +252,12 @@ void main() {
       final auth = FakeAuthService(initial: readyFacts);
       await pumpRoamio(tester, auth);
       await tester.tap(find.text('You'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Sign out'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       expect(auth.calls, ['signOut']);

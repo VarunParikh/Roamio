@@ -230,10 +230,11 @@ Common verification commands:
   - Files: `app/lib/features/sync/**`, `app/lib/core/connectivity/*.dart`, tests
   - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason, Sync retries photos regardless of backoff — all unit/widget tested. **Still open:** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (need a device/emulator), and conflict activity entries (UC-32; needs an owner decision on the data model).
 
-- [ ] **Task 34: You page** — S · Deps: 22 · UC-28
+- [x] **Task 34: You page** — S · Deps: 22 · UC-28
   - Acceptance: photo, name, description, profile currency, notification and location toggles.
   - Verify: widget tests.
   - Files: `app/lib/features/profile/**`, tests
+  - Done: photo (compressed, queued as the avatar), name, description, profile currency (saves at once), notification and location switches; widget-tested. Under-18 accounts see location off and locked, with the reason. **Not wired yet:** the Location switch stores `consents.location` but the Add-tab location picker still checks only the age policy, so it doesn't read the switch (decision for the owner). Not tried on a device.
 
 - [ ] **Task 35: Privacy centre** — M · Deps: 34, 12 · UC-29, Spec §8
   - Acceptance: download my data (JSON + photos zip via function), also offered to a parent for each linked child (deferred from Task 12); delete account (function: erase profile/photos/budgets, tabs keep "Deleted user"); nominate a person; grievance contact; per-purpose consent toggles; audit log entries kept 1 year.
