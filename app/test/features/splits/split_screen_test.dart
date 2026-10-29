@@ -49,6 +49,7 @@ Future<void> _openSplit(
   List<TabEntry>? tabs,
   String currency = 'INR',
   Map<String, String> rates = const {},
+  FakeSquadService? squad,
 }) async {
   await pumpRoamio(
     tester,
@@ -57,7 +58,7 @@ Future<void> _openSplit(
     ),
     adventures: FakeAdventureService([adventure ?? _goa()]),
     tabs: FakeTabService(tabs ?? [_dinner]),
-    squad: FakeSquadService()
+    squad: (squad ?? FakeSquadService())
       ..names.addAll({'ari': 'Ari Chen', 'ben': 'Ben Roy'})
       ..palsByAdventure['bkk'] = [const Pal(id: 'kiko', nickname: 'Kiko')],
     fx: FakeFxRepository(rates),
@@ -94,6 +95,34 @@ void main() {
       expect(find.text('-₹750.00'), findsOneWidget); // Kiko's balance
       expect(find.textContaining('Food & Dining'), findsOneWidget);
       expect(find.text('Tue, 27 Oct 2026'), findsOneWidget);
+    });
+
+    testWidgets('someone who left keeps their name; a deleted account '
+        'shows as Deleted user (spec §8)', (tester) async {
+      final squad = FakeSquadService()
+        ..names['dan'] = 'Dan Lee'
+        ..deleted.add('zed');
+      final taxi = TabEntry(
+        id: 't2',
+        description: 'Taxi',
+        category: 'local_transportation',
+        date: DateTime(2026, 10, 28),
+        createdBy: 'dan',
+        split: TabSplit(
+          amount: Money(90000, 'INR'),
+          payers: const [Payment('dan', 60000), Payment('zed', 30000)],
+          participants: const ['ari', 'dan', 'zed'],
+          fxDate: '2026-10-28',
+        ),
+      );
+      await _openSplit(tester, tabs: [taxi], squad: squad);
+
+      await _tap(tester, find.text('See the details'));
+      expect(find.textContaining('Dan Lee'), findsWidgets);
+      expect(find.textContaining('Deleted user'), findsWidgets);
+      expect(find.textContaining('Left'), findsNothing);
+      // Squad members' names load as before; only the others are looked up.
+      expect(squad.lookups.map((l) => l.join(',')), contains('dan,zed'));
     });
 
     testWidgets('each person sees their own headline', (tester) async {

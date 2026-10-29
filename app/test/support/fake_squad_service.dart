@@ -50,10 +50,20 @@ class FakeSquadService implements SquadService {
   /// Display names; anyone missing is shown by uid.
   final Map<String, String> names = {};
 
+  /// People who deleted their account: their profile is gone.
+  final Set<String> deleted = {};
+
+  /// Every list of uids looked up, in order.
+  final List<List<String>> lookups = [];
+
   @override
-  Future<Map<String, String>> namesOf(List<String> uids) async => {
-    for (final uid in uids) uid: names[uid] ?? uid,
-  };
+  Future<Map<String, String>> namesOf(List<String> uids) async {
+    lookups.add(uids);
+    return {
+      for (final uid in uids)
+        uid: deleted.contains(uid) ? deletedUserName : names[uid] ?? uid,
+    };
+  }
 
   /// Active pals per adventure.
   final Map<String, List<Pal>> palsByAdventure = {};
