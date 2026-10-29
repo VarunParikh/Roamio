@@ -19,6 +19,7 @@ import {
   type Firestore,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { RULES_PROJECT } from "../support/rules-project";
 
 /**
  * Cast (spec §5): alice leads adventure a1, cara is co-lead, bob and mia
@@ -94,7 +95,7 @@ const settlement = (
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
-    projectId: "demo-roamio",
+    projectId: RULES_PROJECT,
     firestore: { rules: readFileSync("firestore.rules", "utf8") },
   });
 });
@@ -604,7 +605,10 @@ describe("pals", () => {
       }),
     );
     await assertFails(
-      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), { ...pal, nickname: "" }),
+      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), {
+        ...pal,
+        nickname: "",
+      }),
     );
     await assertFails(
       setDoc(doc(as("cara"), "adventures/a1/pals/lu"), {
