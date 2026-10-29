@@ -6,6 +6,7 @@ import { onRequest } from "firebase-functions/https";
 setGlobalOptions({ region: "asia-south1", maxInstances: 5 });
 initializeApp();
 
+export { acceptAdultNotice, birthdaySweep } from "./auth/birthdays";
 export { setAgeStatus } from "./auth/setAgeStatus";
 export {
   decideParentalConsent,

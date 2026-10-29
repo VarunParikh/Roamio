@@ -7,7 +7,7 @@ Read [docs/SPEC.md](docs/SPEC.md) before changing behaviour; it is the source of
 - Security rules are the privacy boundary. Every rule change ships with allow + deny tests.
 - Write the failing test first for split-math, FX, rules and consent logic.
 - Photos are compressed and EXIF-stripped on device before upload.
-- No analytics/Crashlytics/location for under-18 accounts.
+- No analytics/Crashlytics/location for under-18 accounts: check `privacyPolicyProvider` (`app/lib/core/privacy/privacy_policy.dart`) before any of them.
 - One primary (chartreuse) button per screen; every empty/error/offline state has one next action.
 - Visual style comes from `design/DESIGN.md`; the `design/*` screens are style references, not feature specs.
 

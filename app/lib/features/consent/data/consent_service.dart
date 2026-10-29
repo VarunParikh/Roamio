@@ -68,6 +68,9 @@ abstract interface class ConsentService {
   Stream<List<LinkedChild>> linkedChildren();
 
   Future<void> withdraw(String childUid);
+
+  /// A newly-18 account accepts the adult privacy notice (spec §7.4).
+  Future<void> acceptAdultNotice();
 }
 
 /// Overridden in `main.dart` with [FirebaseConsentService].

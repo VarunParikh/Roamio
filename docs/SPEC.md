@@ -237,7 +237,7 @@ Roamio may serve users aged **13–17** only after a parent or lawful guardian g
 
 ### 7.4 Turning 18
 
-On the child's 18th birthday the app asks them to accept the adult privacy notice themselves; the parent link is then removed and the parent notified. Until they accept, the account stays read-only.
+On the child's 18th birthday (checked daily, India date) the parent link is removed and the parent notified, and the app asks them to accept the adult privacy notice themselves. Until they accept, they see only that screen (stricter than read-only, and one tap away).
 
 ### 7.5 Edge cases
 

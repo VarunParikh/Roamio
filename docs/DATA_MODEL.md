@@ -6,14 +6,14 @@ Conventions:
 - Money is `…Minor` (integer minor units) + `currency` (ISO 4217). Percentages are basis points (10000 = 100%).
 - Dates without time are `yyyy-mm-dd` strings; instants are Firestore timestamps.
 - **Server-only** fields are written by Cloud Functions (Admin SDK) and rejected by rules if a client sends them.
-- "Active user" = signed in and `users/{uid}/private/account.ageStatus` is `adult` or `minor_active`. A user with no status yet, or `minor_pending`, can only touch their own profile (spec §7).
+- "Active user" = signed in and `users/{uid}/private/account.ageStatus` is `adult` or `minor_active`. Any other status (none yet, `minor_pending`, `minor_frozen`, `adult_unconfirmed`) can only touch their own profile (spec §7).
 
 ## Collections
 
 | Path | Fields | Read | Write |
 |---|---|---|---|
 | `users/{uid}` | `name`, `photoUrl`, `bio` | any active user; owner always | owner (only these fields) |
-| `users/{uid}/private/account` | `dob`, `profileCurrency`, `consents{location,camera,notifications}`, `noticeVersion`, `createdAt`, `fcmTokens[]`; **server-only:** `ageStatus` (`adult` \| `minor_pending` \| `minor_active`), `parentUid` | owner | owner creates (needs `dob`); owner updates `profileCurrency`, `consents`, `fcmTokens`; `dob` immutable |
+| `users/{uid}/private/account` | `dob`, `profileCurrency`, `consents{location,camera,notifications}`, `noticeVersion`, `createdAt`, `fcmTokens[]`; **server-only:** `ageStatus` (`adult` \| `minor_pending` \| `minor_active` \| `minor_frozen` (consent withdrawn) \| `adult_unconfirmed` (turned 18, notice not yet accepted)), `parentUid`, `adultNoticeAcceptedAt` | owner | owner creates (needs `dob`); owner updates `profileCurrency`, `consents`, `fcmTokens`; `dob` immutable |
 | `users/{uid}/invites/{code}` | `code`, `addedAt` — invite codes this user has opened (Home → Invites) | owner | owner |
 | `adventures/{aid}` | `name`, `description`, `countryCode`, `city`, `startDate`, `endDate`, `baseCurrency`, `bannerUrl`, `createdBy`, `createdAt`, `leaderUid`, `coLeadUids[]`, `memberUids[]` (active members incl. leads); **server-only:** `hasTabs` | members | create: active user as sole member + leader; update: leads, metadata only; `baseCurrency` locked once `hasTabs`; roles/membership server-only; no delete |
 | `adventures/{aid}/members/{uid}` | `role` (`leader` \| `co_lead` \| `member`), `status` (`active` \| `left`), `joinedAt` | members | server-only |
@@ -25,7 +25,7 @@ Conventions:
 | `invites/{code}` | `adventureId`, `adventureName`, `leaderName`, `createdBy`, `expiresAt`, `revoked` | active users, single-document get only (no listing) | server-only |
 | `fx_rates/{yyyy-mm-dd}` | `rates{CODE: "decimal string"}` (units per USD), `fetchedAt` | active users | server-only |
 | `banners/{countryCode}` | `url`, `photographer`, `photographerUrl`, `fetchedAt` | active users | server-only |
-| `parentalConsents/{childUid}` | `childUid`, `parentEmail` (lower-case), `relationship`, `status` (`requested` \| `granted` \| `declined` \| `expired`), `requestedAt`, `remindersSent`, `requestsOn{day,count}`, `noticeVersion`; once decided: `parentUid`, `decidedAt`, `method`. `tokenHash` (SHA-256 of the emailed link token) exists only while open | the child or the parent | server-only |
+| `parentalConsents/{childUid}` | `childUid`, `parentEmail` (lower-case), `relationship`, `status` (`requested` \| `granted` \| `declined` \| `expired` \| `withdrawn` \| `closed` \| `aged_out`), `requestedAt`, `remindersSent`, `requestsOn{day,count}`, `noticeVersion`; once decided: `parentUid`, `decidedAt`, `method`. `tokenHash` (SHA-256 of the emailed link token) exists only while open | the child or the parent | server-only |
 | `mail/{id}` | `to`, `message{subject,text}`, `createdAt` — outbox in the Firebase "Trigger Email" extension format | nobody | server-only |
 | `auditLog/{id}` | `actorUid`, `action`, `target`, `at` (kept 1 year) | nobody (console only) | server-only |
 

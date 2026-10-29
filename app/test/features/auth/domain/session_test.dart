@@ -79,6 +79,20 @@ void main() {
     );
   });
 
+  test('a minor who turned 18 confirms the adult notice (spec §7.4)', () {
+    expect(
+      stageFor(
+        const SessionFacts(
+          uid: 'u',
+          hasAccount: true,
+          ageStatus: 'adult_unconfirmed',
+        ),
+      ),
+      SessionStage.confirmAdult,
+    );
+    expect(redirectFor(SessionStage.confirmAdult, '/home'), '/welcome-adult');
+  });
+
   group('redirectFor', () {
     test('sends each stage to its screen', () {
       expect(redirectFor(SessionStage.loading, '/home'), '/splash');
@@ -121,6 +135,7 @@ void main() {
         SessionStage.settingUp,
         SessionStage.awaitingConsent,
         SessionStage.paused,
+        SessionStage.confirmAdult,
       ]) {
         for (final tab in ['/home', '/split', '/you']) {
           expect(redirectFor(stage, tab), isNotNull, reason: '$stage at $tab');
