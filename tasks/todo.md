@@ -171,10 +171,11 @@ Common verification commands:
   - Verify: widget tests for each validation path.
   - Files: `app/lib/features/tabs/ui/payers_editor.dart`, `percent_editor.dart`, tests
 
-- [ ] **Task 25: Memories and location on tabs** — S · Deps: 22, 23
+- [x] **Task 25: Memories and location on tabs** — S · Deps: 22, 23
   - Acceptance: up to 4 memories per tab; optional location with permission (never for minors).
   - Verify: widget test (5th photo blocked; location hidden for minor).
   - Files: `app/lib/features/tabs/ui/memories.dart`, `location_picker.dart`, tests
+  - Done: photos go through the Task 22 pipeline; location is read once on tap (offers to turn on location services / open app settings), stored as `{lat, lng}` only; hidden for minors and refused by rules. Not yet tried by hand on a device.
 
 - [ ] **Task 26: Scan bill (OCR)** — S · Deps: 22, 23
   - Acceptance: ML Kit on-device text recognition prefills amount, date and merchant; user confirms; behind `ocr_enabled` flag.

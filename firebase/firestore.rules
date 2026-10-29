@@ -31,6 +31,12 @@ service cloud.firestore {
     function changed() { return incoming().diff(resource.data).affectedKeys(); }
     function isDate(v) { return v is string && v.matches('^\\d{4}-\\d{2}-\\d{2}$'); }
     function isCurrency(v) { return v is string && v.matches('^[A-Z]{3}$'); }
+    // A tab's location: one point, nothing else (no address, spec §8).
+    function isPoint(v) {
+      return v is map && v.keys().hasOnly(['lat', 'lng']) && v.keys().hasAll(['lat', 'lng'])
+        && v.lat is number && v.lat >= -90 && v.lat <= 90
+        && v.lng is number && v.lng >= -180 && v.lng <= 180;
+    }
     function isText(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
 
     // ---------- users ----------
@@ -139,7 +145,7 @@ service cloud.firestore {
             && (t.get('percentBp', null) == null || t.percentBp is map)
             && t.get('memories', []) is list && t.get('memories', []).size() <= 4
             && isText(t.get('description', ''), 0, 200)
-            && (!('location' in t) || isAdult());
+            && (!('location' in t) || (isAdult() && isPoint(t.location)));
         }
 
         allow read: if isMember(aid);
