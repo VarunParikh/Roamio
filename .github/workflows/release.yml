@@ -1,0 +1,111 @@
+name: Release
+
+# Pushing a tag like v1.2.3 builds a signed prod APK and publishes a GitHub
+# Release with it. v1.2.3-rc1 makes a pre-release, which the in-app update
+# popup ignores. Steps for the owner: docs/RELEASING.md.
+on:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read pinned Flutter version
+        id: fvm
+        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: flutter pub get
+
+      - name: Check the tag matches pubspec.yaml
+        id: version
+        run: dart run tool/release_check.dart check "$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+
+      - run: dart format --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Add Firebase config and upload key from secrets
+        env:
+          GOOGLE_SERVICES_JSON_PROD: ${{ secrets.GOOGLE_SERVICES_JSON_PROD }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          for name in GOOGLE_SERVICES_JSON_PROD ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::GitHub secret $name is missing. See docs/RELEASING.md."
+              exit 1
+            fi
+          done
+          mkdir -p android/app/src/prod
+          printf '%s' "$GOOGLE_SERVICES_JSON_PROD" > android/app/src/prod/google-services.json
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+          echo "ROAMIO_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed prod APK
+        env:
+          ROAMIO_REQUIRE_SIGNING: 'true'
+          ROAMIO_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: flutter build apk --flavor prod --release
+
+      - name: Check the APK is signed with the upload key
+        id: apk
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          apk=build/app/outputs/flutter-apk/app-prod-release.apk
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          certs=$("$apksigner" verify --print-certs "$apk")
+          echo "$certs"
+          if grep -q 'CN=Android Debug' <<< "$certs"; then
+            echo "::error::The APK is signed with a debug key, not the upload key."
+            exit 1
+          fi
+          out="$RUNNER_TEMP/Roamio-$GITHUB_REF_NAME.apk"
+          cp "$apk" "$out"
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+          APK: ${{ steps.apk.outputs.path }}
+        run: |
+          dart run tool/release_check.dart notes "$VERSION" > "$RUNNER_TEMP/notes.md"
+          args=(--verify-tag --title "Roamio $GITHUB_REF_NAME")
+          if [ -s "$RUNNER_TEMP/notes.md" ]; then
+            args+=(--notes-file "$RUNNER_TEMP/notes.md")
+          else
+            args+=(--generate-notes)
+          fi
+          if [ "$PRERELEASE" = true ]; then
+            args+=(--prerelease)
+          else
+            args+=(--latest)
+          fi
+          gh release create "$GITHUB_REF_NAME" "$APK" "${args[@]}"
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks" android/app/src/prod/google-services.json

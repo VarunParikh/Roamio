@@ -1,9 +1,31 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Upload (release) key, from environment variables (CI) or the git-ignored
+// android/key.properties (a local machine). Null when neither is set up.
+val uploadKey: Map<String, String>? =
+    run {
+        val props = Properties()
+        val keyProperties = rootProject.file("key.properties")
+        if (keyProperties.exists()) keyProperties.inputStream().use { props.load(it) }
+        fun read(env: String, prop: String): String? =
+            System.getenv(env)?.takeIf { it.isNotBlank() } ?: props.getProperty(prop)
+        val storeFile = read("ROAMIO_KEYSTORE_FILE", "storeFile")
+        val storePassword = read("ROAMIO_KEYSTORE_PASSWORD", "storePassword")
+        if (storeFile == null || storePassword == null) return@run null
+        mapOf(
+            "storeFile" to storeFile,
+            "storePassword" to storePassword,
+            "keyAlias" to (read("ROAMIO_KEY_ALIAS", "keyAlias") ?: "upload"),
+            "keyPassword" to (read("ROAMIO_KEY_PASSWORD", "keyPassword") ?: storePassword),
+        )
+    }
 
 android {
     namespace = "app.roamio.android"
@@ -44,11 +66,31 @@ android {
         }
     }
 
+    signingConfigs {
+        if (uploadKey != null) {
+            create("release") {
+                storeFile = file(uploadKey.getValue("storeFile"))
+                storePassword = uploadKey.getValue("storePassword")
+                keyAlias = uploadKey.getValue("keyAlias")
+                keyPassword = uploadKey.getValue("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // The upload key when one is set up (docs/RELEASING.md); otherwise the
+            // debug key, so local `flutter run --release` still works.
+            signingConfig =
+                if (uploadKey != null) {
+                    signingConfigs.getByName("release")
+                } else {
+                    check(System.getenv("ROAMIO_REQUIRE_SIGNING") != "true") {
+                        "ROAMIO_REQUIRE_SIGNING is set but no upload key was found: set " +
+                            "ROAMIO_KEYSTORE_FILE and ROAMIO_KEYSTORE_PASSWORD or add android/key.properties."
+                    }
+                    signingConfigs.getByName("debug")
+                }
         }
     }
 }

@@ -273,10 +273,11 @@ Common verification commands:
   - Files: `app/lib/core/ui/primary_button.dart`, `tasks/screen_states.md`, screens as needed
   - Done: `tasks/screen_states.md` lists every screen's primary button and each empty/error/offline state with its one next action and test. Fixed dead ends: tab detail, Add/Edit tab and Edit adventure now show "This adventure isn't available" + Back to Home instead of spinning; Split shows "We couldn't work out the split" + Try again (the split provider now passes load errors through); Activity has Try again on error and Back to the adventure when empty; Split with no adventures offers New Adventure. Contrast: coral/mint were too light for text (3.5:1, 2.5:1), so text uses new `coralText`/`mintText` shades (6.0:1, 5.3:1); fills keep coral/mint. Flutter's tap-target, label and contrast guidelines pass on Sign in, Home, adventure page, Add tab, Activity, Split, You and Privacy centre; every icon button has a tooltip. Not checked on a device: TalkBack reading order, pulse feel, hero text over real banner photos.
 
-- [ ] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
+- [x] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
   - Acceptance: `PRIVACY_NOTICE.md` (adult + child versions), `BREACH_RESPONSE.md`, README updated (setup, run, release), ADRs current; notice published on Hosting.
   - Verify: links work in-app and on Hosting.
   - Files: `docs/PRIVACY_NOTICE.md`, `docs/BREACH_RESPONSE.md`, `README.md`, `firebase/hosting/privacy/index.html`
+  - Done: adult + child notices (both version 2026-10, matching the app and functions), breach response, README (setup, run, test, release), ADRs checked (still current); `/privacy/` Hosting page; Privacy centre "Read the privacy notice" opens `$siteUrl/privacy/` (widget test). **Grievance email is still the placeholder `grievance@roamio.example`** (owner picks it next phase). **Hosting publish is pending the owner** (`firebase deploy --only hosting -P prod`, and `-P dev`); until then the in-app link shows a not-found page. Gaps found: nothing purges `parentalConsents` a year after the child's account ends, and deletion keeps the person's tab photos with the squad (the notice says so).
 
 - [ ] **Task 41: End-to-end journey tests** — M · Deps: 39
   - Acceptance: `integration_test` covers Journeys A–F against emulators.
@@ -287,6 +288,7 @@ Common verification commands:
   - Acceptance: upload key generated and stored as CI secret; tag `vX.Y.Z` builds a signed prod APK and publishes a GitHub Release with notes.
   - Verify: tag `v0.1.0-rc1` produces a downloadable APK that installs on the emulator.
   - Files: `.github/workflows/release.yml`, `app/android/app/build.gradle.kts`
+  - Progress (2026-10-30): release signing reads the upload key from `ROAMIO_KEYSTORE_*` env vars or git-ignored `android/key.properties`, falling back to the debug key (CI sets `ROAMIO_REQUIRE_SIGNING` so a release can't go out debug-signed); R8 keep rules for ML Kit's unused language packs; `release.yml` (tag → version check → format/analyze/test → signed prod APK → GitHub Release, `-rcN` tags as pre-releases); `tool/release_check.dart` + tests; `CHANGELOG.md`; [docs/RELEASING.md](../docs/RELEASING.md). Checked locally: dev debug build without a key, the "key required" failure, and a dev release signed with a throwaway key. Owner steps left: approve the workflow (CI change), create and back up the upload key, add secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `GOOGLE_SERVICES_JSON_PROD`, add the key's SHA-1/SHA-256 to the prod Firebase app, then push `v0.1.0-rc1` and install the APK (the Verify step).
 
 - [ ] **Task 43: Security, privacy and code review** — S · Deps: 41
   - Acceptance: security-auditor and code-reviewer passes; all high/critical findings fixed; dependency audit clean.
