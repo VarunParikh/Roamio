@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/profile/data/privacy_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
@@ -160,6 +162,16 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
             'Download my data gives you a file of everything we keep about '
             'you, plus your photos as zip files.',
             style: muted,
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              // The published notice (docs/PRIVACY_NOTICE.md) on Hosting.
+              onPressed: () =>
+                  ref.read(openLinkProvider)(Uri.parse('$siteUrl/privacy/')),
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Read the privacy notice'),
+            ),
           ),
           if (_downloadNote != null) ...[
             const SizedBox(height: 8),

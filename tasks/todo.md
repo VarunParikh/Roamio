@@ -272,10 +272,11 @@ Common verification commands:
   - Verify: checklist complete; widget test sweep for states.
   - Files: `app/lib/core/ui/primary_button.dart`, `tasks/screen_states.md`, screens as needed
 
-- [ ] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
+- [x] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
   - Acceptance: `PRIVACY_NOTICE.md` (adult + child versions), `BREACH_RESPONSE.md`, README updated (setup, run, release), ADRs current; notice published on Hosting.
   - Verify: links work in-app and on Hosting.
   - Files: `docs/PRIVACY_NOTICE.md`, `docs/BREACH_RESPONSE.md`, `README.md`, `firebase/hosting/privacy/index.html`
+  - Done: adult + child notices (both version 2026-10, matching the app and functions), breach response, README (setup, run, test, release), ADRs checked (still current); `/privacy/` Hosting page; Privacy centre "Read the privacy notice" opens `$siteUrl/privacy/` (widget test). **Grievance email is still the placeholder `grievance@roamio.example`** (owner picks it next phase). **Hosting publish is pending the owner** (`firebase deploy --only hosting -P prod`, and `-P dev`); until then the in-app link shows a not-found page. Gaps found: nothing purges `parentalConsents` a year after the child's account ends, and deletion keeps the person's tab photos with the squad (the notice says so).
 
 - [ ] **Task 41: End-to-end journey tests** — M · Deps: 39
   - Acceptance: `integration_test` covers Journeys A–F against emulators.

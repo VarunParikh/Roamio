@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roamio · Privacy notice</title>
+  <!-- Published copy of docs/PRIVACY_NOTICE.md. Change both together and bump the version. -->
+  <style>
+    :root { --ink: #0F1115; --canvas: #F9FAFB; --lime: #D4FF00; --slate: #64748B; --line: #E4E4E7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink);
+      font: 16px/1.5 "Plus Jakarta Sans", system-ui, sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: 32px 16px 48px; }
+    .logo { font-weight: 800; font-size: 32px; letter-spacing: -0.04em; }
+    .logo span { color: var(--lime); }
+    h1 { font-size: 26px; line-height: 32px; letter-spacing: -0.025em; margin: 24px 0 8px; }
+    h2 { font-size: 22px; letter-spacing: -0.02em; margin: 0 0 4px; }
+    h3 { font-size: 18px; margin: 24px 0 8px; }
+    p, li, td { color: var(--slate); }
+    strong { color: var(--ink); }
+    a { color: var(--ink); }
+    .tabs { display: flex; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+    .tabs a { text-decoration: none; font-weight: 600; border: 1px solid var(--line);
+      border-radius: 9999px; padding: 10px 16px; background: #fff; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin: 24px 0; }
+    .version { font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    td { padding: 8px 8px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+    td:first-child { color: var(--ink); width: 38%; }
+    .note { background: #FFF7E0; border-radius: 16px; padding: 12px 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="logo">roamio<span>.</span></div>
+  <h1>Privacy notice</h1>
+  <p>How Roamio, the travel bill-splitting app, uses your data, and what you can do about it.</p>
+  <nav class="tabs">
+    <a href="#adult">For adults (18+)</a>
+    <a href="#child">For parents of under-18s</a>
+  </nav>
+
+  <section class="card" id="adult">
+    <h2>Adult notice</h2>
+    <p class="version">Version 2026-10 · For people aged 18 and over</p>
+
+    <h3>Who we are</h3>
+    <p>Roamio is an app for splitting travel costs with friends. It is run by Varun Parikh, who decides how your
+      data is used (the “Data Fiduciary” under India’s DPDP Act). The pilot is small (about 10 people) and the app
+      is not sold or used for advertising.</p>
+
+    <h3>What we keep, and why</h3>
+    <table>
+      <tr><td>Your name, email and how you sign in (Google or email + password)</td><td>To create your account and let you sign in.</td></tr>
+      <tr><td>Your date of birth</td><td>To check you are 13 or older, and whether a parent needs to say yes first. It can’t be changed in the app.</td></tr>
+      <tr><td>Profile photo and short description (optional)</td><td>So your squad recognises you.</td></tr>
+      <tr><td>Your profile currency</td><td>To show amounts in money you know.</td></tr>
+      <tr><td>Your choices for notifications, location and camera</td><td>So the app only does what you allowed.</td></tr>
+      <tr><td>A code that lets us send notifications to your phone</td><td>For alerts when friends join and when you near your budget. Removed when a phone stops using it.</td></tr>
+      <tr><td>Your adventures, squads, roles, tabs (expenses), who paid, who shares, transfers you marked as settled, and photos added to tabs (“memories”)</td><td>That’s what the app is for: splitting costs fairly. Your squad sees these.</td></tr>
+      <tr><td>Nicknames of “pals” (people on a trip without the app)</td><td>To split costs with them. Nickname only; nothing else about them.</td></tr>
+      <tr><td>Your personal budget for an adventure</td><td>To warn you privately at 80% and 100%. <strong>Only you can see it.</strong></td></tr>
+      <tr><td>Where a tab happened, if you turn Location on and add it</td><td>To remember the spot. Stored as a map point only, no address. Your squad can see it.</td></tr>
+      <tr><td>Invite codes you opened, and activity on your adventures</td><td>So squads can see what changed and why.</td></tr>
+      <tr><td>A short audit record when your data is downloaded or an account is deleted</td><td>To prove we honoured your rights.</td></tr>
+    </table>
+    <p>We <strong>don’t</strong> collect your phone number or contacts. Every photo is shrunk and its hidden details
+      (including GPS location) are removed <strong>on your phone</strong> before it is uploaded. “Scan a bill” reads
+      the bill on your phone; the image isn’t sent anywhere unless you attach it to the tab. Roamio has
+      <strong>no ads</strong> and, today, <strong>no analytics or crash reporting</strong> in the app.</p>
+
+    <h3>Where it’s kept</h3>
+    <p>On Google’s Firebase service, in the <strong>Mumbai (asia-south1)</strong> region in India. Data is encrypted
+      while it travels and while stored. Security rules on the server — not just the app screens — decide who can
+      read what.</p>
+
+    <h3 id="services">Who else is involved</h3>
+    <table>
+      <tr><td>Google Firebase</td><td>Runs the app and holds the data above, as our processor. If you sign in with Google, Google also confirms who you are.</td></tr>
+      <tr><td>Open-Meteo</td><td>Weather on your Home card. Gets your approximate position (about 1 km) only if you turned Location on; otherwise just the adventure’s city and country.</td></tr>
+      <tr><td>Unsplash</td><td>Country photos for adventure banners. Our server asks for a photo of the country, never anything about you.</td></tr>
+      <tr><td>GitHub</td><td>Your phone asks, at most once a day, whether a newer Roamio version exists.</td></tr>
+      <tr><td>ExchangeRate-API (open.er-api.com)</td><td>Our server fetches the day’s exchange rates. Nothing about you is sent.</td></tr>
+      <tr><td>Email provider (via Firebase “Trigger Email”)</td><td>Sends parental consent requests and account notices, so it gets the email address and message.</td></tr>
+    </table>
+    <p>These services see your phone’s internet (IP) address when your phone talks to them. We don’t sell or share
+      your data with anyone else.</p>
+
+    <h3>How long we keep it</h3>
+    <ul>
+      <li><strong>While your account is open</strong>, so the app works.</li>
+      <li><strong>When you delete your account</strong>, your profile, profile photos, budgets, settings, notification
+        codes and sign-in are deleted straight away (always within 30 days). Tabs you were part of — including photos you
+        added to them — stay with your squad, shown as “Deleted user”, so everyone’s balances stay right.</li>
+      <li><strong>Audit records</strong> are deleted after 1 year.</li>
+      <li><strong>Parental consent records</strong> (if you are a parent) are kept for the life of the child’s account plus 1 year.</li>
+    </ul>
+
+    <h3>Your rights — in You → Privacy centre</h3>
+    <ul>
+      <li><strong>Download your data</strong>: a file of everything we keep about you, plus your photos as zip files.</li>
+      <li><strong>Correct your data</strong>: change your name, photo and description on the You page. To fix your date of birth, write to us.</li>
+      <li><strong>Delete your account</strong>. If you lead a squad with others in it, make someone else leader first.</li>
+      <li><strong>Nominate a person</strong> to use these rights for you if you can’t.</li>
+      <li><strong>Change your mind</strong>: switch notifications, location or camera on or off at any time.</li>
+      <li><strong>Raise a concern</strong> with our grievance officer. If you’re not happy with our answer, you can complain to the Data Protection Board of India.</li>
+    </ul>
+
+    <h3>If something goes wrong</h3>
+    <p>If your data is ever exposed, we’ll tell you without delay — what happened, what it means for you, what we’re
+      doing and what you can do — and report it to the Data Protection Board.</p>
+
+    <h3>Changes</h3>
+    <p>If we change this notice we’ll update its version and date, and tell you before a change that affects you takes effect.</p>
+  </section>
+
+  <section class="card" id="child">
+    <h2>Child notice (for parents and guardians)</h2>
+    <p class="version">Version 2026-10 · For the parent or lawful guardian of a 13–17-year-old</p>
+    <p>Your child wants to use Roamio, an app for splitting travel costs with friends. Because they are under 18,
+      Indian law (DPDP Act §9) needs your <strong>verifiable consent</strong> first. Roamio is run by Varun Parikh.</p>
+
+    <h3>How consent works</h3>
+    <ol>
+      <li>Your child enters your email. We email you a single-use link that works for 7 days (reminders on day 3 and 6).</li>
+      <li>You sign in to Roamio — or create an account — with that email. Your account must show you are 18 or older.
+        <strong>Falsely claiming to be a child’s parent or guardian is an offence.</strong></li>
+      <li>You read this notice and tap <strong>I give consent</strong> or <strong>Decline</strong>.</li>
+      <li>We record your decision, this notice’s version, how you were checked and when. Your child can’t change this record.</li>
+    </ol>
+    <p>If you decline, or nobody answers within 7 days, your child’s account and data are deleted and they are told by email.</p>
+
+    <h3>What we keep about your child</h3>
+    <ul>
+      <li>Their name, email and date of birth. Until you say yes, this (plus your email and relationship) is all we keep.</li>
+      <li>After you say yes: an optional profile photo and description, their profile currency, notification and camera choices, and a notification code for their phone.</li>
+      <li>The adventures, tabs (expenses), photos and settled transfers they add or are part of — their squad sees these.</li>
+      <li>Their personal budget — private from the squad.</li>
+      <li>A short audit record when their data is downloaded or their account is deleted.</li>
+    </ul>
+
+    <h3>Extra protections for under-18s</h3>
+    <ul>
+      <li><strong>No tracking or monitoring</strong>: no analytics and no crash reports on a child’s account. No ads.</li>
+      <li><strong>No location</strong>: they can’t tag where a tab happened, and the weather uses the adventure’s city, not where they are.</li>
+      <li><strong>Their budget stays private</strong> from the squad. You can see it only in a data download you request.</li>
+      <li>Photos are shrunk and stripped of hidden details (including GPS) on the phone before upload.</li>
+      <li>No phone number or contacts are collected.</li>
+    </ul>
+
+    <h3>Where it’s kept and who else is involved</h3>
+    <p>On Google Firebase in Mumbai (asia-south1), India, encrypted in transit and at rest. The services involved are
+      the <a href="#services">same as for adults</a>, except that Open-Meteo only ever gets the adventure’s city.</p>
+
+    <h3>Your controls — You → Linked children and Privacy centre</h3>
+    <ul>
+      <li>See your child’s status and the date you gave consent.</li>
+      <li><strong>Download your child’s data</strong>.</li>
+      <li><strong>Ask for a correction</strong> by writing to the grievance officer.</li>
+      <li><strong>Withdraw consent at any time.</strong> Your child’s account is frozen straight away and deleted after
+        48 hours; they are told. Tabs they were part of stay with the squad as “Deleted user”.</li>
+    </ul>
+    <p>Your child can also change their notification and camera choices, download their data and delete their account themselves.</p>
+
+    <h3>How long we keep it</h3>
+    <ul>
+      <li>While the account is open.</li>
+      <li>When the account is deleted, their profile, photos, budgets and sign-in are deleted straight away (always within 30 days); tabs stay with the squad as “Deleted user”.</li>
+      <li>Your consent record: for the life of the child’s account plus 1 year.</li>
+      <li>Audit records: 1 year.</li>
+    </ul>
+
+    <h3>When your child turns 18</h3>
+    <p>The link to you is removed, you are told, and they accept the adult notice themselves before using the app again.</p>
+  </section>
+
+  <section class="card" id="contact">
+    <h2>Grievance officer</h2>
+    <p>Varun Parikh · <a id="grievance" href="mailto:grievance@roamio.example">grievance@roamio.example</a></p>
+    <!-- TO BE SET BY OWNER: placeholder address; change it here, in docs/PRIVACY_NOTICE.md and in the app together. -->
+    <p class="note">This address is a placeholder until the owner sets up the real one.</p>
+    <p>We acknowledge every concern within 7 days. You can also complain to the Data Protection Board of India.</p>
+  </section>
+</main>
+</body>
+</html>
