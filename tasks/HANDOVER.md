@@ -1,46 +1,69 @@
-# Handover — 2026-10-29 (late, end of session)
+# Handover — 2026-10-30
 
 Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`.
-The owner works from a phone: never ask them to do device checks; add them to the list below instead. Ask before merging into `main` (approval covers the named PRs only), before adding a dependency, and before anything that adds Firebase cost or changes the data model.
+The owner works from a phone and will do **one manual test session at the end**: never ask for device checks, add them to the list below. Ask before merging (the owner must name the PR numbers), before adding a dependency, and before anything that adds Firebase cost or changes the data model.
 
 ## Where things stand
 
-**Merged into `main` this session** (owner: "Merge all, in order"): #34 location picker · #35 `deleteMyAccount` · #36 previous handover · #37 `exportMyData` · #38 Privacy centre screen · #39 "Deleted user" and names of people who left · #40 audit log purged after a year inside the daily `consentSweep`.
+**Merged into `main`:** everything through #50.
+- #41 export includes left adventures
+- #42 nominee, ticking Task 35
+- #43 join-card offline guard
+- #44 weather, ticking Task 36
+- #45 the previous handover
+- #46 Remote Config, ticking Task 37
+- #47 activity screen
+- #48 update popup, ticking Task 38
+- #49 compliance docs, ticking Task 40
+- #50 release pipeline (Task 42 progress)
 
-**Open, CI green or running, waiting on the owner's "merge"** (all branched from `main`, independent; they touch different lines of `tasks/todo.md`):
-| PR | What | Branch |
-|---|---|---|
-| #41 | Data download includes adventures the person left (`adventures.leftUids`, server-only) | `task-35f-export-left` |
-| #42 | Nominate a person (`account.nominee`, adults only) + **ticks Task 35** | `task-35g-nominee` |
-| #43 | Join-card Make co-lead / Remove off while offline (Task 33 follow-up) | `task-33b-offline-guards` |
-| #44 | Weather on the Hero card + **ticks Task 36** | `task-36-weather` |
-| (this) | This handover | `handover-2026-10-29b` |
+**Open:** #51 Task 39 UX pass (CI green, waiting for the owner to approve "merge #51").
+
+**The owner's working plan:** finish everything that doesn't need a manual test, running independent tasks in parallel and dependent ones in sequence. The owner then tests everything by hand in one session and raises issues.
 
 **Task status**
-- Task 33 — not ticked. Left: the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (device/emulator), and an activity-feed screen for `tab_edit_replaced` (owner hasn't decided whether to build it).
-- Task 35 — ticked in #42 (all parts #35–#42). Grievance email stays a placeholder `grievance@roamio.example`: **owner moved it to the next phase** (Task 40).
-- Task 36 — ticked in #44.
-- Tasks 37–44 untouched.
+- Done (ticked): 1–32, 34–38, 40. Task 39 is ticked in #51.
+- Task 33: only device checks left (the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test).
+- Task 42: code done (#50). Owner steps left: create and back up the upload keystore, add the GitHub secrets, push the first `v*` tag (see `docs/RELEASING.md`).
+- Tasks 41, 43: not started. Task 44 (pilot): owner.
+- Grievance email: placeholder `grievance@roamio.example` until the next phase (owner's decision). The Hosting privacy page is written but not deployed.
 
-## Next steps (in order)
-1. Merge #41–#44 and this PR only on the owner's word, one at a time (update the next branch after each merge).
-2. **Task 37 Remote config** needs the new dependency `firebase_remote_config`: **ask first** (not yet approved). Wire the in-app defaults already in code: `ocrEnabledProvider`, `exportEnabledProvider`, `weatherEnabledProvider` (app), `BUDGET_THRESHOLDS` (functions/src/budget); keys `ocr_enabled`, `export_enabled`, `weather_enabled`, `budget_alert_thresholds`, plus the rest in spec §11.
-3. Task 38 Update popup (depends on 37), then 39 onward.
-4. Task 33 leftovers when a device/emulator run is possible.
+## Next steps (in order; each starts only after the previous PR merges)
+1. Merge #51 (needs the owner's "merge #51").
+2. **Task 41, end-to-end journey tests:**
+   - `app/integration_test/` covers Journeys A–F (spec §15) against the Firebase emulators on the Android emulator (`Roamio_Pixel_API36`; commands in `docs/SETUP.md`).
+   - Simulate other people via Admin/REST calls against the emulators.
+   - The nightly `.github/workflows/e2e.yml` is a CI change: flag it in the PR. If it needs a third-party Action (e.g. an Android emulator runner), ask first.
+3. **Task 43, security, privacy and code review:** rules, functions, the app's privacy guards, secrets; fix what's found, with allow and deny tests.
+4. Then hand over for the owner's manual session and Task 44.
 
 ## Decisions waiting on the owner
-1. Merge #41, #42, #43, #44 and this handover?
-2. Approve `firebase_remote_config` for Task 37?
-3. Build an activity-feed screen (makes UC-32's `tab_edit_replaced` visible)?
-4. Grievance email: next phase (Task 40), already decided.
+1. "Merge #51".
+2. Task 42 owner steps (signing key and secrets).
+3. Grievance email (next phase).
 
 ## Hands-on checks for the owner (nothing here has run on a device or real Firebase)
-- Real camera photo ≤ 400 KB; a real push arrives; adventure sheet scroll feel; scan a real bill; open an exported PDF; Google sign-in; Checkpoint 3 journeys; teen/parent consent journey.
-- Airplane mode: add a tab, reconnect, press Sync, a second phone sees it (Journey D); an offline-queued photo doesn't freeze the queue; offline banner wording.
-- You page: avatar, name, currency, switches; Location off hides "Add location", under-18 never sees it.
-- Privacy centre: Download my data opens the share sheet with real JSON + photo zips (also a parent's child download); Delete my account on the dev project (leader message, parent confirm, signs out); Camera off hides "Take a photo"; nominate, change and remove a person.
-- Tabs show "Deleted user" after a real deletion, and a left member's real name.
-- Hero card weather appears (and uses the trip city with Location off).
+- Photos and push:
+  - a real camera photo compresses to ≤ 400 KB;
+  - a real push notification arrives;
+  - scan a real bill;
+  - open an exported PDF.
+- Sign-in and journeys: Google sign-in; the Checkpoint 3 journeys; the teen/parent consent journey.
+- Offline:
+  - airplane mode, then Sync, then a second phone sees the change (Journey D);
+  - a photo queued offline doesn't freeze the queue;
+  - the offline banner's wording.
+- You page: photo, name, currency, switches; the Location switch; the Camera switch hides "Take a photo".
+- Privacy centre:
+  - download my data (real JSON and zips; also a parent's download for a child);
+  - delete my account on the dev project (leader message, parent confirmation, sign-out);
+  - nominate, change and remove a person;
+  - the privacy notice link.
+- Names and activity: "Deleted user" and a left member's name on real tabs; the activity screen.
+- Hero card: the weather pill; text readable over real banner photos.
+- UX: TalkBack reading order and wording; the pulse's feel.
+- Remote Config: set the keys in the console and see the flags change.
+- Releases: the release workflow on the first tag; the update popup on the previous version.
 
 ## Facts and traps learned
 - **This repo was edited from a cloud container**; local path on the owner's Mac is `/Users/varunparikh/Projects/Roamio-travel-partner`. The old brief mentioned `tasks/HANDOVER.md` which did not exist; this file replaces it.
@@ -58,4 +81,8 @@ The owner works from a phone: never ask them to do device checks; add them to th
 - **Widget tests on pushed routes:** a screen pushed over the bottom-tab shell leaves the shell's list mounted underneath, so scroll `find.byType(Scrollable).last`; `scrollUntilVisible` stops when a widget is *built*, which can still be off-screen, so `ensureVisible` before tapping; `find.widgetWithText(ButtonStyleButton, …)` matches nothing (byType is exact), use `OutlinedButton` etc.
 - **Location fake:** `FakeLocationService.calls` is the user-facing flow only; the Home weather's `currentIfAllowed` reads are counted in `backgroundReads`.
 - **`pumpRoamio`** never reaches the real network: weather answers only when a test passes `weatherFetch`.
+- **Permission classifier:** merges need the owner to name the PR numbers in chat ("merge #51"); a blanket "merge all" or a long background merge loop has been refused. Merge one PR per command.
+- **Stacked PRs squash-merged:** when a base PR is squash-merged, its child conflicts on the same lines. Merge `origin/main` into the child, keep the child's side (it's a superset), rerun both suites.
+- **Sessions can only be started on the owner's own message**, not from a background-task or child-session event.
+- **Screen-state rules:** `tasks/screen_states.md`; text colours `coralText`/`mintText` for words (coral/mint only for fills); accessibility guideline tests in `app/test/features/ux/`.
 
