@@ -242,10 +242,11 @@ Common verification commands:
   - Files: `app/lib/features/profile/ui/privacy_centre.dart`, `firebase/functions/src/privacy/*.ts`, tests
   - Done: #35 `deleteMyAccount`; #37 + #41 `exportMyData` (JSON + ≤ 6 MB photo zips, own or a granted child's, includes adventures left via `leftUids`); #38 Privacy centre screen (download, delete, notification/location/camera switches); #39 "Deleted user" and names of people who left; #40 audit log purged after 1 year inside the daily `consentSweep`; nominee (`account.nominee`, adults only, Task 35g). Grievance email stays a placeholder (`grievance@roamio.example`): the owner moved it to the next phase (Task 40). Not run on a device or real Firebase yet.
 
-- [ ] **Task 36: Weather** — XS · Deps: 15 · UC-7
+- [x] **Task 36: Weather** — XS · Deps: 15 · UC-7
   - Acceptance: Open-Meteo on the Hero card, cached 30 min, hidden on failure, city-based for minors or without permission.
   - Verify: unit test of the client with a mocked response and failure.
   - Files: `app/lib/features/home/data/weather_client.dart`, test
+  - Done: Open-Meteo via Dart's own HTTP client (no new dependency, no key, no Firebase cost); a "☀️ 30°C" pill on the Hero card; 30-minute cache; failures and loading show nothing. Uses where the phone is only for an adult with the Location switch on and permission already granted (never asks), rounded to ~1 km; otherwise the adventure's city (or country) via Open-Meteo's place search. `weather_enabled` defaults on until Task 37. The privacy notice (Task 40) should name Open-Meteo. Not tried on a device.
 
 - [ ] **Task 37: Remote config** — S · Deps: 4 · Spec §11
   - Acceptance: all keys wired with in-app defaults; `docs/REMOTE_CONFIG.md` lists every key.
