@@ -166,9 +166,9 @@ service cloud.firestore {
           // the creator edits their own tab
           (resource.data.createdBy == me() && validTab()
             && incoming().createdBy == resource.data.createdBy)
-          // a lead soft-deletes any tab
-          || (isLead(aid) && changed().hasOnly(['deleted', 'updatedAt'])
-            && incoming().deleted == true)
+          // a lead soft-deletes any tab, saying who did it (shown in activity)
+          || (isLead(aid) && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
+            && incoming().deleted == true && incoming().get('deletedBy', '') == me())
         );
       }
 

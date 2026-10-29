@@ -27,35 +27,64 @@ class FirebaseTabService implements TabService {
             return entries;
           });
 
-  // Not awaited: the write is queued offline and the stream shows it at once.
+  /// The fields a tab's creator writes (DATA_MODEL.md). On an edit, a
+  /// removed location is deleted; on a new tab it's simply left out.
+  static Map<String, Object?> _fields(NewTab tab, {required bool isNew}) => {
+    'description': tab.description.trim(),
+    'category': tab.category,
+    'amountMinor': tab.amountMinor,
+    'currency': tab.currency,
+    'date': isoDate(tab.date),
+    'fxDate': tab.fxDate,
+    'payers': [
+      for (final p in tab.payers) {'id': p.payer, 'amountMinor': p.amountMinor},
+    ],
+    'participants': tab.participants,
+    'percentBp': tab.percentBp,
+    if (tab.location case final p?)
+      'location': {'lat': p.lat, 'lng': p.lng}
+    else if (!isNew)
+      'location': FieldValue.delete(),
+    'updatedAt': FieldValue.serverTimestamp(),
+  };
+
+  // Writes aren't awaited: they're queued offline and streams show them now.
   @override
   Future<String> addTab(String adventureId, NewTab tab) async {
     final doc = _tabs(adventureId).doc();
     doc.set({
-      'description': tab.description.trim(),
-      'category': tab.category,
-      'amountMinor': tab.amountMinor,
-      'currency': tab.currency,
-      'date': isoDate(tab.date),
-      'fxDate': tab.fxDate,
-      'payers': [
-        for (final p in tab.payers)
-          {'id': p.payer, 'amountMinor': p.amountMinor},
-      ],
-      'participants': tab.participants,
-      'percentBp': tab.percentBp,
+      ..._fields(tab, isNew: true),
       'memories': <String>[],
-      if (tab.location case final p?) 'location': {'lat': p.lat, 'lng': p.lng},
       'createdBy': _auth.currentUser!.uid,
       'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
       'deleted': false,
     }).ignore();
     return doc.id;
   }
 
-  static TabEntry _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
-    final data = d.data();
+  @override
+  Stream<TabEntry?> tab(String adventureId, String tabId) =>
+      _tabs(adventureId)
+          .doc(tabId)
+          .snapshots()
+          .map((d) => d.exists ? _fromDoc(d) : null);
+
+  @override
+  Future<void> updateTab(String adventureId, String tabId, NewTab tab) async {
+    _tabs(adventureId).doc(tabId).update(_fields(tab, isNew: false)).ignore();
+  }
+
+  @override
+  Future<void> deleteTab(String adventureId, String tabId) async {
+    _tabs(adventureId).doc(tabId).update({
+      'deleted': true,
+      'deletedBy': _auth.currentUser!.uid,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }).ignore();
+  }
+
+  static TabEntry _fromDoc(DocumentSnapshot<Map<String, dynamic>> d) {
+    final data = d.data()!;
     final currency = data['currency'] as String;
     final percent = (data['percentBp'] as Map?)?.cast<String, int>();
     return TabEntry(
@@ -64,6 +93,7 @@ class FirebaseTabService implements TabService {
       category: data['category'] as String,
       date: parseIsoDate(data['date'] as String),
       createdBy: data['createdBy'] as String,
+      deleted: data['deleted'] == true,
       memories: ((data['memories'] as List?) ?? const []).cast<String>(),
       location: switch (data['location']) {
         {'lat': final num lat, 'lng': final num lng} => MapPoint(

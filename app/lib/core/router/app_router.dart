@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/ui/bottom_bar.dart';
 import 'package:roamio/core/ui/placeholder_screen.dart';
-import 'package:roamio/features/adventures/ui/adventure_screen.dart';
+import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
 import 'package:roamio/features/adventures/ui/edit_adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
@@ -20,6 +20,7 @@ import 'package:roamio/features/invites/ui/invite_link_screen.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
 import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
+import 'package:roamio/features/tabs/ui/tab_detail.dart';
 
 abstract final class Routes {
   static const String home = AuthRoutes.home;
@@ -90,7 +91,7 @@ final _routes = <RouteBase>[
   GoRoute(
     path: '/adventures/:id',
     builder: (_, state) =>
-        AdventureScreen(adventureId: state.pathParameters['id']!),
+        AdventurePage(adventureId: state.pathParameters['id']!),
     routes: [
       GoRoute(
         path: 'edit',
@@ -101,6 +102,22 @@ final _routes = <RouteBase>[
         path: 'tabs/new',
         builder: (_, state) =>
             AddTabScreen(adventureId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: 'tabs/:tid',
+        builder: (_, state) => TabDetailScreen(
+          adventureId: state.pathParameters['id']!,
+          tabId: state.pathParameters['tid']!,
+        ),
+        routes: [
+          GoRoute(
+            path: 'edit',
+            builder: (_, state) => AddTabScreen(
+              adventureId: state.pathParameters['id']!,
+              tabId: state.pathParameters['tid'],
+            ),
+          ),
+        ],
       ),
     ],
   ),

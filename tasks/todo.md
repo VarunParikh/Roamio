@@ -183,7 +183,7 @@ Common verification commands:
   - Verify: unit tests of the parser with 10 sample receipt texts (₹, €, $, ฿ formats).
   - Files: `app/lib/features/tabs/data/receipt_parser.dart`, `ui/scan_bill.dart`, tests
 
-- [ ] **Task 27: Adventure page** — M · Deps: 23 · UC-23
+- [x] **Task 27: Adventure page** — M · Deps: 23 · UC-23
   - Acceptance: banner header with tab sheet scrolling over it; tabs grouped by day; row shows your share; tab detail (payers, shares, memories, map); creator edits, leads delete (soft).
   - Verify: widget tests (empty, populated, deleted tab); manual scroll check.
   - Files: `app/lib/features/adventures/ui/adventure_page.dart`, `app/lib/features/tabs/ui/tab_detail.dart`, tests

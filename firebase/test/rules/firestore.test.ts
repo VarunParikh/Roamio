@@ -759,6 +759,7 @@ describe("tabs", () => {
     await assertSucceeds(
       updateDoc(doc(as("cara"), "adventures/a1/tabs/t1"), {
         deleted: true,
+        deletedBy: "cara",
         updatedAt: serverTimestamp(),
       }),
     );
@@ -766,6 +767,31 @@ describe("tabs", () => {
       updateDoc(doc(as("cara"), "adventures/a1/tabs/t1"), { amountMinor: 1 }),
     );
     await assertFails(deleteDoc(doc(as("alice"), "adventures/a1/tabs/t1")));
+  });
+
+  it("a soft delete records who did it, truthfully (spec UC-22)", async () => {
+    // Without deletedBy, or naming someone else, is refused.
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+        deleted: true,
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+        deleted: true,
+        deletedBy: "cara",
+        updatedAt: serverTimestamp(),
+      }),
+    );
+    // Members who aren't leads can't delete someone else's tab.
+    await assertFails(
+      updateDoc(doc(as("mia"), "adventures/a1/tabs/t1"), {
+        deleted: true,
+        deletedBy: "mia",
+        updatedAt: serverTimestamp(),
+      }),
+    );
   });
 
   it("only members read tabs", async () => {

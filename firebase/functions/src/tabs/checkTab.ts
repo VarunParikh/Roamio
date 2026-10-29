@@ -64,7 +64,19 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const adventureRef = db().doc(`adventures/${event.params.aid}`);
   const adventure = await adventureRef.get();
   if (adventure.get("hasTabs") !== true) await adventureRef.update({ hasTabs: true });
-  if (tab.deleted === true) return;
+  if (tab.deleted === true) {
+    // A lead just deleted it: say so in the activity (spec UC-22).
+    const before = event.data?.before?.data();
+    if (before && before.deleted !== true && tab.deletedBy) {
+      await adventureRef.collection("activity").add({
+        type: "tab_deleted",
+        actorUid: tab.deletedBy,
+        subject: event.params.tid,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    return;
+  }
 
   const members: string[] = adventure.get("memberUids") ?? [];
   const pals = await adventureRef.collection("pals").where("status", "==", "active").get();
