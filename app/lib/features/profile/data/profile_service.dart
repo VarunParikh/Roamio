@@ -30,6 +30,12 @@ abstract interface class ProfileService {
   Stream<bool> locationAllowed();
 
   Future<void> setLocationAllowed({required bool allowed});
+
+  /// Whether they let Roamio open the camera (spec §8); on until they turn
+  /// it off. Choosing from the gallery works either way.
+  Stream<bool> cameraAllowed();
+
+  Future<void> setCameraAllowed({required bool allowed});
 }
 
 /// Overridden in tests; reads the signed-in person's account otherwise.
@@ -48,6 +54,10 @@ final profileStreamProvider = StreamProvider<Profile>(
 
 final locationAllowedProvider = StreamProvider<bool>(
   (ref) => ref.watch(profileServiceProvider).locationAllowed(),
+);
+
+final cameraAllowedProvider = StreamProvider<bool>(
+  (ref) => ref.watch(profileServiceProvider).cameraAllowed(),
 );
 
 class FirebaseProfileService implements ProfileService {
@@ -117,5 +127,17 @@ class FirebaseProfileService implements ProfileService {
   @override
   Future<void> setLocationAllowed({required bool allowed}) async {
     _account?.update({'consents.location': allowed}).ignore();
+  }
+
+  @override
+  Stream<bool> cameraAllowed() =>
+      _account?.snapshots().map(
+        (s) => (s.data()?['consents'] as Map?)?['camera'] != false,
+      ) ??
+      const Stream.empty();
+
+  @override
+  Future<void> setCameraAllowed({required bool allowed}) async {
+    _account?.update({'consents.camera': allowed}).ignore();
   }
 }
