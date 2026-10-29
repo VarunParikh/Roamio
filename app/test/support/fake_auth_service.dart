@@ -10,6 +10,7 @@ import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/location/location_service.dart';
+import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
@@ -31,6 +32,7 @@ import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/main.dart';
 
+import 'fake_activity_service.dart';
 import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
 import 'fake_budget_service.dart';
@@ -176,6 +178,7 @@ Future<void> pumpRoamio(
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
   FakePrivacyService? privacy,
+  FakeActivityService? activity,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -230,6 +233,9 @@ Future<void> pumpRoamio(
         ),
         networkSwitchProvider.overrideWithValue(network ?? FakeNetworkSwitch()),
         photoFlushProvider.overrideWithValue(() async {}),
+        activityServiceProvider.overrideWithValue(
+          activity ?? FakeActivityService(),
+        ),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
         ),

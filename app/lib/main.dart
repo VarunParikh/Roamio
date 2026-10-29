@@ -12,7 +12,9 @@ import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
+import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
+import 'package:roamio/features/adventures/data/firebase_activity_service.dart';
 import 'package:roamio/features/adventures/data/firebase_adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
@@ -83,6 +85,9 @@ Future<void> main() async {
         ),
         privacyServiceProvider.overrideWithValue(
           FirebasePrivacyService(roamioFunctions),
+        ),
+        activityServiceProvider.overrideWithValue(
+          FirebaseActivityService(FirebaseFirestore.instance),
         ),
         squadServiceProvider.overrideWithValue(
           FirebaseSquadService(

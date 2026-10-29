@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/ui/bottom_bar.dart';
+import 'package:roamio/features/adventures/ui/activity_screen.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
 import 'package:roamio/features/adventures/ui/edit_adventure.dart';
@@ -98,6 +99,11 @@ final _routes = <RouteBase>[
         path: 'edit',
         builder: (_, state) =>
             EditAdventureScreen(adventureId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: 'activity',
+        builder: (_, state) =>
+            ActivityScreen(adventureId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: 'tabs/new',
