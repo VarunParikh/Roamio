@@ -283,6 +283,7 @@ Common verification commands:
   - Acceptance: upload key generated and stored as CI secret; tag `vX.Y.Z` builds a signed prod APK and publishes a GitHub Release with notes.
   - Verify: tag `v0.1.0-rc1` produces a downloadable APK that installs on the emulator.
   - Files: `.github/workflows/release.yml`, `app/android/app/build.gradle.kts`
+  - Progress (2026-10-30): release signing reads the upload key from `ROAMIO_KEYSTORE_*` env vars or git-ignored `android/key.properties`, falling back to the debug key (CI sets `ROAMIO_REQUIRE_SIGNING` so a release can't go out debug-signed); R8 keep rules for ML Kit's unused language packs; `release.yml` (tag → version check → format/analyze/test → signed prod APK → GitHub Release, `-rcN` tags as pre-releases); `tool/release_check.dart` + tests; `CHANGELOG.md`; [docs/RELEASING.md](../docs/RELEASING.md). Checked locally: dev debug build without a key, the "key required" failure, and a dev release signed with a throwaway key. Owner steps left: approve the workflow (CI change), create and back up the upload key, add secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `GOOGLE_SERVICES_JSON_PROD`, add the key's SHA-1/SHA-256 to the prod Firebase app, then push `v0.1.0-rc1` and install the APK (the Verify step).
 
 - [ ] **Task 43: Security, privacy and code review** — S · Deps: 41
   - Acceptance: security-auditor and code-reviewer passes; all high/critical findings fixed; dependency audit clean.
