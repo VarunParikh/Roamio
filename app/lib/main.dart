@@ -13,12 +13,15 @@ import 'package:roamio/features/adventures/data/firebase_adventure_service.dart'
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/banners/data/banner_service.dart';
+import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/consent/data/firebase_consent_service.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +41,12 @@ Future<void> main() async {
             FirebaseAuth.instance,
             FirebaseFirestore.instance,
           ),
+        ),
+        bannerServiceProvider.overrideWithValue(
+          FirebaseBannerService(FirebaseFirestore.instance, roamioFunctions),
+        ),
+        openLinkProvider.overrideWithValue(
+          (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
         ),
         inviteServiceProvider.overrideWithValue(
           FirebaseInviteService(

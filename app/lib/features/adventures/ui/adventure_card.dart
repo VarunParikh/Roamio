@@ -6,6 +6,7 @@ import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/banners/ui/adventure_banner.dart';
 
 /// The big card for the current or next adventure (UC-5). Until banners
 /// arrive (Task 16) it shows the country's flag on a dark gradient.
@@ -29,68 +30,76 @@ class HeroAdventureCard extends ConsumerWidget {
     return Semantics(
       button: true,
       label: '${adventure.name}, ${statusLabel(adventure, today)}',
-      child: InkWell(
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(RoamioRadii.lg),
-        onTap: () => context.push('/adventures/${adventure.id}'),
-        child: Ink(
+        child: SizedBox(
           height: 220,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(RoamioRadii.lg),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [RoamioColors.ink, Color(0xFF1E2A4A)],
-            ),
-          ),
           child: Stack(
+            fit: StackFit.expand,
             children: [
-              Positioned(
-                right: 16,
-                top: 8,
-                child: Text(
-                  country?.flag ?? '🌍',
-                  style: const TextStyle(fontSize: 72),
+              AdventureBanner(
+                countryCode: adventure.countryCode,
+                flag: country?.flag ?? '🌍',
+                customUrl: adventure.bannerUrl,
+              ),
+              Material(
+                type: MaterialType.transparency,
+                child: InkWell(
+                  onTap: () => context.push('/adventures/${adventure.id}'),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+              IgnorePointer(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: RoamioColors.chartreuse,
+                          borderRadius: BorderRadius.circular(RoamioRadii.full),
+                        ),
+                        child: Text(
+                          statusLabel(adventure, today).toUpperCase(),
+                          style: text.labelSmall,
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: RoamioColors.chartreuse,
-                        borderRadius: BorderRadius.circular(RoamioRadii.full),
+                      const Spacer(),
+                      Text(
+                        adventure.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.headlineLarge?.copyWith(
+                          color: RoamioColors.surface,
+                        ),
                       ),
-                      child: Text(
-                        statusLabel(adventure, today).toUpperCase(),
-                        style: text.labelSmall,
+                      const SizedBox(height: 4),
+                      Text(
+                        [
+                          formatDateRange(
+                            adventure.startDate,
+                            adventure.endDate,
+                          ),
+                          if (place.isNotEmpty) place,
+                        ].join(' · '),
+                        style: text.bodyMedium?.copyWith(
+                          color: RoamioColors.muted,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      adventure.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: text.headlineLarge?.copyWith(
-                        color: RoamioColors.surface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        formatDateRange(adventure.startDate, adventure.endDate),
-                        if (place.isNotEmpty) place,
-                      ].join(' · '),
-                      style: text.bodyMedium?.copyWith(
-                        color: RoamioColors.muted,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 12,
+                bottom: 8,
+                child: BannerCredit(
+                  countryCode: adventure.countryCode,
+                  customUrl: adventure.bannerUrl,
                 ),
               ),
             ],

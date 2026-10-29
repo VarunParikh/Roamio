@@ -9,6 +9,7 @@ import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
@@ -16,6 +17,7 @@ import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
+import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_invite_service.dart';
 
@@ -119,6 +121,8 @@ Future<void> pumpRoamio(
   bool settle = true,
   FakeConsentService? consent,
   FakeAdventureService? adventures,
+  FakeBannerService? banners,
+  List<Uri>? openedLinks,
   FakeInviteService? invites,
   List<String>? shared,
   String? clipboard,
@@ -131,6 +135,10 @@ Future<void> pumpRoamio(
       overrides: [
         authServiceProvider.overrideWithValue(auth),
         countriesProvider.overrideWith((ref) => testCountries),
+        bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
+        openLinkProvider.overrideWithValue(
+          (uri) async => openedLinks?.add(uri),
+        ),
         adventureServiceProvider.overrideWithValue(
           adventures ?? FakeAdventureService(),
         ),

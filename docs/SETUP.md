@@ -117,7 +117,9 @@ collection; in the emulator you can read them in the Emulator UI → Firestore �
 | `UNSPLASH_ACCESS_KEY` | banner function (Task 16) | `firebase functions:secrets:set UNSPLASH_ACCESS_KEY -P prod` |
 
 Unsplash app "Roamio" is in demo mode (50 requests/hour). For the dev emulator, put secrets in
-`firebase/functions/.secret.local` (gitignored), never in code.
+`firebase/functions/.secret.local` (gitignored), never in code — e.g. `UNSPLASH_ACCESS_KEY=...`
+to fetch real banners locally. Tests use the `demo-roamio` project, whose
+`functions/.env.demo-roamio` points banner lookups at a local stand-in for Unsplash.
 
 New machine: a debug keystore's SHA fingerprints must be added to the dev app
 (`firebase apps:android:sha:create <dev-app-id> <sha> -P dev`) or Google sign-in fails.

@@ -24,7 +24,7 @@ Conventions:
 | `adventures/{aid}/activity/{id}` | `type`, `actorUid`, `subject`, `createdAt` | members | server-only |
 | `invites/{code}` | 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789`; `adventureId`, `adventureName`, `countryCode`, `startDate`, `endDate`, `leaderName` (first name), `createdBy`, `createdAt`, `expiresAt` (14 days), `revoked` | active users, single-document get only (no listing) | server-only |
 | `fx_rates/{yyyy-mm-dd}` | `rates{CODE: "decimal string"}` (units per USD), `fetchedAt` | active users | server-only |
-| `banners/{countryCode}` | `url`, `photographer`, `photographerUrl`, `fetchedAt` | active users | server-only |
+| `banners/{countryCode}` | `url` (Unsplash CDN link with resize params), `photographer`, `photographerUrl`, `unsplashUrl`, `fetchedAt` | active users | server-only |
 | `parentalConsents/{childUid}` | `childUid`, `parentEmail` (lower-case), `relationship`, `status` (`requested` \| `granted` \| `declined` \| `expired` \| `withdrawn` \| `closed` \| `aged_out`), `requestedAt`, `remindersSent`, `requestsOn{day,count}`, `noticeVersion`; once decided: `parentUid`, `decidedAt`, `method`. `tokenHash` (SHA-256 of the emailed link token) exists only while open | the child or the parent | server-only |
 | `mail/{id}` | `to`, `message{subject,text}`, `createdAt` — outbox in the Firebase "Trigger Email" extension format | nobody | server-only |
 | `auditLog/{id}` | `actorUid`, `action`, `target`, `at` (kept 1 year) | nobody (console only) | server-only |
