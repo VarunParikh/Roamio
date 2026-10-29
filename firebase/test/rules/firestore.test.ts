@@ -458,6 +458,10 @@ describe("adventures", () => {
     await assertFails(
       updateDoc(doc(as("alice"), "adventures/a1"), { hasTabs: false }),
     );
+    // Who has left is written by the server only.
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { leftUids: ["bob"] }),
+    );
   });
 
   it("role changes can't bypass the server (spec UC-15 to UC-17)", async () => {
