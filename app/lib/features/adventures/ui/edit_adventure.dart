@@ -7,11 +7,12 @@ import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
+import 'package:roamio/features/adventures/ui/banner_editor.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 
-/// Leads edit an adventure's details (UC-10). The country is fixed, and
-/// the trip currency locks once a tab exists.
+/// Leads edit an adventure's details (UC-10): banner, name, dates and so on.
+/// The country is fixed, and the trip currency locks once a tab exists.
 class EditAdventureScreen extends ConsumerWidget {
   const new({required this.adventureId, super.key});
 
@@ -122,6 +123,9 @@ class _EditFormState extends ConsumerState<_EditForm> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // The live adventure, so the banner updates when it changes.
+          BannerEditor(adventure: widget.adventure),
+          const SizedBox(height: 24),
           InputDecorator(
             decoration: const InputDecoration(
               labelText: 'Country',

@@ -485,6 +485,37 @@ describe("adventures", () => {
     );
   });
 
+  it("a banner is only ever our own stored photo (no tracking links)", async () => {
+    const ours =
+      "https://firebasestorage.googleapis.com/v0/b/roamio-dev-varun.firebasestorage.app/o/adventures%2Fa1%2Fbanner%2Fb1.webp?alt=media";
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "adventures/a1"), { bannerUrl: ours }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(as("cara"), "adventures/a1"), { bannerUrl: null }),
+    );
+    for (const bannerUrl of [
+      "https://tracker.example/pixel.gif",
+      "http://firebasestorage.googleapis.com/insecure.webp",
+      "https://firebasestorage.googleapis.com.evil.example/x.webp",
+      42,
+    ]) {
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1"), { bannerUrl }),
+      );
+    }
+    await assertFails(
+      setDoc(doc(as("dan"), "adventures/a9"), {
+        ...adventure,
+        createdBy: "dan",
+        leaderUid: "dan",
+        coLeadUids: [],
+        memberUids: ["dan"],
+        bannerUrl: "https://tracker.example/pixel.gif",
+      }),
+    );
+  });
+
   it("base currency is locked once the adventure has tabs", async () => {
     await assertSucceeds(
       updateDoc(doc(as("alice"), "adventures/a1"), { baseCurrency: "INR" }),

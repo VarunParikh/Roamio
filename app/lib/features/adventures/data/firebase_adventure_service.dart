@@ -53,6 +53,11 @@ class FirebaseAdventureService implements AdventureService {
     }).ignore();
   }
 
+  @override
+  Future<void> resetBanner(String adventureId) async {
+    _db.doc('adventures/$adventureId').update({'bannerUrl': null}).ignore();
+  }
+
   static Adventure _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final data = d.data();
     List<String> list(String key) =>
