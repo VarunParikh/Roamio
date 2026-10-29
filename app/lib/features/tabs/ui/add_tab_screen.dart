@@ -15,15 +15,19 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/pals.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 import 'package:roamio/features/tabs/ui/location_picker.dart';
 import 'package:roamio/features/tabs/ui/memories.dart';
+import 'package:roamio/features/tabs/ui/payers_editor.dart';
+import 'package:roamio/features/tabs/ui/percent_editor.dart';
 
-/// Add a tab (spec UC-21): one payer (you), an equal split, up to 4
-/// photos and, for adults, where it happened. Multiple payers and custom
-/// percentages arrive in Task 24.
+/// Add a tab (spec UC-21): who paid (you, or split between members), how
+/// it's shared (equal or custom %), up to 4 photos and, for adults, where
+/// it happened. Leads can add a pal on the spot.
 class AddTabScreen extends ConsumerWidget {
   const new({required this.adventureId, super.key});
 
@@ -69,11 +73,82 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   final List<String> _memories = [];
   MapPoint? _location;
 
+  /// Amount per member once "Split payment" is on; null when you paid it all.
+  Map<String, TextEditingController>? _payerFields;
+
+  /// Percentage per participant in Custom % mode; null for Equal.
+  Map<String, TextEditingController>? _percentFields;
+
+  /// Shown after Custom % went back to Equal because the people changed.
+  bool _resetToEqual = false;
+
   @override
   void dispose() {
     _amount.dispose();
     _description.dispose();
+    _disposeAll(_payerFields);
+    _disposeAll(_percentFields);
     super.dispose();
+  }
+
+  static void _disposeAll(Map<String, TextEditingController>? fields) {
+    for (final f in fields?.values ?? const <TextEditingController>[]) {
+      f.dispose();
+    }
+  }
+
+  static Map<String, String>? _texts(Map<String, TextEditingController>? f) =>
+      f?.map((id, c) => MapEntry(id, c.text));
+
+  void _splitPayment(String myUid) => setState(() {
+    final minor = parseAmount(_amount.text, _currency);
+    _payerFields = {
+      for (final id in _a.memberUids)
+        id: TextEditingController(
+          text: id == myUid && minor != null ? _amount.text.trim() : '',
+        ),
+    };
+  });
+
+  void _justMe() => setState(() {
+    _disposeAll(_payerFields);
+    _payerFields = null;
+  });
+
+  void _setCustom(bool custom, List<Pal> pals) => setState(() {
+    _resetToEqual = false;
+    _disposeAll(_percentFields);
+    _percentFields = custom
+        ? {
+            for (final MapEntry(:key, :value) in equalPercents(
+              _ticked(pals),
+            ).entries)
+              key: TextEditingController(
+                text: formatBasisPoints(value).replaceAll('%', ''),
+              ),
+          }
+        : null;
+  });
+
+  /// The people sharing changed: custom percentages no longer fit, so go
+  /// back to Equal and say so (spec UC-22).
+  void _peopleChanged() {
+    if (_percentFields == null) return;
+    _disposeAll(_percentFields);
+    _percentFields = null;
+    _resetToEqual = true;
+  }
+
+  Future<void> _addPal(List<Pal> pals) async {
+    final name = await askPalNickname(
+      context,
+      title: 'Add a pal',
+      action: 'Add',
+      taken: [for (final p in pals) p.nickname],
+    );
+    if (name == null) return;
+    await ref.read(squadServiceProvider).addPal(_a.id, name);
+    if (mounted) setState(_peopleChanged);
   }
 
   List<String> _everyone(List<Pal> pals) => [
@@ -94,6 +169,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     today: ref.read(todayProvider),
     category: _category,
     participants: _ticked(pals),
+    payerTexts: _texts(_payerFields),
+    percentTexts: _texts(_percentFields),
   );
 
   /// Moving on from the amount closes the keyboard, so the form stops
@@ -131,7 +208,12 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             amountMinor: parseAmount(_amount.text, _currency)!,
             currency: _currency,
             date: _date,
-            payer: myUid,
+            payers: _payerFields == null
+                ? [Payment(myUid, parseAmount(_amount.text, _currency)!)]
+                : payersFrom(_texts(_payerFields)!, _currency),
+            percentBp: _percentFields == null
+                ? null
+                : percentsFrom(_texts(_percentFields)!),
             participants: _ticked(pals),
             location: _location,
           ),
@@ -180,7 +262,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       amountMinor: minor,
       currency: _currency,
       date: _date,
-      payer: ticked.first,
+      payers: [Payment(ticked.first, minor)],
       participants: ticked,
     );
     final shares = ticked.map(tab.shareOf).toList()..sort();
@@ -199,7 +281,14 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
         ref.watch(squadNamesProvider(_a.memberUids.join(','))).value ?? {};
     final countries = ref.watch(countriesProvider).value;
     final categories = ref.watch(categoriesProvider).value ?? const [];
-    final problems = _tried ? _problems(pals) : const <TabProblem>{};
+    final now = _problems(pals);
+    final problems = _tried ? now : const <TabProblem>{};
+    // Save waits until split payments and custom percentages add up (UC-21).
+    final blocked =
+        (_payerFields != null && now.contains(TabProblem.paymentsDontAddUp)) ||
+        (_percentFields != null &&
+            now.contains(TabProblem.percentagesDontAddUp));
+    final symbol = countries?.symbolFor(_currency);
     final each = _eachLabel(pals, countries?.symbolFor(_currency));
 
     String label(String id) {
@@ -326,25 +415,61 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             onChanged: (p) => setState(() => _location = p),
           ),
           const SizedBox(height: 16),
-          Text('Paid by', style: text.titleMedium),
-          const SizedBox(height: 4),
-          Text(
-            'You paid it all',
-            style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
+          Row(
+            children: [
+              Expanded(child: Text('Paid by', style: text.titleMedium)),
+              TextButton(
+                onPressed: () =>
+                    _payerFields == null ? _splitPayment(myUid) : _justMe(),
+                child: Text(_payerFields == null ? 'Split payment' : 'Just me'),
+              ),
+            ],
           ),
+          if (_payerFields case final fields?)
+            PayersEditor(
+              fields: fields,
+              labels: {for (final id in fields.keys) id: label(id)},
+              currency: _currency,
+              amountMinor: parseAmount(_amount.text, _currency) ?? 0,
+              symbol: symbol,
+              onChanged: () => setState(() {}),
+            )
+          else
+            Text(
+              'You paid it all',
+              style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
+            ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(
-                child: Text('Split equally between', style: text.titleMedium),
-              ),
-              if (each != null)
+              Expanded(child: Text('Split between', style: text.titleMedium)),
+              if (each != null && _percentFields == null)
                 Text(
                   each,
                   style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
                 ),
             ],
           ),
+          const SizedBox(height: 8),
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(value: false, label: Text('Equal')),
+              ButtonSegment(value: true, label: Text('Custom %')),
+            ],
+            selected: {_percentFields != null},
+            onSelectionChanged: (s) {
+              _doneTyping();
+              _setCustom(s.single, pals);
+            },
+          ),
+          if (_resetToEqual)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Split reset to equal because the people changed.',
+                style: text.bodyMedium?.copyWith(color: RoamioColors.coral),
+              ),
+            ),
           for (final id in _everyone(pals))
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
@@ -353,9 +478,10 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
               subtitle: _a.memberUids.contains(id) ? null : const Text('Pal'),
               onChanged: (on) {
                 _doneTyping();
-                setState(
-                  () => on ?? false ? _unticked.remove(id) : _unticked.add(id),
-                );
+                setState(() {
+                  on ?? false ? _unticked.remove(id) : _unticked.add(id);
+                  _peopleChanged();
+                });
               },
             ),
           if (problems.contains(TabProblem.nobodySharing))
@@ -365,12 +491,29 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
+          if (_a.isLead(myUid))
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _addPal(pals),
+                icon: const Icon(Icons.person_add_alt),
+                label: const Text('Add pal'),
+              ),
+            ),
+          if (_percentFields case final fields?) ...[
+            const SizedBox(height: 8),
+            PercentEditor(
+              fields: fields,
+              labels: {for (final id in fields.keys) id: label(id)},
+              onChanged: () => setState(() {}),
+            ),
+          ],
         ],
       ),
       primary: PrimaryButton(
         label: 'Save tab',
         busy: _busy,
-        onPressed: () => _save(pals, myUid),
+        onPressed: blocked ? null : () => _save(pals, myUid),
       ),
     );
   }
