@@ -14,6 +14,7 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
+import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
@@ -31,6 +32,7 @@ import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
+import 'fake_budget_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_fx_repository.dart';
 import 'fake_invite_service.dart';
@@ -169,6 +171,7 @@ Future<void> pumpRoamio(
   bool exportEnabled = true,
   FakeConnectivity? connectivity,
   FakeNetworkSwitch? network,
+  FakeBudgetService? budgets,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -199,6 +202,7 @@ Future<void> pumpRoamio(
           (sharedFiles ?? SharedFiles()).call,
         ),
         exportEnabledProvider.overrideWithValue(exportEnabled),
+        budgetServiceProvider.overrideWithValue(budgets ?? FakeBudgetService()),
         profileServiceProvider.overrideWithValue(
           FakeProfileService(profileCurrency),
         ),

@@ -218,10 +218,11 @@ Common verification commands:
 
 ## Phase 5 — Budget, offline, profile
 
-- [ ] **Task 32: Personal budget and alerts** — M · Deps: 29 · UC-19, 20
+- [x] **Task 32: Personal budget and alerts** — M · Deps: 29 · UC-19, 20
   - Acceptance: set budget per adventure (private); Firestore-triggered function computes the user's share and sends FCM + in-app alert once at each threshold from remote config; changing budget resets alerts.
   - Verify: rules test (others can't read); functions tests (79% no alert, 80% one alert, duplicate trigger no repeat).
   - Files: `app/lib/features/budget/**`, `firebase/functions/src/budget/*.ts`, tests
+  - Done: thresholds are a server constant `[80, 100]` until Task 37 wires Remote Config.
 
 - [ ] **Task 33: Offline mode and Sync button** — M · Deps: 23, 30 · UC-30–33
   - Acceptance: spike confirms `disableNetwork`/`enableNetwork` behaviour; offline banner + Sync button with the spec's exact text; queued tabs, settlements and photos upload on Sync; online-only actions disabled with reason; overwritten edits logged in activity.

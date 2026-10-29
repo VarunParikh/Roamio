@@ -10,6 +10,7 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/budget/ui/budget_card.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
@@ -162,6 +163,8 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             ),
           ),
         ),
+        const SizedBox(height: 12),
+        BudgetCard(adventure: a),
         const SizedBox(height: 16),
         if (!empty && ref.watch(exportEnabledProvider))
           Align(
