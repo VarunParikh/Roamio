@@ -17,6 +17,7 @@ import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
+import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/main.dart';
@@ -26,6 +27,7 @@ import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
+import 'fake_notification_service.dart';
 import 'fake_photo_pipeline.dart';
 import 'fake_squad_service.dart';
 import 'fake_tab_service.dart';
@@ -142,6 +144,7 @@ Future<void> pumpRoamio(
   String? clipboard,
   FakeSquadService? squad,
   FakeTabService? tabs,
+  FakeNotificationService? notifications,
   FakePhotoPipeline? photos,
   FakeLocationService? location,
 }) async {
@@ -155,6 +158,9 @@ Future<void> pumpRoamio(
         countriesProvider.overrideWith((ref) => testCountries),
         categoriesProvider.overrideWith((ref) => testCategories),
         tabServiceProvider.overrideWithValue(tabs ?? FakeTabService()),
+        notificationServiceProvider.overrideWithValue(
+          notifications ?? FakeNotificationService(answer: false),
+        ),
         photoPipelineProvider.overrideWithValue(photos ?? FakePhotoPipeline()),
         locationServiceProvider.overrideWithValue(
           location ?? FakeLocationService(),

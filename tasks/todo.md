@@ -121,7 +121,7 @@ Common verification commands:
 
 - [x] **Task 18: Join a squad** — S · Deps: 17 · UC-13, 14
   - Acceptance: invites list on Home; Join squad calls `joinAdventure` (adds member server-side); leads get a push + in-app card with Make co-lead / Remove.
-  - Done: join, lead cards, `makeCoLead`/`removeMember` (card actions; Task 19 adds demote/leave/hand-over). **Push not yet sent**: it needs the `firebase_messaging` package (new dependency, owner OK pending); the card data in `users/{uid}/notifications` is ready to drive it.
+  - Done: join, lead cards, `makeCoLead`/`removeMember` (card actions; Task 19 adds demote/leave/hand-over). Push added later (owner approved `firebase_messaging`): leads opt in from a Home card; `sendPush` targets only consenting phones.
   - Verify: functions test for join (already member, adventure archived, minor pending consent refused); widget test for the card.
   - Files: `firebase/functions/src/invites/join.ts`, `app/lib/features/invites/ui/*`, tests
 
