@@ -194,10 +194,11 @@ Common verification commands:
   - Verify: functions test with mocked API (success, outage).
   - Files: `firebase/functions/src/fx/*.ts`, `app/lib/features/splits/data/fx_repository.dart`, tests
 
-- [ ] **Task 29: Split screen** — M · Deps: 8, 27, 28 · UC-24–26
+- [x] **Task 29: Split screen** — M · Deps: 8, 27, 28 · UC-24–26
   - Acceptance: defaults to active adventure else Overall; headline first (owed / owe / all square); on tap: who pays whom, per-person balances incl. pals, by category, by day; all in viewer's profile currency.
   - Verify: widget tests with fixture data matching spec §6 example.
   - Files: `app/lib/features/splits/ui/*.dart`, tests
+  - Done: settlements are added to balances in Task 30. Who-pays-whom is planned in the viewer's currency; Task 30 records settlements in the base currency.
 
 - [ ] **Task 30: Mark as settled** — S · Deps: 29 · UC-26a
   - Acceptance: record full/partial settlement from a suggested transfer; members in the transfer (or any lead for pal transfers) can record/undo; other party notified; activity entry.

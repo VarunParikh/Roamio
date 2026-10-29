@@ -1,0 +1,145 @@
+import 'package:roamio/features/splits/domain/fx_converter.dart';
+import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/splits/domain/settlement_planner.dart';
+import 'package:roamio/features/splits/domain/split_engine.dart';
+import 'package:roamio/features/splits/domain/tab_models.dart';
+
+/// The parts of a tab the split report needs.
+class ReportTab {
+  const new({required this.category, required this.date, required this.split});
+
+  final String category;
+  final DateTime date;
+  final TabSplit split;
+}
+
+/// One adventure's split, in [currency] (spec UC-25, UC-26).
+class SplitReport {
+  const new({
+    required this.currency,
+    required this.balances,
+    required this.baseBalances,
+    required this.mine,
+    required this.myShare,
+    required this.transfers,
+    required this.byCategory,
+    required this.byDay,
+    required this.totalSpend,
+    required this.missingRates,
+  });
+
+  /// The viewer's profile currency, or the trip's when rates are missing.
+  final String currency;
+
+  /// Everyone's balance in [currency]: positive is owed, negative owes.
+  final Map<ParticipantId, int> balances;
+
+  /// The same in the trip's own currency, shown on tap.
+  final Map<ParticipantId, int> baseBalances;
+
+  /// The viewer's balance in [currency].
+  final int mine;
+
+  /// What the viewer's shares of all tabs add up to, in [currency].
+  final int myShare;
+  final List<Transfer> transfers;
+  final Map<String, int> byCategory;
+  final Map<DateTime, int> byDay;
+  final int totalSpend;
+
+  /// Some rates weren't there, so [currency] isn't the viewer's.
+  final bool missingRates;
+}
+
+/// Builds the split for [viewer]. Each tab converts at its own day's rates
+/// ([ratesFor]); balances still sum to exactly zero (spec §6). If a rate
+/// is missing it falls back to [baseCurrency] and sets
+/// [SplitReport.missingRates].
+SplitReport buildReport({
+  required List<ReportTab> tabs,
+  required String baseCurrency,
+  required String viewerCurrency,
+  required String viewer,
+  required FxRates Function(String date) ratesFor,
+}) {
+  final splits = [for (final t in tabs) t.split];
+
+  Map<ParticipantId, int>? balancesIn(String currency) {
+    try {
+      return balancesFor(
+        tabs: splits,
+        baseCurrency: currency,
+        ratesFor: ratesFor,
+      );
+    } on MissingRateException {
+      return null;
+    }
+  }
+
+  final base = balancesIn(baseCurrency);
+  final viewers = viewerCurrency == baseCurrency
+      ? base
+      : balancesIn(viewerCurrency);
+  final currency = viewers != null ? viewerCurrency : baseCurrency;
+  final balances = viewers ?? base;
+  if (balances == null) {
+    return SplitReport(
+      currency: baseCurrency,
+      balances: const {},
+      baseBalances: const {},
+      mine: 0,
+      myShare: 0,
+      transfers: const [],
+      byCategory: const {},
+      byDay: const {},
+      totalSpend: 0,
+      missingRates: true,
+    );
+  }
+
+  final byCategory = <String, int>{};
+  final byDay = <DateTime, int>{};
+  var myShare = 0;
+  for (final t in tabs) {
+    final amount = ratesFor(t.split.fxDate)
+        .convert(t.split.amount, currency)
+        .minor;
+    byCategory.update(t.category, (v) => v + amount, ifAbsent: () => amount);
+    final day = DateTime(t.date.year, t.date.month, t.date.day);
+    byDay.update(day, (v) => v + amount, ifAbsent: () => amount);
+    myShare += _shareIn(t.split, amount, viewer);
+  }
+
+  return SplitReport(
+    currency: currency,
+    balances: balances,
+    baseBalances: base ?? const {},
+    mine: balances[viewer] ?? 0,
+    myShare: myShare,
+    transfers: planTransfers(balances, currency: currency),
+    byCategory: byCategory,
+    byDay: byDay,
+    totalSpend: byCategory.values.fold(0, (a, b) => a + b),
+    missingRates: currency != viewerCurrency,
+  );
+}
+
+/// [viewer]'s share of [tab] once its whole amount is [converted] minor
+/// units, split in the tab's own proportions (spec §6).
+int _shareIn(TabSplit tab, int converted, String viewer) {
+  if (!tab.participants.contains(viewer) || converted == 0) return 0;
+  final weights = [
+    for (final p in tab.participants)
+      tab.percentBp?[p] ?? (tab.percentBp == null ? 1 : 0),
+  ];
+  final parts = allocate(converted, weights);
+  return parts[tab.participants.indexOf(viewer)];
+}
+
+/// "You're owed ₹500.00", "You owe ₹560.00" or "All square 🎉".
+String headline(int mine, String currency, String? symbol) {
+  final money = formatMoney(Money(mine.abs(), currency), symbol: symbol);
+  if (mine > 0) return 'You’re owed $money';
+  if (mine < 0) return 'You owe $money';
+  return 'All square 🎉';
+}

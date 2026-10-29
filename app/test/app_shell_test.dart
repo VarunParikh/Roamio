@@ -21,10 +21,7 @@ void main() {
 
     await tester.tap(find.text('Split'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Who owes whom, without the awkward math.'),
-      findsOneWidget,
-    );
+    expect(find.text('Overall'), findsOneWidget); // the Split screen
 
     await tester.tap(find.text('You'));
     await tester.pumpAndSettle();
