@@ -191,10 +191,9 @@ class FirestoreUploadTarget implements UploadTarget {
 
 /// Builds the real pipeline and keeps the queue moving: now, every 30
 /// seconds while the app is open, and whenever it comes back to the front.
-Future<PhotoPipeline> startPhotoPipeline(
-  FirebaseFirestore db,
-  FirebaseStorage storage,
-) async {
+/// `flush` tries every waiting photo now, backoff or not (the Sync button).
+Future<({PhotoPipeline pipeline, Future<void> Function() flush})>
+startPhotoPipeline(FirebaseFirestore db, FirebaseStorage storage) async {
   final dir = await getApplicationSupportDirectory();
   final queue = UploadQueue(
     store: FileUploadStore(File('${dir.path}/upload_queue.json')),
@@ -205,5 +204,11 @@ Future<PhotoPipeline> startPhotoPipeline(
   run();
   Timer.periodic(const Duration(seconds: 30), (_) => run());
   AppLifecycleListener(onResume: run);
-  return DevicePhotoPipeline(queue, Directory('${dir.path}/pending_uploads'));
+  return (
+    pipeline: DevicePhotoPipeline(
+      queue,
+      Directory('${dir.path}/pending_uploads'),
+    ),
+    flush: () => queue.runDue(ignoreBackoff: true),
+  );
 }

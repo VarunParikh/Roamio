@@ -7,6 +7,7 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/domain/invite_code.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 /// Looks up [input] and, if it's a live invite, saves it to the person's
 /// Invites. Returns a message to show.
@@ -127,7 +128,9 @@ class _InviteCardState extends ConsumerState<_InviteCard> {
                   children: [
                     Expanded(
                       child: FilledButton(
-                        onPressed: _joining ? null : () => _join(d),
+                        onPressed: _joining || ref.watch(isOfflineProvider)
+                            ? null
+                            : () => _join(d),
                         child: _joining
                             ? const SizedBox.square(
                                 dimension: 20,
@@ -233,7 +236,7 @@ class _EnterCodeSheetState extends ConsumerState<_EnterCodeSheet> {
         ),
         const SizedBox(height: 12),
         FilledButton(
-          onPressed: _busy ? null : _submit,
+          onPressed: _busy || ref.watch(isOfflineProvider) ? null : _submit,
           child: _busy
               ? const SizedBox.square(
                   dimension: 20,

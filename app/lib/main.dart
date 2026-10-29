@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
@@ -28,6 +29,7 @@ import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/firebase_squad_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:share_plus/share_plus.dart';
@@ -36,14 +38,21 @@ import 'package:url_launcher/url_launcher.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setUpFirebase();
-  final photos = await startPhotoPipeline(
+  final (:pipeline, :flush) = await startPhotoPipeline(
     FirebaseFirestore.instance,
     FirebaseStorage.instance,
   );
   runApp(
     ProviderScope(
       overrides: [
-        photoPipelineProvider.overrideWithValue(photos),
+        photoPipelineProvider.overrideWithValue(pipeline),
+        photoFlushProvider.overrideWithValue(flush),
+        connectivityMonitorProvider.overrideWithValue(
+          DeviceConnectivityMonitor(),
+        ),
+        networkSwitchProvider.overrideWithValue(
+          FirestoreNetworkSwitch(FirebaseFirestore.instance),
+        ),
         authServiceProvider.overrideWithValue(
           FirebaseAuthService(
             FirebaseAuth.instance,

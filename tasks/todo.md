@@ -228,6 +228,7 @@ Common verification commands:
   - Acceptance: spike confirms `disableNetwork`/`enableNetwork` behaviour; offline banner + Sync button with the spec's exact text; queued tabs, settlements and photos upload on Sync; online-only actions disabled with reason; overwritten edits logged in activity.
   - Verify: integration test in airplane mode on emulator (Journey D).
   - Files: `app/lib/features/sync/**`, `app/lib/core/connectivity/*.dart`, tests
+  - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason, Sync retries photos regardless of backoff — all unit/widget tested. **Still open:** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (need a device/emulator), and conflict activity entries (UC-32; needs an owner decision on the data model).
 
 - [ ] **Task 34: You page** — S · Deps: 22 · UC-28
   - Acceptance: photo, name, description, profile currency, notification and location toggles.

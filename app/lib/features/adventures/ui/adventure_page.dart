@@ -11,6 +11,7 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/ui/adventure_banner.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/squad/ui/squad_section.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// One adventure (spec UC-23): the banner, with a sheet that scrolls up
@@ -73,6 +74,7 @@ class AdventurePage extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
                 children: [
                   const _Handle(),
+                  const SyncBanner(),
                   _TripHeader(adventure: adventure),
                   const SizedBox(height: 24),
                   TabsSection(adventure: adventure, myUid: myUid),

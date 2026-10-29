@@ -162,5 +162,22 @@ void main() {
       await q.runDue();
       expect(uploader.uploaded, ['adventures/a1/tabs/t1/m2.webp']);
     });
+
+    test(
+      'a manual sync retries photos still waiting out their backoff',
+      () async {
+        store.saved = [_job('a')];
+        uploader.failuresLeft = 1;
+        await queue().runDue();
+        expect(store.saved.single.nextTryAt, isNotNull);
+
+        await queue().runDue(); // still backing off
+        expect(uploader.uploaded, isEmpty);
+
+        await queue().runDue(ignoreBackoff: true); // the person pressed Sync
+        expect(uploader.uploaded, ['adventures/a1/tabs/t1/a.webp']);
+        expect(store.saved, isEmpty);
+      },
+    );
   });
 }
