@@ -18,6 +18,7 @@ class TabEntry {
     this.memories = const [],
     this.location,
     this.deleted = false,
+    this.updatedAt,
   });
 
   final String id;
@@ -33,6 +34,10 @@ class TabEntry {
 
   /// Soft-deleted by a lead; kept for history (spec UC-22).
   final bool deleted;
+
+  /// When the server last saved this tab; null while a change of yours is
+  /// still waiting to sync, since the server hasn't stamped it yet.
+  final DateTime? updatedAt;
 
   Money get amount => split.amount;
 

@@ -283,6 +283,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
           : percentsFrom(_texts(_percentFields)!),
       participants: _ticked(pals),
       location: _location,
+      basedOn: _old?.updatedAt,
     );
     final old = _old;
     final String id;

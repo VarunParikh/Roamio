@@ -16,6 +16,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  Timestamp,
   updateDoc,
   where,
   type Firestore,
@@ -767,6 +768,31 @@ describe("tabs", () => {
     );
     await assertFails(
       updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { createdBy: "mia" }),
+    );
+  });
+
+  it("the creator may record which version an edit was based on (UC-32)", async () => {
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+        amountMinor: 50000,
+        baseUpdatedAt: Timestamp.fromMillis(1_700_000_000_000),
+      }),
+    );
+  });
+
+  it("baseUpdatedAt must be a timestamp, and only the creator may set it", async () => {
+    await assertFails(
+      updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { baseUpdatedAt: "yesterday" }),
+    );
+    await assertFails(
+      updateDoc(doc(as("mia"), "adventures/a1/tabs/t1"), {
+        baseUpdatedAt: Timestamp.fromMillis(1_700_000_000_000),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("cara"), "adventures/a1/tabs/t1"), {
+        baseUpdatedAt: Timestamp.fromMillis(1_700_000_000_000),
+      }),
     );
   });
 

@@ -46,6 +46,12 @@ class FirebaseTabService implements TabService {
     else if (!isNew)
       'location': FieldValue.delete(),
     'updatedAt': FieldValue.serverTimestamp(),
+    // Only an edit has a base; with none known, a stale one must not stay.
+    if (!isNew)
+      'baseUpdatedAt': switch (tab.basedOn) {
+        final DateTime base => Timestamp.fromDate(base),
+        null => FieldValue.delete(),
+      },
   };
 
   // Writes aren't awaited: they're queued offline and streams show them now.
@@ -94,6 +100,7 @@ class FirebaseTabService implements TabService {
       date: parseIsoDate(data['date'] as String),
       createdBy: data['createdBy'] as String,
       deleted: data['deleted'] == true,
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       memories: ((data['memories'] as List?) ?? const []).cast<String>(),
       location: switch (data['location']) {
         {'lat': final num lat, 'lng': final num lng} => MapPoint(
