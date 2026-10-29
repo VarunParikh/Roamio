@@ -188,7 +188,7 @@ Common verification commands:
   - Verify: widget tests (empty, populated, deleted tab); manual scroll check.
   - Files: `app/lib/features/adventures/ui/adventure_page.dart`, `app/lib/features/tabs/ui/tab_detail.dart`, tests
 
-- [ ] **Task 28: Daily FX rates** — S · Deps: 5, 7 · Spec §9.1
+- [x] **Task 28: Daily FX rates** — S · Deps: 5, 7 · Spec §9.1
   - Acceptance: scheduled function stores `fx_rates/{date}` from open.er-api.com; fallback to last available day; app reads and caches rates offline.
   - Verify: functions test with mocked API (success, outage).
   - Files: `firebase/functions/src/fx/*.ts`, `app/lib/features/splits/data/fx_repository.dart`, tests

@@ -19,6 +19,7 @@ export {
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
 export { checkTab } from "./tabs/checkTab";
+export { dailyFxRates } from "./fx/rates";
 export {
   demoteCoLead,
   handOverLeadership,
