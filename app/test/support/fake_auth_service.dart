@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
+import 'package:roamio/core/images/photo_pipeline.dart';
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
@@ -23,6 +25,8 @@ import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_invite_service.dart';
+import 'fake_location_service.dart';
+import 'fake_photo_pipeline.dart';
 import 'fake_squad_service.dart';
 import 'fake_tab_service.dart';
 
@@ -138,6 +142,8 @@ Future<void> pumpRoamio(
   String? clipboard,
   FakeSquadService? squad,
   FakeTabService? tabs,
+  FakePhotoPipeline? photos,
+  FakeLocationService? location,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -149,6 +155,10 @@ Future<void> pumpRoamio(
         countriesProvider.overrideWith((ref) => testCountries),
         categoriesProvider.overrideWith((ref) => testCategories),
         tabServiceProvider.overrideWithValue(tabs ?? FakeTabService()),
+        photoPipelineProvider.overrideWithValue(photos ?? FakePhotoPipeline()),
+        locationServiceProvider.overrideWithValue(
+          location ?? FakeLocationService(),
+        ),
         bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
         openLinkProvider.overrideWithValue(
           (uri) async => openedLinks?.add(uri),

@@ -677,6 +677,39 @@ describe("tabs", () => {
     );
   });
 
+  it("a location is just a valid point (spec UC-21)", async () => {
+    const bad = [
+      { lat: 91, lng: 100.5 },
+      { lat: 13.75, lng: -181 },
+      { lat: "13.75", lng: 100.5 },
+      { lat: 13.75 },
+      { lat: 13.75, lng: 100.5, address: "12 Soi Sukhumvit" },
+      "13.75,100.5",
+    ];
+    for (const location of bad) {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          tab("bob", { location }),
+        ),
+      );
+    }
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { location: { lat: -33.8688, lng: 151.2093 } }),
+      ),
+    );
+  });
+
+  it("a minor can't add a location by editing their tab later", async () => {
+    const own = fresh("adventures/a1/tabs");
+    await assertSucceeds(setDoc(doc(as("mia"), own), tab("mia")));
+    await assertFails(
+      updateDoc(doc(as("mia"), own), { location: { lat: 13.75, lng: 100.5 } }),
+    );
+  });
+
   it("the creator edits; other members cannot", async () => {
     await assertSucceeds(
       updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {

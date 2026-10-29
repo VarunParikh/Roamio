@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
@@ -28,8 +29,9 @@ class FirebaseTabService implements TabService {
 
   // Not awaited: the write is queued offline and the stream shows it at once.
   @override
-  Future<void> addTab(String adventureId, NewTab tab) async {
-    _tabs(adventureId).add({
+  Future<String> addTab(String adventureId, NewTab tab) async {
+    final doc = _tabs(adventureId).doc();
+    doc.set({
       'description': tab.description.trim(),
       'category': tab.category,
       'amountMinor': tab.amountMinor,
@@ -42,11 +44,13 @@ class FirebaseTabService implements TabService {
       'participants': tab.participants,
       'percentBp': null,
       'memories': <String>[],
+      if (tab.location case final p?) 'location': {'lat': p.lat, 'lng': p.lng},
       'createdBy': _auth.currentUser!.uid,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
       'deleted': false,
     }).ignore();
+    return doc.id;
   }
 
   static TabEntry _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
@@ -59,6 +63,14 @@ class FirebaseTabService implements TabService {
       category: data['category'] as String,
       date: parseIsoDate(data['date'] as String),
       createdBy: data['createdBy'] as String,
+      memories: ((data['memories'] as List?) ?? const []).cast<String>(),
+      location: switch (data['location']) {
+        {'lat': final num lat, 'lng': final num lng} => MapPoint(
+          lat.toDouble(),
+          lng.toDouble(),
+        ),
+        _ => null,
+      },
       split: TabSplit(
         amount: Money(data['amountMinor'] as int, currency),
         payers: [

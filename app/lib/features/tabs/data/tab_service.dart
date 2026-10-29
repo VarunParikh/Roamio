@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
@@ -14,6 +15,8 @@ class TabEntry {
     required this.date,
     required this.createdBy,
     required this.split,
+    this.memories = const [],
+    this.location,
   });
 
   final String id;
@@ -22,6 +25,10 @@ class TabEntry {
   final DateTime date;
   final String createdBy;
   final TabSplit split;
+
+  /// Download links of up to 4 photos (spec UC-21).
+  final List<String> memories;
+  final MapPoint? location;
 
   Money get amount => split.amount;
 
@@ -36,8 +43,9 @@ abstract interface class TabService {
   /// The adventure's tabs that aren't deleted, newest first.
   Stream<List<TabEntry>> tabs(String adventureId);
 
-  /// Saves a tab as the signed-in member. Works offline and syncs later.
-  Future<void> addTab(String adventureId, NewTab tab);
+  /// Saves a tab as the signed-in member and returns its id at once.
+  /// Works offline and syncs later.
+  Future<String> addTab(String adventureId, NewTab tab);
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.

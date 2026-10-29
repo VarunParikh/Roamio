@@ -19,6 +19,7 @@ class FakeTabService implements TabService {
           date: t.date,
           createdBy: t.payer,
           split: t.split,
+          location: t.location,
         ),
   ].reversed.toList();
 
@@ -29,8 +30,9 @@ class FakeTabService implements TabService {
   }
 
   @override
-  Future<void> addTab(String adventureId, NewTab tab) async {
+  Future<String> addTab(String adventureId, NewTab tab) async {
     added.add((adventureId, tab));
     _changes.add(null);
+    return 'tab${added.length - 1}';
   }
 }
