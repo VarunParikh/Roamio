@@ -10,8 +10,8 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/squad/ui/squad_section.dart';
 
-/// One adventure. Tabs, squad and invites arrive in later tasks
-/// (17, 19, 23, 27); for now it shows the trip so no tap leads nowhere.
+/// One adventure: the trip, invites and squad. Leads can edit it (UC-10).
+/// Tabs arrive in Task 23.
 class AdventureScreen extends ConsumerWidget {
   const new({required this.adventureId, super.key});
 
@@ -24,12 +24,23 @@ class AdventureScreen extends ConsumerWidget {
     final adventure = adventures.value
         ?.where((a) => a.id == adventureId)
         .firstOrNull;
+    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final country = adventure == null
         ? null
         : ref.watch(countriesProvider).value?.byCode(adventure.countryCode);
 
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        actions: [
+          if (adventure != null && adventure.isLead(myUid))
+            IconButton(
+              tooltip: 'Edit adventure',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push('/adventures/$adventureId/edit'),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: adventure == null
             ? Padding(
@@ -70,15 +81,9 @@ class AdventureScreen extends ConsumerWidget {
                     style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
                   ),
                   const SizedBox(height: 24),
-                  InviteSection(
-                    adventure: adventure,
-                    myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
-                  ),
+                  InviteSection(adventure: adventure, myUid: myUid),
                   const SizedBox(height: 24),
-                  SquadSection(
-                    adventure: adventure,
-                    myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
-                  ),
+                  SquadSection(adventure: adventure, myUid: myUid),
                   const SizedBox(height: 24),
                   Text(
                     'Tabs will appear here soon.',

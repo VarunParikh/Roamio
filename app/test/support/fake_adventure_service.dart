@@ -18,6 +18,32 @@ class FakeAdventureService implements AdventureService {
     yield* _changes.stream;
   }
 
+  final List<(String, AdventureEdit)> edits = [];
+
+  @override
+  Future<void> update(String adventureId, AdventureEdit edit) async {
+    edits.add((adventureId, edit));
+    final i = adventures.indexWhere((a) => a.id == adventureId);
+    final a = adventures[i];
+    adventures[i] = Adventure(
+      id: a.id,
+      name: edit.name.trim(),
+      description: edit.description.trim(),
+      countryCode: a.countryCode,
+      city: edit.city.trim(),
+      startDate: edit.startDate,
+      endDate: edit.endDate,
+      baseCurrency: edit.baseCurrency ?? a.baseCurrency,
+      bannerUrl: a.bannerUrl,
+      leaderUid: a.leaderUid,
+      coLeadUids: a.coLeadUids,
+      memberUids: a.memberUids,
+      activeInviteCode: a.activeInviteCode,
+      hasTabs: a.hasTabs,
+    );
+    _changes.add([...adventures]);
+  }
+
   @override
   Future<String> create(AdventureDraft draft) async {
     if (failNext) {
