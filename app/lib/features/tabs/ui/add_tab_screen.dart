@@ -12,6 +12,7 @@ import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
+import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/splits/domain/money.dart';
@@ -50,7 +51,12 @@ class AddTabScreen extends ConsumerWidget {
     final existing = tabId == null
         ? null
         : ref.watch(tabProvider((adventureId, tabId!)));
-    if (adventure == null || (existing?.isLoading ?? false)) {
+    if (adventure == null) {
+      return AdventureUnavailable(
+        loading: ref.watch(myAdventuresProvider).isLoading,
+      );
+    }
+    if (existing?.isLoading ?? false) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (existing != null && (existing.value?.deleted ?? true)) {
@@ -615,7 +621,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 'Split reset to equal because the people changed.',
-                style: text.bodyMedium?.copyWith(color: RoamioColors.coral),
+                style: text.bodyMedium?.copyWith(color: RoamioColors.coralText),
               ),
             ),
           for (final id in _everyone(pals))

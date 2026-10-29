@@ -105,7 +105,9 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: RoamioColors.coral),
+            style: TextButton.styleFrom(
+              foregroundColor: RoamioColors.coralText,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -237,7 +239,9 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _deleteError!,
-                  style: text.bodyMedium?.copyWith(color: RoamioColors.coral),
+                  style: text.bodyMedium?.copyWith(
+                    color: RoamioColors.coralText,
+                  ),
                 ),
               ],
               if (offline) ...[
@@ -248,7 +252,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
               OutlinedButton(
                 onPressed: busy || offline ? null : () => _delete(children),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: RoamioColors.coral,
+                  foregroundColor: RoamioColors.coralText,
                 ),
                 child: const Text('Delete my account'),
               ),

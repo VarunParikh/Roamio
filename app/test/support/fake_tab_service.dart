@@ -13,6 +13,9 @@ class FakeTabService implements TabService {
   final List<(String, NewTab)> added = [];
   final List<(String, String, NewTab)> updates = [];
   final List<String> deletes = [];
+
+  /// The tab list can't be loaded (an error state).
+  bool failToLoad = false;
   final Map<String, List<TabEntry>> _byAdventure = {};
   final _changes = StreamController<void>.broadcast();
 
@@ -44,6 +47,7 @@ class FakeTabService implements TabService {
 
   @override
   Stream<List<TabEntry>> tabs(String adventureId) async* {
+    if (failToLoad) throw Exception('tabs unavailable');
     yield _visible(adventureId);
     yield* _changes.stream.map((_) => _visible(adventureId));
   }

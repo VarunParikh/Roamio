@@ -59,7 +59,7 @@ class PayersEditor extends StatelessWidget {
         Text(
           '${money(assigned)} of ${money(amountMinor)} assigned',
           style: text.bodyMedium?.copyWith(
-            color: ok ? RoamioColors.mint : RoamioColors.coral,
+            color: ok ? RoamioColors.mintText : RoamioColors.coralText,
           ),
         ),
       ],
