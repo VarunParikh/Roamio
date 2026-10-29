@@ -70,7 +70,7 @@ Common verification commands:
 
 ## Phase 2 — Identity & parental consent
 
-- [ ] **Task 10: Splash, sign in, create account, age gate** — M · Deps: 4, 9 · UC-1–4
+- [x] **Task 10: Splash, sign in, create account, age gate** — M · Deps: 4, 9 · UC-1–4
   - Acceptance: splash routes by auth/consent state; Google + email sign-in; email verification screen with 60 s resend; sign-up collects name, email, password, DOB, notice acceptance (Google users asked DOB once); under-13 refused; 13–17 → consent-pending; 18+ → Home.
   - Verify: widget tests for each route; manual sign-up on emulator against dev project.
   - Files: `app/lib/features/auth/**`, `app/lib/features/splash/**`, tests

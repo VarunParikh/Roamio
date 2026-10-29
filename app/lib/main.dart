@@ -1,27 +1,63 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/data/firebase_auth_service.dart';
+import 'package:roamio/features/auth/domain/session.dart';
 
-void main() {
-  runApp(const ProviderScope(child: RoamioApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await setUpFirebase();
+  runApp(
+    ProviderScope(
+      overrides: [
+        authServiceProvider.overrideWithValue(
+          FirebaseAuthService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
+            GoogleSignIn.instance,
+          ),
+        ),
+      ],
+      child: const RoamioApp(),
+    ),
+  );
 }
 
-class RoamioApp extends StatefulWidget {
+class RoamioApp extends ConsumerStatefulWidget {
   const new({super.key});
 
   @override
-  State<RoamioApp> createState() => _RoamioAppState();
+  ConsumerState<RoamioApp> createState() => _RoamioAppState();
 }
 
-class _RoamioAppState extends State<RoamioApp> {
-  late final GoRouter _router = buildRouter();
+class _RoamioAppState extends ConsumerState<RoamioApp> {
+  final ValueNotifier<SessionStage> _stage = ValueNotifier(
+    SessionStage.loading,
+  );
+  late final GoRouter _router = buildRouter(_stage);
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(
+      sessionStageProvider,
+      (_, next) => _stage.value = next.value ?? SessionStage.loading,
+      fireImmediately: true,
+    );
+  }
 
   @override
   void dispose() {
     _router.dispose();
+    _stage.dispose();
     super.dispose();
   }
 
