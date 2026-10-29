@@ -19,7 +19,7 @@ Conventions:
 | `adventures/{aid}` | `name`, `description`, `countryCode`, `city`, `startDate`, `endDate`, `baseCurrency`, `bannerUrl`, `createdBy`, `createdAt`, `leaderUid`, `coLeadUids[]`, `memberUids[]` (active members incl. leads); **server-only:** `hasTabs`, `activeInviteCode`, `archived`, `archivedAt` (set when the last member, the leader, leaves) | members | create: active user as sole member + leader; update: leads, metadata only; `baseCurrency` locked once `hasTabs`; roles/membership server-only; no delete |
 | `adventures/{aid}/members/{uid}` | `role` (`leader` \| `co_lead` \| `member`), `status` (`active` \| `left`), `joinedAt` | members | server-only |
 | `adventures/{aid}/pals/{pid}` | `nickname`, `addedBy`, `status` (`active` \| `left`), `createdAt` | members | leads create/rename/mark left; no delete |
-| `adventures/{aid}/tabs/{tid}` | `description`, `category`, `amountMinor`, `currency`, `date`, `fxDate`, `payers[{id, amountMinor}]`, `participants[]`, `percentBp` (map or null), `memories[]` (≤ 4 URLs), `location` (optional; adults only), `createdBy`, `createdAt`, `updatedAt`, `deleted` | members | members create as themselves; creator edits; leads soft-delete (`deleted: true`) only; no hard delete |
+| `adventures/{aid}/tabs/{tid}` | `description`, `category`, `amountMinor`, `currency`, `date`, `fxDate`, `payers[{id, amountMinor}]`, `participants[]`, `percentBp` (map or null), `memories[]` (≤ 4 URLs), `location` (optional; adults only; exactly `{lat, lng}`, no address), `createdBy`, `createdAt`, `updatedAt`, `deleted` | members | members create as themselves; creator edits; leads soft-delete (`deleted: true`) only; no hard delete |
 | `adventures/{aid}/settlements/{sid}` | `from`, `to`, `amountMinor`, `currency` (= base), `recordedBy`, `createdAt`, `undone`, `undoneBy` | members | a party to the transfer, or a lead when a pal is involved; undo only (`undone: true`) |
 | `adventures/{aid}/budgets/{uid}` | `amountMinor`, `currency`, `updatedAt`; **server-only:** `alertsSent[]` | **owner only** | owner (must be a member) |
 | `adventures/{aid}/activity/{id}` | `type` (`member_joined` \| `member_removed` \| `member_left` \| `co_lead_added` \| `co_lead_removed` \| `leader_changed` \| `tab_rejected`), `actorUid`, `subject`, `createdAt`; `reason` on `tab_rejected` | members | server-only |
@@ -31,6 +31,18 @@ Conventions:
 | `auditLog/{id}` | `actorUid`, `action`, `target`, `at` (kept 1 year) | nobody (console only) | server-only |
 
 Anything not listed is denied.
+
+## Storage (photos)
+
+Rules: [firebase/storage.rules](../firebase/storage.rules) · Tests: [firebase/test/rules/storage.test.ts](../firebase/test/rules/storage.test.ts). Every file is WebP, at most 1 MB, compressed and EXIF-stripped on the device, and written once (no overwrite or delete from the app). The rules read Firestore to decide access, so the first deploy must let Storage read Firestore (the CLI offers to grant this).
+
+| Path | Read | Create |
+|---|---|---|
+| `adventures/{aid}/tabs/{tid}/{id}.webp` | members | the tab's creator (the link goes into the tab's `memories`) |
+| `adventures/{aid}/banner/{id}.webp` | members | leads (the link goes into `bannerUrl`) |
+| `users/{uid}/avatar/{id}.webp` | active users; owner always | owner |
+
+Photos added offline wait in an on-device queue (`app/lib/core/images/upload_queue.dart`) that survives restarts and retries with backoff (5 s doubling to 30 min); the link is written to the document once the upload succeeds.
 
 ## What rules can't check (enforced elsewhere)
 

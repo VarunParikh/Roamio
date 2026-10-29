@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
+import 'package:roamio/core/images/photo_pipeline.dart';
+import 'package:roamio/core/images/upload_queue.dart';
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
@@ -15,9 +18,12 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/ui/location_picker.dart';
+import 'package:roamio/features/tabs/ui/memories.dart';
 
-/// Add a tab (spec UC-21, basic): one payer (you) and an equal split.
-/// Multiple payers and custom percentages arrive in Task 24.
+/// Add a tab (spec UC-21): one payer (you), an equal split, up to 4
+/// photos and, for adults, where it happened. Multiple payers and custom
+/// percentages arrive in Task 24.
 class AddTabScreen extends ConsumerWidget {
   const new({required this.adventureId, super.key});
 
@@ -57,6 +63,11 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   /// Everyone starts ticked, including pals that load later.
   final Set<String> _unticked = {};
   bool _tried = false;
+  bool _busy = false;
+
+  /// Photos picked so far, uploaded once the tab is saved.
+  final List<String> _memories = [];
+  MapPoint? _location;
 
   @override
   void dispose() {
@@ -109,7 +120,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       return;
     }
     if (problems.isNotEmpty) return;
-    await ref
+    setState(() => _busy = true);
+    final id = await ref
         .read(tabServiceProvider)
         .addTab(
           _a.id,
@@ -121,9 +133,40 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             date: _date,
             payer: myUid,
             participants: _ticked(pals),
+            location: _location,
           ),
         );
-    if (mounted) context.pop();
+    // Compressed now and queued, so they upload even if the phone is offline.
+    final photos = ref.read(photoPipelineProvider);
+    final tabPath = 'adventures/${_a.id}/tabs/$id';
+    var unreadable = 0;
+    for (final path in _memories) {
+      try {
+        await photos.queueUpload(
+          path: path,
+          kind: PhotoKind.photo,
+          storageDir: tabPath,
+          docPath: tabPath,
+          field: 'memories',
+          mode: UploadMode.append,
+        );
+      } on FormatException {
+        unreadable++;
+      }
+    }
+    if (!mounted) return;
+    if (unreadable > 0) {
+      showAuthMessage(
+        context,
+        'Tab saved, but $unreadable photo(s) couldn’t be read.',
+      );
+    }
+    context.pop();
+  }
+
+  Future<void> _addPhoto(bool camera) async {
+    final path = await ref.read(photoPipelineProvider).pick(camera: camera);
+    if (path != null && mounted) setState(() => _memories.add(path));
   }
 
   /// "฿300.00 each", or a range when the spare minor unit makes shares differ.
@@ -270,7 +313,19 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             textCapitalization: TextCapitalization.sentences,
             maxLength: 200,
           ),
+          Text('Photos', style: text.titleMedium),
           const SizedBox(height: 8),
+          MemoriesPicker(
+            paths: _memories,
+            onAdd: _addPhoto,
+            onRemove: (i) => setState(() => _memories.removeAt(i)),
+          ),
+          const SizedBox(height: 16),
+          LocationPicker(
+            point: _location,
+            onChanged: (p) => setState(() => _location = p),
+          ),
+          const SizedBox(height: 16),
           Text('Paid by', style: text.titleMedium),
           const SizedBox(height: 4),
           Text(
@@ -314,6 +369,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       ),
       primary: PrimaryButton(
         label: 'Save tab',
+        busy: _busy,
         onPressed: () => _save(pals, myUid),
       ),
     );

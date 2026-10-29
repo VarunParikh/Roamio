@@ -56,7 +56,13 @@ Future<void> _tick(WidgetTester tester, String name) async {
 
 Future<void> _openAddTab(WidgetTester tester) async {
   await tester.scrollUntilVisible(find.text('Add tab'), 200);
-  await tester.tap(find.text('Add tab'));
+  await _tapVisible(tester, find.text('Add tab'));
+}
+
+Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
   await tester.pumpAndSettle();
 }
 
@@ -88,7 +94,7 @@ void main() {
       await tester.enterText(find.widgetWithText(TextField, 'Amount'), '900');
       await tester.pumpAndSettle();
       expect(find.text('฿300.00 each'), findsOneWidget);
-      await tester.tap(find.textContaining('Food & Dining'));
+      await _tapVisible(tester, find.textContaining('Food & Dining'));
       await tester.enterText(
         find.widgetWithText(TextField, 'Description (optional)'),
         'Dinner at Jay Fai',
@@ -119,7 +125,7 @@ void main() {
       await tester.pumpAndSettle();
       await _tick(tester, 'Kiko');
       expect(find.text('฿450.00 each'), findsOneWidget);
-      await tester.tap(find.textContaining('Food & Dining'));
+      await _tapVisible(tester, find.textContaining('Food & Dining'));
       await _save(tester);
 
       expect(tabs.added.single.$2.participants, ['ari', 'bob']);

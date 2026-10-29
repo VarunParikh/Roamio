@@ -1,10 +1,55 @@
 rules_version = '2';
 
-// Default deny. Upload paths are opened per feature (Task 22 onwards).
+// Photo storage (spec §10). Every file is a compressed WebP of at most 1 MB,
+// written once (no overwrite or delete from the app) to a place the
+// uploader may write. Checks the uploader's Firestore records, so the same
+// people can see a photo as can see what it belongs to.
+// Allow + deny tests: test/rules/storage.test.ts. Anything else is denied.
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function doc(path) { return /databases/(default)/documents/$(path); }
+
+    // Signed in and not waiting for parental consent (spec §7).
+    function isActive() {
+      return signedIn()
+        && firestore.exists(doc('users/' + me() + '/private/account'))
+        && firestore.get(doc('users/' + me() + '/private/account')).data
+             .get('ageStatus', 'none') in ['adult', 'minor_active'];
+    }
+    function adventure(aid) { return firestore.get(doc('adventures/' + aid)).data; }
+    function isMember(aid) { return isActive() && me() in adventure(aid).memberUids; }
+    function isLead(aid) {
+      let a = adventure(aid);
+      return isMember(aid) && (a.leaderUid == me() || me() in a.coLeadUids);
+    }
+
+    function isPhoto() {
+      // resource == null: new files only, never overwriting one.
+      return resource == null
+        && request.resource.size <= 1024 * 1024
+        && request.resource.contentType == 'image/webp';
+    }
+
+    // Memories on a tab: added by the tab's creator (spec UC-21).
+    match /adventures/{aid}/tabs/{tid}/{file} {
+      allow read: if isMember(aid);
+      allow create: if isMember(aid) && isPhoto()
+        && firestore.exists(doc('adventures/' + aid + '/tabs/' + tid))
+        && firestore.get(doc('adventures/' + aid + '/tabs/' + tid)).data.createdBy == me();
+    }
+
+    // A lead's own banner photo (spec UC-10).
+    match /adventures/{aid}/banner/{file} {
+      allow read: if isMember(aid);
+      allow create: if isLead(aid) && isPhoto();
+    }
+
+    // Profile photos (spec UC-28): profiles are visible to active users.
+    match /users/{uid}/avatar/{file} {
+      allow read: if signedIn() && (me() == uid || isActive());
+      allow create: if signedIn() && me() == uid && isPhoto();
     }
   }
 }

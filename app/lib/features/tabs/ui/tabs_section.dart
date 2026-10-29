@@ -65,8 +65,12 @@ class TabsSection extends ConsumerWidget {
                             : t.description,
                       ),
                       subtitle: Text(
-                        '${formatDay(t.date)} · '
-                        'Your share ${money(t.shareOf(myUid))}',
+                        [
+                          formatDay(t.date),
+                          'Your share ${money(t.shareOf(myUid))}',
+                          if (t.memories.isNotEmpty) '📷 ${t.memories.length}',
+                          if (t.location != null) '📍',
+                        ].join(' · '),
                         style: const TextStyle(color: RoamioColors.slate),
                       ),
                       trailing: Text(money(t.amount), style: text.titleMedium),

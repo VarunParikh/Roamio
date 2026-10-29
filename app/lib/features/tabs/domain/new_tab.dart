@@ -1,3 +1,4 @@
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
@@ -50,6 +51,7 @@ class NewTab {
     required this.date,
     required this.payer,
     required this.participants,
+    this.location,
   });
 
   final String description;
@@ -59,6 +61,9 @@ class NewTab {
   final DateTime date;
   final String payer;
   final List<String> participants;
+
+  /// Where it happened, if an adult chose to add it (spec UC-21, §7.2).
+  final MapPoint? location;
 
   /// Rates from the tab's own day convert it, so totals never shift (§9.1).
   String get fxDate => isoDate(date);

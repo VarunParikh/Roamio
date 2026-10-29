@@ -154,10 +154,11 @@ Common verification commands:
 
 ## Phase 4 — Tabs & splits
 
-- [ ] **Task 22: Image pipeline** — S · Deps: 4 · Spec §10
+- [x] **Task 22: Image pipeline** — S · Deps: 4 · Spec §10
   - Acceptance: camera/gallery picker; compress to ≤ 1600 px (2048 for bills) WebP q80; EXIF stripped; upload queue that survives offline and app restarts; Storage rules reject > 1 MB or non-WebP.
   - Verify: test with a 12 MB sample photo → ≤ 400 KB, no EXIF; storage rules tests.
   - Files: `app/lib/core/images/*.dart`, `firebase/storage.rules`, tests
+  - Done: verified on the Android emulator (`integration_test/photo_compression_test.dart`): 9.3 MB 4000×3000 JPEG with fake GPS EXIF → 1600×1200 WebP, no EXIF, 528 KB. That synthetic image is noisier than a camera photo; the ≤ 400 KB target still needs checking with a real photo.
 
 - [x] **Task 23: Add tab (basic)** — M · Deps: 8, 20 · UC-21
   - Acceptance: amount, currency (default base), date (≤ today), category, description, single payer "You", equal split across ticked participants; writes tab with `fxDate`.
@@ -170,10 +171,11 @@ Common verification commands:
   - Verify: widget tests for each validation path.
   - Files: `app/lib/features/tabs/ui/payers_editor.dart`, `percent_editor.dart`, tests
 
-- [ ] **Task 25: Memories and location on tabs** — S · Deps: 22, 23
+- [x] **Task 25: Memories and location on tabs** — S · Deps: 22, 23
   - Acceptance: up to 4 memories per tab; optional location with permission (never for minors).
   - Verify: widget test (5th photo blocked; location hidden for minor).
   - Files: `app/lib/features/tabs/ui/memories.dart`, `location_picker.dart`, tests
+  - Done: photos go through the Task 22 pipeline; location is read once on tap (offers to turn on location services / open app settings), stored as `{lat, lng}` only; hidden for minors and refused by rules. Not yet tried by hand on a device.
 
 - [ ] **Task 26: Scan bill (OCR)** — S · Deps: 22, 23
   - Acceptance: ML Kit on-device text recognition prefills amount, date and merchant; user confirms; behind `ocr_enabled` flag.
