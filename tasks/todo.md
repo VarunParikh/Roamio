@@ -125,7 +125,7 @@ Common verification commands:
   - Verify: functions test for join (already member, adventure archived, minor pending consent refused); widget test for the card.
   - Files: `firebase/functions/src/invites/join.ts`, `app/lib/features/invites/ui/*`, tests
 
-- [ ] **Task 19: Squad roles** — M · Deps: 18 · UC-15–17
+- [x] **Task 19: Squad roles** — M · Deps: 18 · UC-15–17
   - Acceptance: leader promotes/demotes co-leads; leads remove members (marked Left if they have tab history); leader must hand over before leaving; 🎩 on lead avatars.
   - Verify: functions + rules tests for each role change and forbidden case (co-lead demoting leader, member removing anyone).
   - Files: `firebase/functions/src/squad/*.ts`, `app/lib/features/squad/**`, tests

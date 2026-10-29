@@ -47,11 +47,33 @@ class FirebaseSquadService implements SquadService {
   @override
   Future<void> dismiss(String cardId) => _notifications.doc(cardId).delete();
 
-  Future<void> _call(String name, String adventureId, String memberUid) async {
+  @override
+  Future<void> demoteCoLead(String adventureId, String memberUid) =>
+      _call('demoteCoLead', adventureId, memberUid);
+
+  @override
+  Future<void> handOverLeadership(String adventureId, String memberUid) =>
+      _call('handOverLeadership', adventureId, memberUid);
+
+  @override
+  Future<void> leave(String adventureId) =>
+      _call('leaveAdventure', adventureId, null);
+
+  @override
+  Future<Map<String, String>> namesOf(List<String> uids) async {
+    final docs = await Future.wait(
+      uids.map((uid) => _db.doc('users/$uid').get()),
+    );
+    return {
+      for (final d in docs) d.id: (d.data()?['name'] as String?) ?? 'Someone',
+    };
+  }
+
+  Future<void> _call(String name, String adventureId, String? memberUid) async {
     try {
       await _functions.httpsCallable(name).call<Object?>({
         'adventureId': adventureId,
-        'memberUid': memberUid,
+        'memberUid': ?memberUid,
       });
     } on FirebaseFunctionsException catch (e) {
       const ours = {'failed-precondition', 'permission-denied'};

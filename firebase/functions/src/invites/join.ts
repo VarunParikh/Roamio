@@ -33,7 +33,7 @@ export const joinAdventure = onCall(async (request) => {
     if (!adventure.exists) throw new HttpsError("not-found", "This adventure no longer exists.");
     const memberUids: string[] = adventure.get("memberUids") ?? [];
     if (memberUids.includes(uid)) return { adventureId: adventure.id, alreadyMember: true };
-    if (adventure.get("endDate") < todayUtc()) {
+    if (adventure.get("archived") === true || adventure.get("endDate") < todayUtc()) {
       throw new HttpsError("failed-precondition", "This adventure has already ended.");
     }
 

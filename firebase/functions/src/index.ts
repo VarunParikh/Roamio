@@ -18,7 +18,13 @@ export {
   withdrawParentalConsent,
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
-export { makeCoLead, removeMember } from "./squad/roles";
+export {
+  demoteCoLead,
+  handOverLeadership,
+  leaveAdventure,
+  makeCoLead,
+  removeMember,
+} from "./squad/roles";
 
 /** Liveness check used by CI and the emulator smoke test. */
 export const health = onRequest((_req, res) => {
