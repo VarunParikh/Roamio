@@ -74,3 +74,31 @@ String formatMoney(Money money, {String? symbol}) {
   final prefix = symbol ?? '${money.currency} ';
   return '${money.isNegative ? '-' : ''}$prefix$number';
 }
+
+final _typedAmount = RegExp(r'^(\d[\d,]*)?(?:\.(\d*))?$');
+
+/// Reads a typed amount like `1,234.50` into minor units of [currency],
+/// or null if it isn't a plain non-negative number with at most the
+/// currency's decimal places. Parsed as digits, never as a double.
+int? parseAmount(String text, String currency) {
+  final t = text.trim();
+  final match = _typedAmount.firstMatch(t);
+  if (t.isEmpty || match == null) return null;
+  final whole = (match.group(1) ?? '').replaceAll(',', '');
+  final fraction = match.group(2) ?? '';
+  final digits = minorUnitDigits(currency);
+  if (whole.isEmpty && fraction.isEmpty) return null;
+  if (fraction.length > digits) return null;
+  return int.parse(
+    '${whole.isEmpty ? '0' : whole}${fraction.padRight(digits, '0')}',
+  );
+}
+
+/// The largest tab allowed: 10,000,000 in the tab's currency (spec UC-21).
+int maxTabMinor(String currency) {
+  var max = 10000000;
+  for (var i = 0; i < minorUnitDigits(currency); i++) {
+    max *= 10;
+  }
+  return max;
+}

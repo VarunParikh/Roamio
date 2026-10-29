@@ -19,6 +19,7 @@ import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/invites/ui/invite_link_screen.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
+import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 
 abstract final class Routes {
   static const String home = AuthRoutes.home;
@@ -95,6 +96,11 @@ final _routes = <RouteBase>[
         path: 'edit',
         builder: (_, state) =>
             EditAdventureScreen(adventureId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: 'tabs/new',
+        builder: (_, state) =>
+            AddTabScreen(adventureId: state.pathParameters['id']!),
       ),
     ],
   ),

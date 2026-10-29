@@ -95,4 +95,39 @@ void main() {
       expect(formatMoney(Money(0, 'EUR'), symbol: '€'), '€0.00');
     });
   });
+  group('parseAmount (typed amounts, no floats)', () {
+    test('reads whole and decimal amounts into minor units', () {
+      expect(parseAmount('1234', 'INR'), 123400);
+      expect(parseAmount('1,234.5', 'INR'), 123450);
+      expect(parseAmount(' 0.05 ', 'USD'), 5);
+      expect(parseAmount('12.', 'EUR'), 1200);
+      expect(parseAmount('.5', 'EUR'), 50);
+      expect(parseAmount('1500', 'JPY'), 1500);
+      expect(parseAmount('1.250', 'KWD'), 1250);
+    });
+
+    test('refuses more decimals than the currency has', () {
+      expect(parseAmount('1.234', 'INR'), isNull);
+      expect(parseAmount('15.5', 'JPY'), isNull);
+    });
+
+    test('refuses empty, negative and non-numbers', () {
+      for (final bad in ['', ' ', '-5', 'abc', '1.2.3', '1e3', '₹100', ',']) {
+        expect(parseAmount(bad, 'INR'), isNull, reason: bad);
+      }
+    });
+
+    test('keeps every digit of the largest tab', () {
+      expect(parseAmount('9,999,999.99', 'INR'), 999999999);
+      expect(parseAmount('9999999.999', 'KWD'), 9999999999);
+    });
+  });
+
+  group('maxTabMinor (spec UC-21: up to 10,000,000 in that currency)', () {
+    test('scales with the currency minor unit', () {
+      expect(maxTabMinor('INR'), 1000000000);
+      expect(maxTabMinor('JPY'), 10000000);
+      expect(maxTabMinor('KWD'), 10000000000);
+    });
+  });
 }

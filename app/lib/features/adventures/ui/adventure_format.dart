@@ -19,6 +19,12 @@ String formatDateRange(DateTime start, DateTime end) {
   return '${start.day} – ${end.day} $m1 ${end.year}';
 }
 
+const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+/// "Thu, 29 Oct 2026".
+String formatDay(DateTime d) =>
+    '${_weekdays[d.weekday - 1]}, ${d.day} ${_months[d.month - 1]} ${d.year}';
+
 /// "Happening now", "Starts tomorrow", "In 12 days", "Ended".
 String statusLabel(Adventure a, DateTime today) {
   switch (a.statusOn(today)) {
