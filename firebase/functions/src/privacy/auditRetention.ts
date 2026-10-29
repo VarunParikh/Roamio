@@ -1,7 +1,7 @@
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 
-// The audit log is kept for one year (spec §8). Not scheduled yet: running
-// it daily needs the owner's go-ahead, because a schedule can add cost.
+// The audit log is kept for one year (spec §8). Runs daily inside
+// consentSweep (runDailySweep), so it needs no schedule of its own.
 
 /** Deletes audit entries more than a year older than [now]; returns how many. */
 export async function purgeOldAuditLog(now: Date, batchSize = 400): Promise<number> {

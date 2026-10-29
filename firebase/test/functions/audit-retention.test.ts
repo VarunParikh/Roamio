@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getFirestore, Timestamp } from "../support/admin";
 import "../support/callable";
 import { purgeOldAuditLog } from "../../functions/src/privacy/auditRetention";
+import { runDailySweep } from "../../functions/src/consent/sweep";
 
 const db = () => getFirestore();
 
@@ -43,5 +44,16 @@ describe("purgeOldAuditLog (spec §8: audit log kept 1 year)", () => {
     await purgeOldAuditLog(now, 3);
 
     expect(await kept(t)).toBe(0);
+  });
+
+  it("runs as part of the daily sweep (no extra scheduled job)", async () => {
+    const t = `daily-${Date.now()}`;
+    await entry(`${t}-old`, new Date("2031-01-01T00:00:00Z"));
+    await entry(`${t}-new`, new Date("2032-01-01T00:00:00Z"));
+
+    await runDailySweep(new Date("2032-06-01T00:00:00Z"));
+
+    expect(await kept(`${t}-old`)).toBe(0);
+    expect(await kept(`${t}-new`)).toBe(1);
   });
 });
