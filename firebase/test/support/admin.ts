@@ -9,3 +9,4 @@ export {
   getFirestore,
   Timestamp,
 } from "../../functions/node_modules/firebase-admin/lib/esm/firestore/index.js";
+export { getStorage } from "../../functions/node_modules/firebase-admin/lib/esm/storage/index.js";

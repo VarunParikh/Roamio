@@ -8,6 +8,7 @@ import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
 import '../../support/fake_location_service.dart';
 import '../../support/fake_photo_pipeline.dart';
+import '../../support/fake_profile_service.dart';
 import '../../support/fake_squad_service.dart';
 import '../../support/fake_tab_service.dart';
 
@@ -33,6 +34,7 @@ Future<_Harness> _openAddTab(
   String ageStatus = 'adult',
   String uid = 'ari',
   List<LocationResult>? locations,
+  bool locationOn = true,
 }) async {
   final h = _Harness()..location = FakeLocationService(locations);
   await pumpRoamio(
@@ -45,6 +47,7 @@ Future<_Harness> _openAddTab(
     tabs: h.tabs,
     photos: h.photos,
     location: h.location,
+    profile: FakeProfileService(location: locationOn),
   );
   await tester.tap(find.text('Bangkok trip'));
   await tester.pumpAndSettle();
@@ -128,6 +131,30 @@ void main() {
 
       final saved = h.tabs.added.single.$2.location!;
       expect((saved.lat, saved.lng), (13.7563, 100.5018));
+    });
+
+    testWidgets('with the Location switch off, it points you to You', (
+      tester,
+    ) async {
+      final h = await _openAddTab(tester, locationOn: false);
+
+      expect(find.text('Add location'), findsNothing);
+      expect(
+        find.text(
+          'Location is off. Turn it on in You to tag where tabs happen.',
+        ),
+        findsOneWidget,
+      );
+      expect(h.location.calls, isEmpty);
+    });
+
+    testWidgets('a minor never gets it, even with a stored “on”', (
+      tester,
+    ) async {
+      await _openAddTab(tester, ageStatus: 'minor_active', uid: 'mia');
+
+      expect(find.text('Add location'), findsNothing);
+      expect(find.textContaining('Location is off'), findsNothing);
     });
 
     testWidgets('offers to switch location services on', (tester) async {
