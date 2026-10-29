@@ -68,6 +68,23 @@ JAVA_HOME=/opt/homebrew/opt/openjdk@21 npm test
 
 Emulator UI while developing: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 firebase emulators:start --project demo-roamio` → http://127.0.0.1:4000
 
+### Running the app against local emulators
+
+The app identifies itself by the project in its `google-services.json` (`roamio-dev-varun`),
+so start the emulators under that ID or the server triggers won't see its writes:
+
+```bash
+cd firebase && npm --prefix functions run build
+JAVA_HOME=/opt/homebrew/opt/openjdk@21 firebase emulators:start -P dev --only auth,firestore,functions
+# in another terminal
+cd app && JAVA_HOME=/opt/homebrew/opt/openjdk@17 fvm flutter run --flavor dev --dart-define=USE_EMULATORS=true
+```
+
+Debug builds allow plain-HTTP traffic so the Android emulator can reach the Mac at `10.0.2.2`.
+Emails aren't sent; open a verification link from
+`http://127.0.0.1:9099/emulator/v1/projects/roamio-dev-varun/oobCodes`.
+Google sign-in needs a real Google account on the device and is checked against the real dev project.
+
 
 | | Dev | Prod |
 |---|---|---|

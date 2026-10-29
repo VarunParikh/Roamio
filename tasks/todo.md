@@ -70,7 +70,7 @@ Common verification commands:
 
 ## Phase 2 — Identity & parental consent
 
-- [ ] **Task 10: Splash, sign in, create account, age gate** — M · Deps: 4, 9 · UC-1–4
+- [x] **Task 10: Splash, sign in, create account, age gate** — M · Deps: 4, 9 · UC-1–4
   - Acceptance: splash routes by auth/consent state; Google + email sign-in; email verification screen with 60 s resend; sign-up collects name, email, password, DOB, notice acceptance (Google users asked DOB once); under-13 refused; 13–17 → consent-pending; 18+ → Home.
   - Verify: widget tests for each route; manual sign-up on emulator against dev project.
   - Files: `app/lib/features/auth/**`, `app/lib/features/splash/**`, tests
@@ -89,6 +89,8 @@ Common verification commands:
   - Acceptance: Crashlytics/analytics disabled for under-18 accounts; location features hidden; on 18th birthday user must accept the adult notice, parent link removed and parent notified.
   - Verify: unit tests for age logic (incl. 29 Feb birthdays); functions test for the birthday job.
   - Files: `app/lib/core/privacy/minor_policy.dart`, `firebase/functions/src/consent/turn18.ts`, tests
+
+> **Deferred owner check (from Task 10):** sign in with Google on the emulator against the real `roamio-dev-varun` project, using the owner's own Google account. Needs the owner at the Mac.
 
 ### ✅ Checkpoint 2 — Journey E passes manually
 - [ ] 16-year-old signs up → parent consents → child reaches Home · [ ] Decline deletes the child · [ ] Owner approves

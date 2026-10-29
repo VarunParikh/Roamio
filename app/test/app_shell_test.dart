@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roamio/main.dart';
+
+import 'support/fake_auth_service.dart';
 
 void main() {
-  Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: RoamioApp()));
-    await tester.pumpAndSettle();
-  }
+  Future<void> pumpApp(WidgetTester tester) =>
+      pumpRoamio(tester, FakeAuthService(initial: readyFacts));
 
   testWidgets('starts on Home with the bottom bar', (tester) async {
     await pumpApp(tester);

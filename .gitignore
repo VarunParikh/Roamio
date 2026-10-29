@@ -6,7 +6,8 @@
 app/build/
 app/.dart_tool/
 app/.flutter-plugins*
-app/android/app/google-services.json
+**/google-services.json
+**/GoogleService-Info.plist
 app/android/key.properties
 *.jks
 *.keystore
