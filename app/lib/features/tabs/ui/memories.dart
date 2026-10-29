@@ -13,10 +13,14 @@ class MemoriesPicker extends StatelessWidget {
     required this.paths,
     required this.onAdd,
     required this.onRemove,
+    this.alreadySaved = 0,
     super.key,
   });
 
   final List<String> paths;
+
+  /// Photos the tab already has (when editing); they count toward the 4.
+  final int alreadySaved;
 
   /// Called with true for the camera, false for the gallery.
   final ValueChanged<bool> onAdd;
@@ -50,7 +54,7 @@ class MemoriesPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final full = paths.length >= maxMemories;
+    final full = paths.length + alreadySaved >= maxMemories;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -103,7 +107,10 @@ class MemoriesPicker extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'Up to $maxMemories photos per tab.',
+              alreadySaved > 0
+                  ? 'Up to $maxMemories photos per tab; this one has '
+                        '$alreadySaved already.'
+                  : 'Up to $maxMemories photos per tab.',
               style: Theme.of(context).textTheme.bodySmall
                   ?.copyWith(color: RoamioColors.slate),
             ),

@@ -126,6 +126,23 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
   });
 });
 
+describe("deleting a tab", () => {
+  it("logs who deleted it in the activity (spec UC-22)", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid));
+    await eventually(async () => {
+      expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).toBe(true);
+    });
+    await ref.update({ deleted: true, deletedBy: ari.uid });
+
+    await eventually(async () => {
+      const log = await db().collection(`adventures/${id}/activity`).where("subject", "==", ref.id).get();
+      expect(log.docs.map((d) => [d.get("type"), d.get("actorUid")])).toEqual([["tab_deleted", ari.uid]]);
+    });
+  });
+});
+
 describe("tabProblem when a tab is edited", () => {
   const t = tab("ari", { participants: ["ari", "bob"] });
   const isMember = (id: string) => id === "ari";

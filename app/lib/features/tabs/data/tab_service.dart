@@ -17,6 +17,7 @@ class TabEntry {
     required this.split,
     this.memories = const [],
     this.location,
+    this.deleted = false,
   });
 
   final String id;
@@ -29,6 +30,9 @@ class TabEntry {
   /// Download links of up to 4 photos (spec UC-21).
   final List<String> memories;
   final MapPoint? location;
+
+  /// Soft-deleted by a lead; kept for history (spec UC-22).
+  final bool deleted;
 
   Money get amount => split.amount;
 
@@ -46,12 +50,26 @@ abstract interface class TabService {
   /// Saves a tab as the signed-in member and returns its id at once.
   /// Works offline and syncs later.
   Future<String> addTab(String adventureId, NewTab tab);
+
+  /// One tab, deleted or not; null if it doesn't exist.
+  Stream<TabEntry?> tab(String adventureId, String tabId);
+
+  /// The creator saves changes (spec UC-22). Photos already on the tab stay.
+  Future<void> updateTab(String adventureId, String tabId, NewTab tab);
+
+  /// A lead hides a tab; it stays in history (spec UC-22).
+  Future<void> deleteTab(String adventureId, String tabId);
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.
 final tabServiceProvider = Provider<TabService>(
   (ref) => throw UnimplementedError('tabServiceProvider must be overridden'),
 );
+
+final StreamProviderFamily<TabEntry?, (String, String)> tabProvider =
+    StreamProvider.family<TabEntry?, (String, String)>(
+      (ref, ids) => ref.watch(tabServiceProvider).tab(ids.$1, ids.$2),
+    );
 
 final StreamProviderFamily<List<TabEntry>, String> tabsProvider =
     StreamProvider.family<List<TabEntry>, String>(

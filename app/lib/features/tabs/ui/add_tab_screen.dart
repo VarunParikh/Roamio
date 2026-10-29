@@ -20,6 +20,7 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/location_picker.dart';
 import 'package:roamio/features/tabs/ui/memories.dart';
 import 'package:roamio/features/tabs/ui/payers_editor.dart';
@@ -29,9 +30,12 @@ import 'package:roamio/features/tabs/ui/percent_editor.dart';
 /// it's shared (equal or custom %), up to 4 photos and, for adults, where
 /// it happened. Leads can add a pal on the spot.
 class AddTabScreen extends ConsumerWidget {
-  const new({required this.adventureId, super.key});
+  const new({required this.adventureId, this.tabId, super.key});
 
   final String adventureId;
+
+  /// Set when the creator edits an existing tab (spec UC-22).
+  final String? tabId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,17 +44,27 @@ class AddTabScreen extends ConsumerWidget {
         .value
         ?.where((a) => a.id == adventureId)
         .firstOrNull;
-    if (adventure == null) {
+    final existing = tabId == null
+        ? null
+        : ref.watch(tabProvider((adventureId, tabId!)));
+    if (adventure == null || (existing?.isLoading ?? false)) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return _AddTabForm(adventure: adventure);
+    if (existing != null && (existing.value?.deleted ?? true)) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: Text('This tab isn’t available.')),
+      );
+    }
+    return _AddTabForm(adventure: adventure, existing: existing?.value);
   }
 }
 
 class _AddTabForm extends ConsumerStatefulWidget {
-  const new({required this.adventure});
+  const new({required this.adventure, this.existing});
 
   final Adventure adventure;
+  final TabEntry? existing;
 
   @override
   ConsumerState<_AddTabForm> createState() => _AddTabFormState();
@@ -81,6 +95,54 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
   /// Shown after Custom % went back to Equal because the people changed.
   bool _resetToEqual = false;
+
+  late final TabEntry? _old = widget.existing;
+
+  /// People on the tab being edited who have since left the squad (not a
+  /// member or current pal); they stay listed so saving doesn't drop them
+  /// (spec UC-16).
+  List<String> _former(List<Pal> pals) => [
+    for (final id in {
+      ...?_old?.split.participants,
+      ...?_old?.split.payers.map((p) => p.payer),
+    })
+      if (!_a.memberUids.contains(id) && !pals.any((p) => p.id == id)) id,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final old = _old;
+    if (old == null) return;
+    final currency = old.amount.currency;
+    _amount.text = amountText(old.amount.minor, currency);
+    _description.text = old.description;
+    _currency = currency;
+    _date = old.date;
+    _category = old.category;
+    _location = old.location;
+    final payers = old.split.payers;
+    if (payers.length > 1 || payers.single.payer != old.createdBy) {
+      final paid = {for (final p in payers) p.payer: p.amountMinor};
+      _payerFields = {
+        for (final id in {..._a.memberUids, ...paid.keys})
+          id: TextEditingController(
+            text: paid[id] == null ? '' : amountText(paid[id]!, currency),
+          ),
+      };
+    }
+    if (old.split.percentBp case final percent?) {
+      _percentFields = {
+        for (final id in old.split.participants)
+          id: TextEditingController(
+            text: formatBasisPoints(percent[id] ?? 0).replaceAll('%', ''),
+          ),
+      };
+    }
+  }
+
+  /// Untick everyone the edited tab didn't include, once pals are known.
+  bool _untickedFromOld = false;
 
   @override
   void dispose() {
@@ -154,6 +216,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   List<String> _everyone(List<Pal> pals) => [
     ..._a.memberUids,
     for (final p in pals) p.id,
+    ..._former(pals),
   ];
 
   List<String> _ticked(List<Pal> pals) => [
@@ -198,26 +261,35 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     }
     if (problems.isNotEmpty) return;
     setState(() => _busy = true);
-    final id = await ref
-        .read(tabServiceProvider)
-        .addTab(
-          _a.id,
-          NewTab(
-            description: _description.text,
-            category: _category!,
-            amountMinor: parseAmount(_amount.text, _currency)!,
-            currency: _currency,
-            date: _date,
-            payers: _payerFields == null
-                ? [Payment(myUid, parseAmount(_amount.text, _currency)!)]
-                : payersFrom(_texts(_payerFields)!, _currency),
-            percentBp: _percentFields == null
-                ? null
-                : percentsFrom(_texts(_percentFields)!),
-            participants: _ticked(pals),
-            location: _location,
-          ),
-        );
+    final tabs = ref.read(tabServiceProvider);
+    final tab = NewTab(
+      description: _description.text,
+      category: _category!,
+      amountMinor: parseAmount(_amount.text, _currency)!,
+      currency: _currency,
+      date: _date,
+      payers: _payerFields == null
+          ? [
+              Payment(
+                _old?.createdBy ?? myUid,
+                parseAmount(_amount.text, _currency)!,
+              ),
+            ]
+          : payersFrom(_texts(_payerFields)!, _currency),
+      percentBp: _percentFields == null
+          ? null
+          : percentsFrom(_texts(_percentFields)!),
+      participants: _ticked(pals),
+      location: _location,
+    );
+    final old = _old;
+    final String id;
+    if (old == null) {
+      id = await tabs.addTab(_a.id, tab);
+    } else {
+      id = old.id;
+      await tabs.updateTab(_a.id, id, tab);
+    }
     // Compressed now and queued, so they upload even if the phone is offline.
     final photos = ref.read(photoPipelineProvider);
     final tabPath = 'adventures/${_a.id}/tabs/$id';
@@ -276,7 +348,14 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
-    final pals = ref.watch(palsProvider(_a.id)).value ?? const <Pal>[];
+    final palsState = ref.watch(palsProvider(_a.id));
+    final pals = palsState.value ?? const <Pal>[];
+    if (_old case final old? when !_untickedFromOld && palsState.hasValue) {
+      _untickedFromOld = true;
+      _unticked.addAll(
+        _everyone(pals).where((id) => !old.split.participants.contains(id)),
+      );
+    }
     final names =
         ref.watch(squadNamesProvider(_a.memberUids.join(','))).value ?? {};
     final countries = ref.watch(countriesProvider).value;
@@ -300,7 +379,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
     return AuthScaffold(
       showBack: true,
-      title: 'Add a tab',
+      title: _old == null ? 'Add a tab' : 'Edit tab',
       subtitle: _a.name,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -406,6 +485,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
           const SizedBox(height: 8),
           MemoriesPicker(
             paths: _memories,
+            alreadySaved: _old?.memories.length ?? 0,
             onAdd: _addPhoto,
             onRemove: (i) => setState(() => _memories.removeAt(i)),
           ),
@@ -511,7 +591,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
         ],
       ),
       primary: PrimaryButton(
-        label: 'Save tab',
+        label: _old == null ? 'Save tab' : 'Save changes',
         busy: _busy,
         onPressed: blocked ? null : () => _save(pals, myUid),
       ),

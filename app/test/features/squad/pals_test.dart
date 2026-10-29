@@ -36,6 +36,9 @@ Future<FakeSquadService> _open(WidgetTester tester, {String as = 'ari'}) async {
   await tester.tap(find.text('Bangkok trip'));
   await tester.pumpAndSettle();
   await tester.scrollUntilVisible(find.text('Leave adventure'), 200);
+  // Lift it clear of the floating Add tab button.
+  await tester.drag(find.text('Leave adventure'), const Offset(0, -200));
+  await tester.pumpAndSettle();
   return squad;
 }
 
