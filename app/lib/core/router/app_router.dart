@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/ui/bottom_bar.dart';
-import 'package:roamio/core/ui/placeholder_screen.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
 import 'package:roamio/features/adventures/ui/edit_adventure.dart';
@@ -19,6 +18,7 @@ import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/invites/ui/invite_link_screen.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
+import 'package:roamio/features/splits/ui/split_screen.dart';
 import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
 
@@ -151,13 +151,7 @@ final _routes = <RouteBase>[
       ),
       StatefulShellBranch(
         routes: [
-          GoRoute(
-            path: Routes.split,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Split',
-              message: 'Who owes whom, without the awkward math.',
-            ),
-          ),
+          GoRoute(path: Routes.split, builder: (_, _) => const SplitScreen()),
         ],
       ),
       StatefulShellBranch(

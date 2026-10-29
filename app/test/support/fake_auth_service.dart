@@ -18,6 +18,8 @@ import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/notifications/data/notification_service.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
@@ -26,10 +28,12 @@ import 'package:roamio/main.dart';
 import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
+import 'fake_fx_repository.dart';
 import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
 import 'fake_photo_pipeline.dart';
+import 'fake_profile_service.dart';
 import 'fake_receipt_scanner.dart';
 import 'fake_squad_service.dart';
 import 'fake_tab_service.dart';
@@ -151,6 +155,8 @@ Future<void> pumpRoamio(
   FakeLocationService? location,
   FakeReceiptScanner? scanner,
   bool ocrEnabled = true,
+  FakeFxRepository? fx,
+  String profileCurrency = 'INR',
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -173,6 +179,10 @@ Future<void> pumpRoamio(
           scanner ?? FakeReceiptScanner(),
         ),
         ocrEnabledProvider.overrideWithValue(ocrEnabled),
+        fxRepositoryProvider.overrideWithValue(fx ?? FakeFxRepository()),
+        profileServiceProvider.overrideWithValue(
+          FakeProfileService(profileCurrency),
+        ),
         bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
         openLinkProvider.overrideWithValue(
           (uri) async => openedLinks?.add(uri),

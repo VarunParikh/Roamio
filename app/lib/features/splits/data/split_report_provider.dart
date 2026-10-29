@@ -1,0 +1,48 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/features/adventures/data/adventure_service.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
+import 'package:roamio/features/splits/domain/split_report.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
+
+/// One adventure's split for the signed-in person, in their profile
+/// currency, each tab converted at its own day's rates (spec UC-25, UC-26).
+final ProviderFamily<AsyncValue<SplitReport>, String> splitReportProvider =
+    Provider.family<AsyncValue<SplitReport>, String>((ref, adventureId) {
+      final adventure = ref
+          .watch(myAdventuresProvider)
+          .value
+          ?.where((a) => a.id == adventureId)
+          .firstOrNull;
+      final tabs = ref.watch(tabsProvider(adventureId));
+      final currency = ref.watch(profileCurrencyProvider);
+      final viewer = ref.watch(sessionFactsProvider).value?.uid;
+      if (adventure == null ||
+          viewer == null ||
+          !tabs.hasValue ||
+          !currency.hasValue) {
+        return const AsyncLoading();
+      }
+      final rates = <String, FxRates?>{};
+      for (final date in {for (final t in tabs.value!) t.split.fxDate}) {
+        final day = ref.watch(fxRatesProvider(date));
+        if (day.isLoading) return const AsyncLoading();
+        rates[date] = day.value;
+      }
+      return AsyncData(
+        buildReport(
+          tabs: [
+            for (final t in tabs.value!)
+              ReportTab(category: t.category, date: t.date, split: t.split),
+          ],
+          baseCurrency: adventure.baseCurrency,
+          viewerCurrency: currency.value!,
+          viewer: viewer,
+          ratesFor: (date) =>
+              rates[date] ?? FxRates(date: date, usdRates: const {}),
+        ),
+      );
+    });
