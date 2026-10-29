@@ -21,3 +21,5 @@ firebase/functions/lib/
 .secret.local
 **/.secret.local
 firebase-debug.log
+# Not a secret: points the demo test project at a local Unsplash stand-in.
+!firebase/functions/.env.demo-roamio

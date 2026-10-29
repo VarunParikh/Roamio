@@ -109,8 +109,8 @@ Common verification commands:
   - Verify: widget tests for empty/populated Home and each create step's validation (end ≥ start).
   - Files: `app/lib/features/adventures/**`, `app/lib/features/home/**`, tests
 
-- [ ] **Task 16: Country banners** — M · Deps: 15 · Spec §9.2
-  - Acceptance: `getBanner` function searches Unsplash by landmark, compresses to WebP 1600 px, caches in Storage + `banners/{country}` with photographer credit; app caches on device; gradient + flag fallback; leads can replace with own photo.
+- [x] **Task 16: Country banners** — M · Deps: 15 · Spec §9.2
+  - Acceptance: `getBanner` function searches Unsplash by landmark and caches Unsplash's resized WebP link (1600 px) + photographer credit in `banners/{country}` (re-hosting would break Unsplash's terms); app caches on device; gradient + flag fallback. Not done: pre-warming popular countries. Own-photo banners moved to Task 21.
   - Verify: functions test with mocked Unsplash (hit, miss, API failure); second creation for same country makes no API call.
   - Files: `firebase/functions/src/banners/*.ts`, `app/lib/features/adventures/ui/banner.dart`, tests
 
@@ -136,7 +136,7 @@ Common verification commands:
   - Files: `app/lib/features/squad/ui/pals.dart`, `firebase/firestore.rules`, tests
 
 - [ ] **Task 21: Edit and archive adventures** — S · Deps: 19 · UC-10, 11
-  - Acceptance: leads edit name, description, dates, banner; base currency locked once a tab exists; adventures move to Past the day after end date; tabs allowed for 7 more days.
+  - Acceptance: leads edit name, description, dates, banner (including replacing it with their own photo, moved from Task 16); base currency locked once a tab exists; adventures move to Past the day after end date; tabs allowed for 7 more days.
   - Verify: rules tests for currency lock; unit tests for status by date.
   - Files: `app/lib/features/adventures/ui/edit_adventure.dart`, `firebase/firestore.rules`, tests
 

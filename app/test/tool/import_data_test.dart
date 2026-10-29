@@ -78,6 +78,13 @@ void main() {
     );
     expect(countries, jsonDecode(countriesJson(parseCountries(countriesMd))));
     expect(
+      jsonDecode(
+        File('../firebase/functions/src/data/countries.json')
+            .readAsStringSync(),
+      ),
+      jsonDecode(serverCountriesJson(parseCountries(countriesMd))),
+    );
+    expect(
       categories,
       jsonDecode(categoriesJson(parseCategories(categoriesMd))),
       reason: 'Run: fvm dart run tool/import_data.dart',
