@@ -17,9 +17,52 @@ Roamio is a travel partner app for solo, couple and group travellers. Create an 
 | [tasks/plan.md](tasks/plan.md) | Implementation plan, phases, risks |
 | [tasks/todo.md](tasks/todo.md) | Task list with acceptance criteria |
 | [docs/SETUP.md](docs/SETUP.md) | Developer machine setup |
+| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Firestore collections, who can read/write them, Storage paths |
+| [docs/PRIVACY_NOTICE.md](docs/PRIVACY_NOTICE.md) | Adult and child (parent) privacy notices, versioned |
+| [docs/BREACH_RESPONSE.md](docs/BREACH_RESPONSE.md) | What to do if personal data leaks |
+| [docs/adr/](docs/adr/) | Architecture decision records |
 | [design/DESIGN.md](design/DESIGN.md) | Visual design system (+ reference screens in `design/`) |
 | [data/](data/) | Countries/currencies and expense categories source data |
 | [docs/vision/](docs/vision/) | Original product vision |
+
+## Get started
+
+Full machine setup (Flutter via FVM, both JDKs, Android SDK, emulator, Firebase CLI, projects and secrets) is in **[docs/SETUP.md](docs/SETUP.md)**. In short:
+
+| Part | Folder | Needs |
+|---|---|---|
+| Android app | `app/` | Flutter pinned in `app/.fvmrc` (via FVM), JDK 17 |
+| Backend (rules, Cloud Functions, Hosting pages) | `firebase/` | Node, Firebase CLI, JDK 21 for the emulators |
+
+`google-services.json` is never committed; download it for the dev project as described in SETUP.md.
+
+### Run the app
+
+```bash
+cd app && fvm flutter run --flavor dev
+```
+
+Uses the `roamio-dev-varun` project. To run against local emulators instead, see [SETUP.md → Running the app against local emulators](docs/SETUP.md#running-the-app-against-local-emulators).
+
+### Test
+
+App (format, analyze, tests — the same checks as CI):
+
+```bash
+cd app && fvm dart format --set-exit-if-changed . && fvm flutter analyze && fvm flutter test
+```
+
+Backend (security rules and Cloud Functions, against emulators; no cloud access):
+
+```bash
+cd firebase && JAVA_HOME=/opt/homebrew/opt/openjdk@21 npm test
+```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs both on every pull request.
+
+### Release
+
+Pilot builds are Android APKs published on [GitHub Releases](https://github.com/VarunParikh/Roamio/releases). The planned flow (Task 42): pushing a tag `vX.Y.Z` builds a signed `prod` APK in CI and publishes a GitHub Release with notes. The app checks the latest release at most once a day and offers the update; Remote Config's `min_supported_version` can make an update required. Publishing a release, and deploying anything to the prod Firebase project, is always done by the owner.
 
 ## Tech
 

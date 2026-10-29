@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
@@ -19,6 +20,7 @@ Future<FakeAuthService> _openPrivacy(
   FakeProfileService? profile,
   SharedFiles? sharedFiles,
   FakeConnectivity? connectivity,
+  List<Uri>? openedLinks,
   SessionFacts facts = readyFacts,
 }) async {
   final auth = FakeAuthService(initial: facts);
@@ -30,6 +32,7 @@ Future<FakeAuthService> _openPrivacy(
     profile: profile,
     sharedFiles: sharedFiles,
     connectivity: connectivity,
+    openedLinks: openedLinks,
   );
   await tester.tap(find.text('You'));
   await tester.pumpAndSettle();
@@ -297,6 +300,15 @@ void main() {
         expect(find.text(heading), findsOneWidget);
       }
       expect(find.textContaining('grievance@'), findsWidgets);
+    });
+
+    testWidgets('opens the published privacy notice (§8)', (tester) async {
+      final opened = <Uri>[];
+      await _openPrivacy(tester, openedLinks: opened);
+
+      await _tapVisible(tester, find.text('Read the privacy notice'));
+
+      expect(opened, [Uri.parse('$siteUrl/privacy/')]);
     });
   });
 }
