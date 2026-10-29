@@ -280,8 +280,10 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 - If the API is down, the last available day's rates are used and the tab is marked "rate from <date>".
 
 ### 9.2 Banner
-- On adventure creation, a function looks up `banners/{countryCode}`. If missing, it searches Unsplash using the country's landmark from the dataset, compresses the image (1600 px, WebP q80) into Storage, saves it with the photographer credit (required by Unsplash), and returns it.
-- The app caches banners on device; the first 20 most-chosen countries are pre-warmed. If everything fails, a gradient banner with the flag emoji is shown.
+- When an adventure is shown, the app looks up `banners/{countryCode}`. If missing, the `getBanner` function searches Unsplash for the country's landmark (from the dataset), and caches the photo link and photographer credit in `banners/{countryCode}` for everyone.
+- **Unsplash's API terms require photos to stay on Unsplash's CDN**, so instead of re-hosting, Roamio stores Unsplash's link with resize and compression parameters (1600 px, WebP, quality 80). The app caches the image on the device, so it loads instantly after the first time.
+- The photographer is credited on the banner with a link to their Unsplash page.
+- If nothing is found or Unsplash is unreachable, a gradient banner with the flag emoji is shown and the lookup is tried again later. Leads can replace the banner with their own photo (Task 21).
 
 ### 9.3 Weather
 - Open-Meteo, cached 30 minutes; hidden on failure.

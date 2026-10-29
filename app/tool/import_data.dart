@@ -164,10 +164,12 @@ String countriesJson(List<Country> countries) =>
     '${_encoder.convert([for (final c in countries) c.toJson()])}\n';
 
 /// The slice the server needs to search for banner photos (spec §9.2).
-String serverCountriesJson(List<Country> countries) =>
-    '${_encoder.convert({
-      for (final c in countries) c.code: {'name': c.name, 'landmark': c.landmark},
-    })}\n';
+String serverCountriesJson(List<Country> countries) {
+  final byCode = {
+    for (final c in countries) c.code: {'name': c.name, 'landmark': c.landmark},
+  };
+  return '${_encoder.convert(byCode)}\n';
+}
 
 String categoriesJson(List<Category> categories) =>
     '${_encoder.convert([for (final c in categories) c.toJson()])}\n';
