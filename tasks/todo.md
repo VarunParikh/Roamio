@@ -75,7 +75,7 @@ Common verification commands:
   - Verify: widget tests for each route; manual sign-up on emulator against dev project.
   - Files: `app/lib/features/auth/**`, `app/lib/features/splash/**`, tests
 
-- [ ] **Task 11: Parental consent backend** — M · Deps: 9, 10 · 👤 owner picks email provider · Spec §7.1
+- [x] **Task 11: Parental consent backend** — M · Deps: 9, 10 · 👤 owner picks email provider · Spec §7.1
   - Acceptance: functions `requestParentalConsent`, `decideParentalConsent`, scheduled expiry/reminders (day 3, 6, expire day 7 → delete child); signed single-use tokens; guardian must be a verified 18+ account and not the child; consent record immutable to the child; resend limited to 3/day.
   - Verify: functions tests for consent, decline, expiry, under-18 guardian, self-as-guardian, rate limit.
   - Files: `firebase/functions/src/consent/*.ts`, `firebase/firestore.rules`, tests

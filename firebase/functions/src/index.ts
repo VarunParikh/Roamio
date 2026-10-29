@@ -7,6 +7,12 @@ setGlobalOptions({ region: "asia-south1", maxInstances: 5 });
 initializeApp();
 
 export { setAgeStatus } from "./auth/setAgeStatus";
+export {
+  decideParentalConsent,
+  describeConsentRequest,
+  requestParentalConsent,
+} from "./consent/consent";
+export { consentSweep } from "./consent/sweep";
 
 /** Liveness check used by CI and the emulator smoke test. */
 export const health = onRequest((_req, res) => {
