@@ -26,6 +26,11 @@ service cloud.firestore {
     }
     function isPal(aid, id) { return exists(/databases/$(database)/documents/adventures/$(aid)/pals/$(id)); }
     function inSquad(aid, id) { return id in adventure(aid).memberUids || isPal(aid, id); }
+    // Also someone who has left: they keep their balance (spec UC-16).
+    function everInSquad(aid, id) {
+      return inSquad(aid, id)
+        || exists(/databases/$(database)/documents/adventures/$(aid)/members/$(id));
+    }
 
     function incoming() { return request.resource.data; }
     function changed() { return incoming().diff(resource.data).affectedKeys(); }
@@ -175,12 +180,13 @@ service cloud.firestore {
       match /settlements/{sid} {
         function validSettlement() {
           let s = incoming();
-          return s.keys().hasOnly(['from', 'to', 'amountMinor', 'currency', 'recordedBy',
-                   'createdAt', 'undone'])
+          return s.keys().hasOnly(['from', 'to', 'amountMinor', 'currency', 'date',
+                   'recordedBy', 'createdAt', 'undone'])
             && s.amountMinor is int && s.amountMinor > 0
             && s.currency == adventure(aid).baseCurrency
+            && isDate(s.get('date', null))
             && s.from != s.to
-            && inSquad(aid, s.from) && inSquad(aid, s.to)
+            && everInSquad(aid, s.from) && everInSquad(aid, s.to)
             && s.recordedBy == me()
             && s.undone == false;
         }

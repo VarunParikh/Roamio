@@ -200,7 +200,7 @@ Common verification commands:
   - Files: `app/lib/features/splits/ui/*.dart`, tests
   - Done: settlements are added to balances in Task 30. Who-pays-whom is planned in the viewer's currency; Task 30 records settlements in the base currency.
 
-- [ ] **Task 30: Mark as settled** — S · Deps: 29 · UC-26a
+- [x] **Task 30: Mark as settled** — S · Deps: 29 · UC-26a
   - Acceptance: record full/partial settlement from a suggested transfer; members in the transfer (or any lead for pal transfers) can record/undo; other party notified; activity entry.
   - Verify: rules tests (who may record); split-engine test that settling all transfers gives all square.
   - Files: `app/lib/features/splits/ui/settle_sheet.dart`, `firebase/firestore.rules`, tests

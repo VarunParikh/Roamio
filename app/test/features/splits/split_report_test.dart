@@ -134,6 +134,80 @@ void main() {
     });
   });
 
+  group('settlements (UC-26a)', () {
+    SplitReport report({
+      List<ReportSettlement> settlements = const [],
+      String currency = 'INR',
+      String viewer = 'ari',
+    }) => buildReport(
+      tabs: [_dinner],
+      baseCurrency: 'INR',
+      viewerCurrency: currency,
+      viewer: viewer,
+      ratesFor: _rates,
+      settlements: settlements,
+    );
+
+    test('recording every suggested transfer makes everyone square', () {
+      final before = report();
+      final after = report(
+        settlements: [
+          for (final t in before.baseTransfers)
+            ReportSettlement(
+              from: t.from,
+              to: t.to,
+              amountMinor: t.amount.minor,
+              date: '2026-10-29',
+            ),
+        ],
+      );
+      expect(after.balances.values.every((b) => b == 0), isTrue);
+      expect(after.transfers, isEmpty);
+      expect(after.mine, 0);
+    });
+
+    test('a partial payment lowers what is owed', () {
+      final r = report(
+        settlements: const [
+          ReportSettlement(
+            from: 'kiko',
+            to: 'ari',
+            amountMinor: 20000,
+            date: '2026-10-29',
+          ),
+        ],
+      );
+      expect(r.balances, {'ari': 30000, 'ben': 25000, 'kiko': -55000});
+    });
+
+    test('a settlement converts at its own day, still summing to zero', () {
+      final r = report(
+        currency: 'THB',
+        settlements: const [
+          ReportSettlement(
+            from: 'kiko',
+            to: 'ari',
+            amountMinor: 50000,
+            date: '2026-10-29',
+          ),
+        ],
+      );
+      expect(r.balances.values.fold(0, (a, b) => a + b), 0);
+      // ₹500 = ฿208.33 at 84 and 35 per USD; Ari was owed ฿208.34.
+      expect(r.mine, 1);
+      expect(r.baseBalances['ari'], 0);
+    });
+
+    test('base transfers are in the trip currency, for recording', () {
+      final r = report(currency: 'THB');
+      expect(r.baseTransfers.map((t) => (t.from, t.to, t.amount.minor)), [
+        ('kiko', 'ari', 50000),
+        ('kiko', 'ben', 25000),
+      ]);
+      expect(r.baseTransfers.first.amount.currency, 'INR');
+    });
+  });
+
   group('headline (UC-25)', () {
     test('owed, owe or all square', () {
       expect(headline(50000, 'INR', '₹'), 'You’re owed ₹500.00');
