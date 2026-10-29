@@ -8,6 +8,8 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/domain/invite_code.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 /// Opens the phone's share sheet; overridden in tests.
 final shareTextProvider = Provider<Future<void> Function(String text)>(
@@ -90,6 +92,7 @@ class _InviteSectionState extends ConsumerState<InviteSection> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final offline = ref.watch(isOfflineProvider);
     if (!widget.adventure.isLead(widget.myUid)) {
       return Text(
         'Want to add someone? Ask the squad leader for the invite link.',
@@ -131,11 +134,12 @@ class _InviteSectionState extends ConsumerState<InviteSection> {
           icon: Icons.ios_share_rounded,
           busy: _busy,
           pulse: code == null,
-          onPressed: _share,
+          onPressed: offline ? null : _share,
         ),
+        if (offline) const NeedsConnectionNote(),
         if (code != null)
           TextButton(
-            onPressed: _busy ? null : _newLink,
+            onPressed: _busy || offline ? null : _newLink,
             child: const Text('Make a new link'),
           ),
       ],

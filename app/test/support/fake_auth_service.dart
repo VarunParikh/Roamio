@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
@@ -23,6 +24,7 @@ import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/main.dart';
@@ -40,6 +42,7 @@ import 'fake_receipt_scanner.dart';
 import 'fake_settlement_service.dart';
 import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
+import 'fake_sync.dart';
 import 'fake_tab_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
@@ -164,6 +167,8 @@ Future<void> pumpRoamio(
   FakeSettlementService? settlements,
   SharedFiles? sharedFiles,
   bool exportEnabled = true,
+  FakeConnectivity? connectivity,
+  FakeNetworkSwitch? network,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -212,6 +217,11 @@ Future<void> pumpRoamio(
           consent ?? FakeConsentService(),
         ),
         todayProvider.overrideWithValue(DateTime(2026, 10, 29)),
+        connectivityMonitorProvider.overrideWithValue(
+          connectivity ?? FakeConnectivity(),
+        ),
+        networkSwitchProvider.overrideWithValue(network ?? FakeNetworkSwitch()),
+        photoFlushProvider.overrideWithValue(() async {}),
       ],
       child: const RoamioApp(),
     ),

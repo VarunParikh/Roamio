@@ -125,12 +125,16 @@ class UploadQueue {
     await _store.save([...await _store.load(), job]);
   });
 
-  /// Tries every job that is due; failed ones wait for their backoff.
-  Future<void> runDue() => _serial(() async {
+  /// Tries every job that is due; failed ones wait for their backoff. With
+  /// [ignoreBackoff] (the person pressed Sync) it tries all of them now.
+  Future<void> runDue({bool ignoreBackoff = false}) => _serial(() async {
     final jobs = await _store.load();
     final remaining = <UploadJob>[];
     for (final job in jobs) {
-      final due = job.nextTryAt == null || !job.nextTryAt!.isAfter(_clock());
+      final due =
+          ignoreBackoff ||
+          job.nextTryAt == null ||
+          !job.nextTryAt!.isAfter(_clock());
       if (!due) {
         remaining.add(job);
         continue;
