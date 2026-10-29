@@ -9,9 +9,10 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/squad/ui/squad_section.dart';
+import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
-/// One adventure: the trip, invites and squad. Leads can edit it (UC-10).
-/// Tabs arrive in Task 23.
+/// One adventure: the trip, invites, squad and tabs. Leads can edit it
+/// (UC-10). Task 27 turns this into the full adventure page.
 class AdventureScreen extends ConsumerWidget {
   const new({required this.adventureId, super.key});
 
@@ -85,10 +86,7 @@ class AdventureScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   SquadSection(adventure: adventure, myUid: myUid),
                   const SizedBox(height: 24),
-                  Text(
-                    'Tabs will appear here soon.',
-                    style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
-                  ),
+                  TabsSection(adventure: adventure, myUid: myUid),
                 ],
               ),
       ),

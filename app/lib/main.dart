@@ -22,6 +22,8 @@ import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/squad/data/firebase_squad_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -63,6 +65,9 @@ Future<void> main() async {
             FirebaseFirestore.instance,
             roamioFunctions,
           ),
+        ),
+        tabServiceProvider.overrideWithValue(
+          FirebaseTabService(FirebaseAuth.instance, FirebaseFirestore.instance),
         ),
         shareTextProvider.overrideWithValue(
           (text) => SharePlus.instance.share(ShareParams(text: text)),

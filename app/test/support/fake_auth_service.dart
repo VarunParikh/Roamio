@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
@@ -15,6 +16,7 @@ import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
@@ -22,6 +24,7 @@ import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_invite_service.dart';
 import 'fake_squad_service.dart';
+import 'fake_tab_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -115,6 +118,11 @@ final testCountries = Countries(
       .toList(),
 );
 
+/// The bundled tab categories, read from disk like [testCountries].
+final List<Category> testCategories = (jsonDecode(
+  File('assets/data/categories.json').readAsStringSync(),
+) as List).cast<Map<String, dynamic>>().map(Category.fromJson).toList();
+
 /// Pumps the whole app with [auth] and a fixed "today" of 29 Oct 2026.
 /// Pass `settle: false` on the splash screen, whose spinner never settles.
 Future<void> pumpRoamio(
@@ -129,6 +137,7 @@ Future<void> pumpRoamio(
   List<String>? shared,
   String? clipboard,
   FakeSquadService? squad,
+  FakeTabService? tabs,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -138,6 +147,8 @@ Future<void> pumpRoamio(
       overrides: [
         authServiceProvider.overrideWithValue(auth),
         countriesProvider.overrideWith((ref) => testCountries),
+        categoriesProvider.overrideWith((ref) => testCategories),
+        tabServiceProvider.overrideWithValue(tabs ?? FakeTabService()),
         bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
         openLinkProvider.overrideWithValue(
           (uri) async => openedLinks?.add(uri),

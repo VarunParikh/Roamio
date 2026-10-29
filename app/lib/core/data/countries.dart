@@ -45,6 +45,10 @@ class Countries {
   List<String> get currencies =>
       ({for (final c in all) c.currency}.toList()..sort());
 
+  /// The symbol for [currency], like ฿ or €, if any country uses it.
+  String? symbolFor(String currency) =>
+      all.where((c) => c.currency == currency).firstOrNull?.symbol;
+
   /// Countries whose name starts with, then contains, [text].
   List<Country> search(String text) {
     final q = text.trim().toLowerCase();

@@ -18,6 +18,7 @@ export {
   withdrawParentalConsent,
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
+export { checkTab } from "./tabs/checkTab";
 export {
   demoteCoLead,
   handOverLeadership,

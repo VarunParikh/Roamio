@@ -159,9 +159,10 @@ Common verification commands:
   - Verify: test with a 12 MB sample photo → ≤ 400 KB, no EXIF; storage rules tests.
   - Files: `app/lib/core/images/*.dart`, `firebase/storage.rules`, tests
 
-- [ ] **Task 23: Add tab (basic)** — M · Deps: 8, 20 · UC-21
+- [x] **Task 23: Add tab (basic)** — M · Deps: 8, 20 · UC-21
   - Acceptance: amount, currency (default base), date (≤ today), category, description, single payer "You", equal split across ticked participants; writes tab with `fxDate`.
   - Verify: widget tests for validation; manual add on emulator appears for another member.
+  - Done: Add tab screen, simple tab list on the adventure (Task 27 replaces it), `checkTab` trigger (sets `hasTabs`, re-checks sums/membership). Emulator check with two members still to do by hand.
   - Files: `app/lib/features/tabs/**`, tests
 
 - [ ] **Task 24: Multiple payers, custom % and inline pal** — M · Deps: 23 · UC-21, 22

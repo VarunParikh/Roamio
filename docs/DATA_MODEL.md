@@ -22,7 +22,7 @@ Conventions:
 | `adventures/{aid}/tabs/{tid}` | `description`, `category`, `amountMinor`, `currency`, `date`, `fxDate`, `payers[{id, amountMinor}]`, `participants[]`, `percentBp` (map or null), `memories[]` (≤ 4 URLs), `location` (optional; adults only), `createdBy`, `createdAt`, `updatedAt`, `deleted` | members | members create as themselves; creator edits; leads soft-delete (`deleted: true`) only; no hard delete |
 | `adventures/{aid}/settlements/{sid}` | `from`, `to`, `amountMinor`, `currency` (= base), `recordedBy`, `createdAt`, `undone`, `undoneBy` | members | a party to the transfer, or a lead when a pal is involved; undo only (`undone: true`) |
 | `adventures/{aid}/budgets/{uid}` | `amountMinor`, `currency`, `updatedAt`; **server-only:** `alertsSent[]` | **owner only** | owner (must be a member) |
-| `adventures/{aid}/activity/{id}` | `type` (`member_joined` \| `member_removed` \| `member_left` \| `co_lead_added` \| `co_lead_removed` \| `leader_changed`), `actorUid`, `subject`, `createdAt` | members | server-only |
+| `adventures/{aid}/activity/{id}` | `type` (`member_joined` \| `member_removed` \| `member_left` \| `co_lead_added` \| `co_lead_removed` \| `leader_changed` \| `tab_rejected`), `actorUid`, `subject`, `createdAt`; `reason` on `tab_rejected` | members | server-only |
 | `invites/{code}` | 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789`; `adventureId`, `adventureName`, `countryCode`, `startDate`, `endDate`, `leaderName` (first name), `createdBy`, `createdAt`, `expiresAt` (14 days), `revoked` | active users, single-document get only (no listing) | server-only |
 | `fx_rates/{yyyy-mm-dd}` | `rates{CODE: "decimal string"}` (units per USD), `fetchedAt` | active users | server-only |
 | `banners/{countryCode}` | `url` (Unsplash CDN link with resize params), `photographer`, `photographerUrl`, `unsplashUrl`, `fetchedAt` | active users | server-only |
@@ -34,8 +34,8 @@ Anything not listed is denied.
 
 ## What rules can't check (enforced elsewhere)
 
-Firestore rules can't loop over arrays, so these are checked by the app's split engine (`problemsWith`) and re-checked by a Cloud Function trigger in Task 23:
+Firestore rules can't loop over arrays, so these are checked by the app's split engine (`problemsWith`) and re-checked by the `checkTab` Cloud Function trigger, which soft-deletes a failing tab and logs `tab_rejected` (it also sets the adventure's `hasTabs`):
 - payer amounts add up to the tab amount; percentages add up to 100%;
-- every payer is a member and every participant is a member or pal.
+- every payer is a member and every participant is a member or pal (only checked for people newly put on a tab, so someone who has left stays on their old tabs).
 
 Rules still bound the shapes: amount > 0 and an integer, 1–50 payers and participants, ≤ 4 memories.
