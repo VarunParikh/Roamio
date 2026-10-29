@@ -167,7 +167,7 @@ Common verification commands:
   - Done: Add tab screen, simple tab list on the adventure (Task 27 replaces it), `checkTab` trigger (sets `hasTabs`, re-checks sums/membership). Emulator check with two members still to do by hand.
   - Files: `app/lib/features/tabs/**`, tests
 
-- [ ] **Task 24: Multiple payers, custom % and inline pal** — M · Deps: 23 · UC-21, 22
+- [x] **Task 24: Multiple payers, custom % and inline pal** — M · Deps: 23 · UC-21, 22
   - Acceptance: "Split payment" reveals payers (must total amount); Custom % (creator only) with live "x% of 100%" counter, Save disabled until 100.00%; unticking in % mode resets to Equal with a notice; leads see + Add pal.
   - Verify: widget tests for each validation path.
   - Files: `app/lib/features/tabs/ui/payers_editor.dart`, `percent_editor.dart`, tests

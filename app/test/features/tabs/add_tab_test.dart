@@ -106,7 +106,7 @@ void main() {
       expect(tab.amountMinor, 90000);
       expect(tab.currency, 'THB');
       expect(tab.category, 'food_dining');
-      expect(tab.payer, 'ari');
+      expect(tab.payers.map((p) => (p.payer, p.amountMinor)), [('ari', 90000)]);
       expect(tab.participants, ['ari', 'bob', 'kiko']);
       expect(tab.date, DateTime(2026, 10, 29));
 
