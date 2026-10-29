@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,8 @@ import 'package:roamio/features/consent/data/firebase_consent_service.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:roamio/features/notifications/data/firebase_notification_service.dart';
+import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/squad/data/firebase_squad_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
@@ -75,6 +78,13 @@ Future<void> main() async {
         ),
         tabServiceProvider.overrideWithValue(
           FirebaseTabService(FirebaseAuth.instance, FirebaseFirestore.instance),
+        ),
+        notificationServiceProvider.overrideWithValue(
+          FirebaseNotificationService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
+            FirebaseMessaging.instance,
+          ),
         ),
         shareTextProvider.overrideWithValue(
           (text) => SharePlus.instance.share(ShareParams(text: text)),

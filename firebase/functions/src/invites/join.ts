@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/https";
+import { sendPush } from "../notify/push";
 import { uidOf, usableInvite } from "./invites";
 
 const db = () => getFirestore();
@@ -13,7 +14,8 @@ const todayUtc = () => new Date().toISOString().slice(0, 10);
 
 /**
  * Adds the caller to an invite's adventure as a Member and gives every lead
- * an in-app card (spec UC-13, UC-14). Joining twice is harmless.
+ * an in-app card and, if they turned notifications on, a push (spec UC-13,
+ * UC-14). Joining twice is harmless.
  */
 export const joinAdventure = onCall(async (request) => {
   const uid = uidOf(request);
@@ -28,11 +30,13 @@ export const joinAdventure = onCall(async (request) => {
   const adventureRef = db().doc(`adventures/${invite.get("adventureId")}`);
   const memberName: string = (await db().doc(`users/${uid}`).get()).get("name") ?? "Someone";
 
-  return db().runTransaction(async (tx) => {
+  const joined = await db().runTransaction(async (tx) => {
     const adventure = await tx.get(adventureRef);
     if (!adventure.exists) throw new HttpsError("not-found", "This adventure no longer exists.");
     const memberUids: string[] = adventure.get("memberUids") ?? [];
-    if (memberUids.includes(uid)) return { adventureId: adventure.id, alreadyMember: true };
+    if (memberUids.includes(uid)) {
+      return { adventureId: adventure.id, alreadyMember: true, leads: [], adventureName: "" };
+    }
     if (adventure.get("archived") === true || adventure.get("endDate") < todayUtc()) {
       throw new HttpsError("failed-precondition", "This adventure has already ended.");
     }
@@ -60,6 +64,21 @@ export const joinAdventure = onCall(async (request) => {
         createdAt: FieldValue.serverTimestamp(),
       });
     }
-    return { adventureId: adventure.id, alreadyMember: false };
+    return {
+      adventureId: adventure.id,
+      alreadyMember: false,
+      leads,
+      adventureName: String(adventure.get("name")),
+    };
   });
+
+  // Push to leads only after the join is saved; it never fails the join.
+  if (!joined.alreadyMember) {
+    await sendPush(joined.leads, {
+      title: `${memberName} joined your squad`,
+      body: joined.adventureName,
+      data: { type: "member_joined", adventureId: joined.adventureId },
+    });
+  }
+  return { adventureId: joined.adventureId, alreadyMember: joined.alreadyMember };
 });

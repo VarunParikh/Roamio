@@ -8,6 +8,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
+import 'package:roamio/features/notifications/ui/notification_prompt.dart';
 import 'package:roamio/features/squad/ui/join_cards.dart';
 
 const newAdventureRoute = '/adventures/new';
@@ -54,6 +55,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           Text(greeting, style: text.displayLarge),
           const SizedBox(height: 24),
+          const NotificationPrompt(),
           const JoinCardsList(),
           const InvitesList(),
           if (adventures.hasError)
