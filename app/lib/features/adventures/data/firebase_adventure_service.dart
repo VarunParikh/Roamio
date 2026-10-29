@@ -40,6 +40,19 @@ class FirebaseAdventureService implements AdventureService {
     return doc.id;
   }
 
+  // Not awaited: the edit is queued offline and the stream shows it at once.
+  @override
+  Future<void> update(String adventureId, AdventureEdit edit) async {
+    _db.doc('adventures/$adventureId').update({
+      'name': edit.name.trim(),
+      'description': edit.description.trim(),
+      'city': edit.city.trim(),
+      'startDate': isoDate(edit.startDate),
+      'endDate': isoDate(edit.endDate),
+      'baseCurrency': ?edit.baseCurrency,
+    }).ignore();
+  }
+
   static Adventure _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final data = d.data();
     List<String> list(String key) =>
@@ -58,6 +71,7 @@ class FirebaseAdventureService implements AdventureService {
       coLeadUids: list('coLeadUids'),
       memberUids: list('memberUids'),
       activeInviteCode: data['activeInviteCode'] as String?,
+      hasTabs: data['hasTabs'] == true,
     );
   }
 }

@@ -51,6 +51,44 @@ void main() {
     });
   });
 
+  group('tabsOpenOn (spec UC-11)', () {
+    test('tabs can be added until 7 days after the end date', () {
+      final ended = trip('a', d(10, 1), d(10, 22));
+      expect(ended.tabsOpenOn(d(10, 22)), isTrue);
+      expect(ended.tabsOpenOn(d(10, 29)), isTrue);
+      expect(ended.tabsOpenOn(DateTime(2026, 10, 29, 23, 59)), isTrue);
+      expect(ended.tabsOpenOn(d(10, 30)), isFalse);
+    });
+
+    test('works across a month end, and before the trip starts', () {
+      final late_ = trip('a', d(11, 20), d(11, 28));
+      expect(late_.tabsOpenOn(d(12, 5)), isTrue);
+      expect(late_.tabsOpenOn(d(12, 6)), isFalse);
+      expect(late_.tabsOpenOn(d(11, 1)), isTrue);
+    });
+  });
+
+  group('currencyLocked (spec UC-10)', () {
+    test('the trip currency locks once the adventure has a tab', () {
+      final base = trip('a', d(11, 1), d(11, 5));
+      expect(base.currencyLocked, isFalse);
+      expect(
+        Adventure(
+          id: 'b',
+          name: 'B',
+          countryCode: 'TH',
+          startDate: d(11, 1),
+          endDate: d(11, 5),
+          baseCurrency: 'THB',
+          leaderUid: 'ari',
+          memberUids: const ['ari'],
+          hasTabs: true,
+        ).currencyLocked,
+        isTrue,
+      );
+    });
+  });
+
   group('homeSectionsFor (spec UC-5)', () {
     test('the hero is the active trip, else the next upcoming one', () {
       final active = trip('active', d(10, 25), d(11, 1));

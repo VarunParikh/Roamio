@@ -17,6 +17,7 @@ class Adventure {
     this.bannerUrl,
     this.coLeadUids = const [],
     this.activeInviteCode,
+    this.hasTabs = false,
   });
 
   final String id;
@@ -34,6 +35,22 @@ class Adventure {
 
   /// The current invite code, if a lead has shared one (server-set).
   final String? activeInviteCode;
+
+  /// Whether any tab exists yet (server-set).
+  final bool hasTabs;
+
+  /// The trip currency can't change once a tab exists (UC-10).
+  bool get currencyLocked => hasTabs;
+
+  /// How long after the end date tabs can still be added (UC-11).
+  static const tabGraceDays = 7;
+
+  /// Tabs can be added until [tabGraceDays] after the last day (UC-11).
+  bool tabsOpenOn(DateTime today) {
+    final e = _day(endDate);
+    final lastDay = DateTime(e.year, e.month, e.day + tabGraceDays);
+    return !_day(today).isAfter(lastDay);
+  }
 
   bool isLead(String uid) => uid == leaderUid || coLeadUids.contains(uid);
 

@@ -28,6 +28,30 @@ abstract interface class AdventureService {
 
   /// Creates the adventure with the creator as Squad Leader; returns its id.
   Future<String> create(AdventureDraft draft);
+
+  /// Leads edit the details (UC-10). The country can't change.
+  Future<void> update(String adventureId, AdventureEdit edit);
+}
+
+/// What a lead can change about an adventure (UC-10).
+class AdventureEdit {
+  const new({
+    required this.name,
+    required this.description,
+    required this.city,
+    required this.startDate,
+    required this.endDate,
+    this.baseCurrency,
+  });
+
+  final String name;
+  final String description;
+  final String city;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  /// Null leaves it unchanged, as it must once the adventure has tabs.
+  final String? baseCurrency;
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.

@@ -449,6 +449,42 @@ describe("adventures", () => {
     );
   });
 
+  it("edits keep a valid shape; the country is fixed (spec UC-10)", async () => {
+    // What the edit screen sends once tabs exist: everything but currency.
+    await assertSucceeds(
+      updateDoc(doc(as("cara"), "adventures/a2"), {
+        name: "Bangkok & Krabi",
+        description: "Food and beaches",
+        city: "Krabi",
+        startDate: "2026-12-02",
+        endDate: "2026-12-10",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { countryCode: "VN" }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { endDate: "2026-11-30" }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { name: "" }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { name: "x".repeat(81) }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), {
+        description: "x".repeat(501),
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { startDate: "1 Dec" }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { createdBy: "cara" }),
+    );
+  });
+
   it("base currency is locked once the adventure has tabs", async () => {
     await assertSucceeds(
       updateDoc(doc(as("alice"), "adventures/a1"), { baseCurrency: "INR" }),

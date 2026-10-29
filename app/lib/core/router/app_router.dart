@@ -4,6 +4,7 @@ import 'package:roamio/core/ui/bottom_bar.dart';
 import 'package:roamio/core/ui/placeholder_screen.dart';
 import 'package:roamio/features/adventures/ui/adventure_screen.dart';
 import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
+import 'package:roamio/features/adventures/ui/edit_adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/account_paused_screen.dart';
 import 'package:roamio/features/auth/ui/complete_profile_screen.dart';
@@ -89,6 +90,13 @@ final _routes = <RouteBase>[
     path: '/adventures/:id',
     builder: (_, state) =>
         AdventureScreen(adventureId: state.pathParameters['id']!),
+    routes: [
+      GoRoute(
+        path: 'edit',
+        builder: (_, state) =>
+            EditAdventureScreen(adventureId: state.pathParameters['id']!),
+      ),
+    ],
   ),
   GoRoute(
     path: AuthRoutes.confirmAdult,
