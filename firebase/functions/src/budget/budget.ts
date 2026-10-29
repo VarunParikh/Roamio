@@ -2,6 +2,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 import { onDocumentWritten } from "firebase-functions/firestore";
 import { sendPush } from "../notify/push";
+import { serverConfig } from "../config";
 
 // Personal budget alerts (spec UC-19, UC-20). A budget is measured against
 // its owner's own share of the adventure's tabs, each converted into the
@@ -11,7 +12,7 @@ import { sendPush } from "../notify/push";
 
 const db = () => getFirestore();
 
-/** Remote Config `budget_alert_thresholds` (spec §11); Task 37 wires it. */
+/** The default for Remote Config `budget_alert_thresholds` (spec §11). */
 export const BUDGET_THRESHOLDS = [80, 100];
 
 // ISO 4217 currencies whose minor unit isn't 2 digits (as in money.dart).
@@ -83,8 +84,12 @@ export function convertMinor(
 }
 
 /** Thresholds (in %) that [share] has reached of [budget]. */
-export function thresholdsReached(share: number, budget: number): number[] {
-  return BUDGET_THRESHOLDS.filter((t) => BigInt(share) * 100n >= BigInt(t) * BigInt(budget));
+export function thresholdsReached(
+  share: number,
+  budget: number,
+  thresholds: number[] = BUDGET_THRESHOLDS,
+): number[] {
+  return thresholds.filter((t) => BigInt(share) * 100n >= BigInt(t) * BigInt(budget));
 }
 
 /** The latest stored rates on or before [date] (Task 28). */
@@ -129,12 +134,13 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
   }
 
   const adventureName = String((await adventureRef.get()).get("name") ?? "your adventure");
+  const { budgetThresholds } = await serverConfig();
   const fresh = await db().runTransaction(async (tx) => {
     const now = await tx.get(budgetRef);
     // The budget changed meanwhile: its own trigger will check again.
     if (now.get("amountMinor") !== amount || now.get("currency") !== currency) return [];
     const sent: number[] = now.get("alertsSent") ?? [];
-    const due = thresholdsReached(share, amount).filter((t) => !sent.includes(t));
+    const due = thresholdsReached(share, amount, budgetThresholds).filter((t) => !sent.includes(t));
     if (due.length === 0) return [];
     tx.update(budgetRef, { alertsSent: FieldValue.arrayUnion(...due) });
     for (const t of due) {

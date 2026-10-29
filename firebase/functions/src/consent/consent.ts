@@ -6,6 +6,7 @@ import { deleteUserCompletely } from "../auth/deleteUser";
 import { queueMail, siteUrl } from "../mail";
 import { canRequestAgain, isExpired, type RequestCounter, WITHDRAW_GRACE_HOURS } from "./rules";
 import { hashToken, newToken, tokensMatch } from "./token";
+import { serverConfig } from "../config";
 
 /** Bumped whenever the child-specific privacy notice text changes. */
 export const CHILD_NOTICE_VERSION = "2026-10";
@@ -111,7 +112,8 @@ async function openRequest(data: Decision) {
       "This request has already been answered or closed.",
     );
   }
-  if (isExpired((snap.get("requestedAt") as Timestamp).toMillis(), Date.now())) {
+  const { consentDays } = await serverConfig();
+  if (isExpired((snap.get("requestedAt") as Timestamp).toMillis(), Date.now(), consentDays)) {
     throw new HttpsError("failed-precondition", "This request has expired.");
   }
   if (!tokensMatch(String(data.token ?? ""), snap.get("tokenHash"))) {

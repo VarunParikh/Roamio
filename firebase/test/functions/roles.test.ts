@@ -89,6 +89,8 @@ describe("leaveAdventure (spec UC-16, UC-17)", () => {
     expect(after?.coLeadUids).toEqual([]);
     expect(await member(id, cara.uid)).toBeUndefined();
     expect((await member(id, bob.uid))?.status).toBe("left");
+    // Kept as Left, so they can still find it for a data download (UC-29).
+    expect(after?.leftUids).toEqual([bob.uid]);
   });
 
   it("the leader must hand over first while others remain", async () => {

@@ -5,6 +5,7 @@ import { purgeOldAuditLog } from "../privacy/auditRetention";
 import { deleteChild, emailParent } from "./consent";
 import { nextConsentAction } from "./rules";
 import { hashToken, newToken } from "./token";
+import { serverConfig } from "../config";
 
 /**
  * Reminds parents on day 3 and 6, deletes unanswered minors on day 7
@@ -16,6 +17,7 @@ export async function runConsentSweep(now: Date): Promise<void> {
     .collection("parentalConsents")
     .where("status", "in", ["requested", "withdrawn"])
     .get();
+  const { consentDays } = await serverConfig();
 
   for (const doc of open.docs) {
     const action = nextConsentAction(
@@ -26,6 +28,7 @@ export async function runConsentSweep(now: Date): Promise<void> {
         withdrawnAt: (doc.get("withdrawnAt") as Timestamp | undefined)?.toMillis(),
       },
       now.getTime(),
+      consentDays,
     );
     if (action === "remind") {
       const token = newToken();
