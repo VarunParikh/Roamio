@@ -90,6 +90,7 @@ const settlement = (
   to,
   amountMinor: 1000,
   currency: "THB",
+  date: "2026-12-02",
   recordedBy,
   undone: false,
   ...extra,
@@ -122,6 +123,11 @@ beforeEach(async () => {
     }
     await setDoc(doc(db, "adventures/a1"), adventure);
     await setDoc(doc(db, "adventures/a2"), { ...adventure, hasTabs: true });
+    // Zed was in the squad, is on a tab, and has left (spec UC-16).
+    await setDoc(doc(db, "adventures/a1/members/zed"), {
+      role: "member",
+      status: "left",
+    });
     await setDoc(doc(db, "adventures/a1/members/bob"), {
       role: "member",
       status: "active",
@@ -875,6 +881,34 @@ describe("settlements", () => {
       setDoc(
         doc(as("bob"), fresh("adventures/a1/settlements")),
         settlement("bob", "alice", "alice"),
+      ),
+    );
+  });
+
+  it("needs the day it was paid, for converting it (spec §9.1)", async () => {
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/settlements")),
+        settlement("bob", "alice", "bob", { date: "2 Dec" }),
+      ),
+    );
+    const { date: _, ...undated } = settlement("bob", "alice", "bob");
+    await assertFails(
+      setDoc(doc(as("bob"), fresh("adventures/a1/settlements")), undated),
+    );
+  });
+
+  it("someone who left can still be settled with (spec UC-16)", async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/settlements")),
+        settlement("zed", "bob", "bob"),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/settlements")),
+        settlement("nobody", "bob", "bob"),
       ),
     );
   });

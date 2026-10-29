@@ -6,12 +6,17 @@ import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
+import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
+import 'package:roamio/features/splits/ui/settle_sheet.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
@@ -114,7 +119,9 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     final symbol = ref.watch(countriesProvider).value?.symbolFor(r.currency);
     final labels = squadLabels(ref, a);
     String who(String id) => labels[id] ?? 'Left';
-    final empty = r.totalSpend == 0;
+    final empty = r.totalSpend == 0 && r.balances.values.every((b) => b == 0);
+    final settled =
+        ref.watch(settlementsProvider(a.id)).value ?? const <SettlementEntry>[];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -172,22 +179,55 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             child: const Text('See the details'),
           )
         else ...[
-          _Section(
-            title: 'Who pays whom',
-            rows: r.transfers.isEmpty
-                ? [('Everyone is square.', '')]
-                : [
-                    for (final t in r.transfers)
-                      (
-                        t.from == myUid
-                            ? 'You pay ${who(t.to)}'
-                            : t.to == myUid
-                            ? '${who(t.from)} pays you'
-                            : '${who(t.from)} pays ${who(t.to)}',
-                        _money(ref, t.amount.minor, r.currency),
-                      ),
-                  ],
-          ),
+          Text('Who pays whom', style: text.titleMedium),
+          const SizedBox(height: 4),
+          if (r.transfers.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text('Everyone is square.', style: text.bodyLarge),
+            ),
+          for (final t in r.transfers)
+            _TransferRow(
+              label: t.from == myUid
+                  ? 'You pay ${who(t.to)}'
+                  : t.to == myUid
+                  ? '${who(t.from)} pays you'
+                  : '${who(t.from)} pays ${who(t.to)}',
+              amount: _money(ref, t.amount.minor, r.currency),
+              onSettle: _maySettle(t.from, t.to)
+                  ? () => _settle(r, t.from, t.to)
+                  : null,
+            ),
+          const SizedBox(height: 20),
+          if (settled.isNotEmpty) ...[
+            Text('Payments recorded', style: text.titleMedium),
+            const SizedBox(height: 4),
+            for (final p in settled)
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_paid(p.from, p.to), style: text.bodyLarge),
+                        Text(
+                          '${formatDay(parseIsoDate(p.date))} · '
+                          '${_money(ref, p.amountMinor, p.currency)}',
+                          style: slate,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_maySettle(p.from, p.to))
+                    IconButton(
+                      tooltip: 'Undo',
+                      icon: const Icon(Icons.undo),
+                      onPressed: () => _undo(p),
+                    ),
+                ],
+              ),
+            const SizedBox(height: 20),
+          ],
           _Section(
             title: 'Balances',
             rows: [
@@ -221,6 +261,91 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     );
   }
 
+  String get _me => ref.read(sessionFactsProvider).value?.uid ?? '';
+
+  String _who(String id) => id == _me
+      ? 'you'
+      : squadLabels(ref, widget.adventure)[id] ?? 'Someone who left';
+
+  /// "Kiko paid you", "You paid Ben Roy".
+  String _paid(String from, String to) =>
+      from == _me ? 'You paid ${_who(to)}' : '${_who(from)} paid ${_who(to)}';
+
+  /// Spec UC-26a: either person in the payment, or a lead when a pal is
+  /// involved (the security rules say the same).
+  bool _maySettle(String from, String to) {
+    final pals = {
+      for (final p
+          in ref.watch(palsProvider(widget.adventure.id)).value ??
+              const <Pal>[])
+        p.id,
+    };
+    return _me == from ||
+        _me == to ||
+        (widget.adventure.isLead(_me) &&
+            (pals.contains(from) || pals.contains(to)));
+  }
+
+  Future<void> _settle(SplitReport r, String from, String to) async {
+    final base = widget.adventure.baseCurrency;
+    // Recorded in the trip's currency: the matching suggested transfer, or
+    // what the two balances allow.
+    final suggested =
+        r.baseTransfers
+            .where((t) => t.from == from && t.to == to)
+            .firstOrNull
+            ?.amount
+            .minor ??
+        [
+          -(r.baseBalances[from] ?? 0),
+          r.baseBalances[to] ?? 0,
+        ].reduce((x, y) => x < y ? x : y);
+    if (suggested <= 0) return;
+    final amount = await showSettleSheet(
+      context,
+      title: _paid(from, to),
+      suggestedMinor: suggested,
+      currency: base,
+      symbol: ref.read(countriesProvider).value?.symbolFor(base),
+    );
+    if (amount == null) return;
+    await ref
+        .read(settlementServiceProvider)
+        .record(
+          widget.adventure.id,
+          from: from,
+          to: to,
+          amountMinor: amount,
+          currency: base,
+          date: isoDate(ref.read(todayProvider)),
+        );
+  }
+
+  Future<void> _undo(SettlementEntry p) async {
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Undo this payment?'),
+        content: const Text(
+          'It counts as owed again. The activity log keeps both.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Undo'),
+          ),
+        ],
+      ),
+    );
+    if (sure ?? false) {
+      await ref.read(settlementServiceProvider).undo(widget.adventure.id, p.id);
+    }
+  }
+
   /// UC-26: the figure in the trip's own currency, on tap.
   void _showBase(SplitReport r) {
     final base = widget.adventure.baseCurrency;
@@ -238,6 +363,42 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
         .where((c) => c.id == id)
         .firstOrNull;
     return c == null ? id : '${c.emoji} ${c.name}';
+  }
+}
+
+class _TransferRow extends StatelessWidget {
+  const new({required this.label, required this.amount, this.onSettle});
+
+  final String label;
+  final String amount;
+
+  /// Null when the viewer may not record this payment.
+  final VoidCallback? onSettle;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: text.bodyLarge),
+                Text(amount, style: text.titleMedium),
+              ],
+            ),
+          ),
+          if (onSettle != null)
+            TextButton(
+              onPressed: onSettle,
+              child: const Text('Mark as settled'),
+            ),
+        ],
+      ),
+    );
   }
 }
 

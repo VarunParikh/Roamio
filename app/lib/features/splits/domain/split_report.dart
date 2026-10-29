@@ -13,6 +13,23 @@ class ReportTab {
   final TabSplit split;
 }
 
+/// A "Mark as settled" payment, in the trip's currency (spec UC-26a).
+class ReportSettlement {
+  const new({
+    required this.from,
+    required this.to,
+    required this.amountMinor,
+    required this.date,
+  });
+
+  final ParticipantId from;
+  final ParticipantId to;
+  final int amountMinor;
+
+  /// yyyy-mm-dd; its rates convert it, like a tab's.
+  final String date;
+}
+
 /// One adventure's split, in [currency] (spec UC-25, UC-26).
 class SplitReport {
   const new({
@@ -22,6 +39,7 @@ class SplitReport {
     required this.mine,
     required this.myShare,
     required this.transfers,
+    required this.baseTransfers,
     required this.byCategory,
     required this.byDay,
     required this.totalSpend,
@@ -43,6 +61,9 @@ class SplitReport {
   /// What the viewer's shares of all tabs add up to, in [currency].
   final int myShare;
   final List<Transfer> transfers;
+
+  /// Who pays whom in the trip's currency, which is what gets recorded.
+  final List<Transfer> baseTransfers;
   final Map<String, int> byCategory;
   final Map<DateTime, int> byDay;
   final int totalSpend;
@@ -61,16 +82,28 @@ SplitReport buildReport({
   required String viewerCurrency,
   required String viewer,
   required FxRates Function(String date) ratesFor,
+  List<ReportSettlement> settlements = const [],
 }) {
   final splits = [for (final t in tabs) t.split];
 
+  // Tabs convert inside the engine; settlements are added here, each at
+  // its own day. Adding +s and −s keeps the zero sum (spec §6).
   Map<ParticipantId, int>? balancesIn(String currency) {
     try {
-      return balancesFor(
+      final balances = balancesFor(
         tabs: splits,
         baseCurrency: currency,
         ratesFor: ratesFor,
       );
+      for (final s in settlements) {
+        final amount = ratesFor(s.date)
+            .convert(Money(s.amountMinor, baseCurrency), currency)
+            .minor;
+        balances
+          ..update(s.from, (v) => v + amount, ifAbsent: () => amount)
+          ..update(s.to, (v) => v - amount, ifAbsent: () => -amount);
+      }
+      return balances;
     } on MissingRateException {
       return null;
     }
@@ -90,6 +123,7 @@ SplitReport buildReport({
       mine: 0,
       myShare: 0,
       transfers: const [],
+      baseTransfers: const [],
       byCategory: const {},
       byDay: const {},
       totalSpend: 0,
@@ -117,6 +151,9 @@ SplitReport buildReport({
     mine: balances[viewer] ?? 0,
     myShare: myShare,
     transfers: planTransfers(balances, currency: currency),
+    baseTransfers: base == null
+        ? const []
+        : planTransfers(base, currency: baseCurrency),
     byCategory: byCategory,
     byDay: byDay,
     totalSpend: byCategory.values.fold(0, (a, b) => a + b),

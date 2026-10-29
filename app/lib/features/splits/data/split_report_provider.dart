@@ -4,6 +4,7 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/fx_repository.dart';
+import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
@@ -20,14 +21,19 @@ final ProviderFamily<AsyncValue<SplitReport>, String> splitReportProvider =
       final tabs = ref.watch(tabsProvider(adventureId));
       final currency = ref.watch(profileCurrencyProvider);
       final viewer = ref.watch(sessionFactsProvider).value?.uid;
+      final settled = ref.watch(settlementsProvider(adventureId));
       if (adventure == null ||
           viewer == null ||
           !tabs.hasValue ||
-          !currency.hasValue) {
+          !currency.hasValue ||
+          !settled.hasValue) {
         return const AsyncLoading();
       }
       final rates = <String, FxRates?>{};
-      for (final date in {for (final t in tabs.value!) t.split.fxDate}) {
+      for (final date in {
+        for (final t in tabs.value!) t.split.fxDate,
+        for (final s in settled.value!) s.date,
+      }) {
         final day = ref.watch(fxRatesProvider(date));
         if (day.isLoading) return const AsyncLoading();
         rates[date] = day.value;
@@ -43,6 +49,15 @@ final ProviderFamily<AsyncValue<SplitReport>, String> splitReportProvider =
           viewer: viewer,
           ratesFor: (date) =>
               rates[date] ?? FxRates(date: date, usdRates: const {}),
+          settlements: [
+            for (final s in settled.value!)
+              ReportSettlement(
+                from: s.from,
+                to: s.to,
+                amountMinor: s.amountMinor,
+                date: s.date,
+              ),
+          ],
         ),
       );
     });
