@@ -21,6 +21,7 @@ import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
+import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
@@ -37,6 +38,7 @@ import 'fake_photo_pipeline.dart';
 import 'fake_profile_service.dart';
 import 'fake_receipt_scanner.dart';
 import 'fake_settlement_service.dart';
+import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
 import 'fake_tab_service.dart';
 
@@ -160,6 +162,8 @@ Future<void> pumpRoamio(
   FakeFxRepository? fx,
   String profileCurrency = 'INR',
   FakeSettlementService? settlements,
+  SharedFiles? sharedFiles,
+  bool exportEnabled = true,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -186,6 +190,10 @@ Future<void> pumpRoamio(
         settlementServiceProvider.overrideWithValue(
           settlements ?? FakeSettlementService(),
         ),
+        shareFilesProvider.overrideWithValue(
+          (sharedFiles ?? SharedFiles()).call,
+        ),
+        exportEnabledProvider.overrideWithValue(exportEnabled),
         profileServiceProvider.overrideWithValue(
           FakeProfileService(profileCurrency),
         ),
