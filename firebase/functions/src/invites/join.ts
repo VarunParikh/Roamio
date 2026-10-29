@@ -41,7 +41,10 @@ export const joinAdventure = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "This adventure has already ended.");
     }
 
-    tx.update(adventureRef, { memberUids: FieldValue.arrayUnion(uid) });
+    tx.update(adventureRef, {
+      memberUids: FieldValue.arrayUnion(uid),
+      leftUids: FieldValue.arrayRemove(uid),
+    });
     tx.set(adventureRef.collection("members").doc(uid), {
       role: "member",
       status: "active",

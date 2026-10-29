@@ -63,8 +63,18 @@ service cloud.firestore {
                ['dob', 'profileCurrency', 'consents', 'noticeVersion', 'createdAt', 'fcmTokens'])
           && isDate(incoming().dob);
         allow update: if signedIn() && me() == uid
-          && changed().hasOnly(['profileCurrency', 'consents', 'fcmTokens'])
-          && (!('profileCurrency' in changed()) || isCurrency(incoming().profileCurrency));
+          && changed().hasOnly(['profileCurrency', 'consents', 'fcmTokens', 'nominee'])
+          && (!('profileCurrency' in changed()) || isCurrency(incoming().profileCurrency))
+          && (!('nominee' in changed()) || validNominee(incoming().nominee));
+
+        // Someone to use the person's rights if they can't (DPDP §14):
+        // adults only, as a parent or guardian acts for an under-18 (§7).
+        function validNominee(n) {
+          return n == null || (isAdult()
+            && n is map && n.keys().hasAll(['name', 'email']) && n.keys().hasOnly(['name', 'email'])
+            && isText(n.name, 1, 80)
+            && isText(n.email, 3, 254) && n.email.matches('^[^@\\s]+@[^@\\s]+[.][^@\\s]+$'));
+        }
       }
 
       match /invites/{code} {

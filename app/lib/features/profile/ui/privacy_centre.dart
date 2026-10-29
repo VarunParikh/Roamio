@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/profile/data/privacy_service.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/profile/ui/consent_switches.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
@@ -194,12 +196,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
             'Change your name, photo and description on the You page. '
                 'Your date of birth can only be fixed by writing to us.',
           ),
-          section(
-            'Nominate a person',
-            'Choose someone to use these rights for you if you can’t. '
-                'Write to us with their name and email, and we’ll confirm '
-                'with you first.',
-          ),
+          const _NomineeSection(),
           section(
             'Raise a concern',
             'Write to our grievance officer at $grievanceEmail. We reply '
@@ -254,4 +251,155 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
       ),
     );
   }
+}
+
+/// Nominate a person (spec UC-29, DPDP §14). Under-18s don't nominate: a
+/// parent or guardian already acts for them (§7).
+class _NomineeSection extends ConsumerWidget {
+  const new();
+
+  Future<void> _choose(BuildContext context, WidgetRef ref) async {
+    final chosen = await showDialog<Nominee>(
+      context: context,
+      builder: (_) => _NomineeDialog(current: ref.read(nomineeProvider).value),
+    );
+    if (chosen != null) {
+      await ref.read(profileServiceProvider).setNominee(chosen);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final muted = text.bodyMedium?.copyWith(color: RoamioColors.slate);
+    final isMinor = ref.watch(privacyPolicyProvider).isMinor;
+    final nominee = ref.watch(nomineeProvider).value;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nominate a person', style: text.headlineSmall),
+          const SizedBox(height: 8),
+          if (isMinor)
+            Text(
+              'Your parent or guardian can use these rights for you, so '
+              'there’s no one to nominate.',
+              style: muted,
+            )
+          else ...[
+            Text(
+              'Choose someone to use these rights for you if you can’t. '
+              'We’ll confirm with you before they do anything.',
+              style: muted,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              nominee == null
+                  ? 'No one yet.'
+                  : 'Nominated: ${nominee.name} (${nominee.email})',
+              style: text.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                  ),
+                  onPressed: () => _choose(context, ref),
+                  child: Text(nominee == null ? 'Choose a person' : 'Change'),
+                ),
+                if (nominee != null) ...[
+                  const SizedBox(width: 8),
+                  TextButton(
+                    style: TextButton.styleFrom(minimumSize: const Size(0, 48)),
+                    onPressed: () =>
+                        ref.read(profileServiceProvider).setNominee(null),
+                    child: const Text('Remove'),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+class _NomineeDialog extends StatefulWidget {
+  const new({this.current});
+
+  final Nominee? current;
+
+  @override
+  State<_NomineeDialog> createState() => _NomineeDialogState();
+}
+
+class _NomineeDialogState extends State<_NomineeDialog> {
+  late final _name = TextEditingController(text: widget.current?.name);
+  late final _email = TextEditingController(text: widget.current?.email);
+  String? _nameError;
+  String? _emailError;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final name = _name.text.trim();
+    final email = _email.text.trim();
+    setState(() {
+      _nameError = name.isEmpty ? 'Add their name.' : null;
+      _emailError = _emailPattern.hasMatch(email)
+          ? null
+          : 'Check the email address.';
+    });
+    if (_nameError == null && _emailError == null) {
+      Navigator.pop(context, Nominee(name: name, email: email));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Nominate a person'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _name,
+          textCapitalization: TextCapitalization.words,
+          inputFormatters: [LengthLimitingTextInputFormatter(80)],
+          decoration: InputDecoration(
+            labelText: 'Their name',
+            errorText: _nameError,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _email,
+          keyboardType: TextInputType.emailAddress,
+          inputFormatters: [LengthLimitingTextInputFormatter(254)],
+          decoration: InputDecoration(
+            labelText: 'Their email',
+            errorText: _emailError,
+          ),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      TextButton(onPressed: _save, child: const Text('Save')),
+    ],
+  );
 }
