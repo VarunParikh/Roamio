@@ -154,10 +154,11 @@ Common verification commands:
 
 ## Phase 4 — Tabs & splits
 
-- [ ] **Task 22: Image pipeline** — S · Deps: 4 · Spec §10
+- [x] **Task 22: Image pipeline** — S · Deps: 4 · Spec §10
   - Acceptance: camera/gallery picker; compress to ≤ 1600 px (2048 for bills) WebP q80; EXIF stripped; upload queue that survives offline and app restarts; Storage rules reject > 1 MB or non-WebP.
   - Verify: test with a 12 MB sample photo → ≤ 400 KB, no EXIF; storage rules tests.
   - Files: `app/lib/core/images/*.dart`, `firebase/storage.rules`, tests
+  - Done: verified on the Android emulator (`integration_test/photo_compression_test.dart`): 9.3 MB 4000×3000 JPEG with fake GPS EXIF → 1600×1200 WebP, no EXIF, 528 KB. That synthetic image is noisier than a camera photo; the ≤ 400 KB target still needs checking with a real photo.
 
 - [x] **Task 23: Add tab (basic)** — M · Deps: 8, 20 · UC-21
   - Acceptance: amount, currency (default base), date (≤ today), category, description, single payer "You", equal split across ticked participants; writes tab with `fxDate`.

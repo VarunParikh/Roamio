@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
+import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
@@ -30,9 +32,14 @@ import 'package:url_launcher/url_launcher.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setUpFirebase();
+  final photos = await startPhotoPipeline(
+    FirebaseFirestore.instance,
+    FirebaseStorage.instance,
+  );
   runApp(
     ProviderScope(
       overrides: [
+        photoPipelineProvider.overrideWithValue(photos),
         authServiceProvider.overrideWithValue(
           FirebaseAuthService(
             FirebaseAuth.instance,
