@@ -90,6 +90,8 @@ Common verification commands:
   - Verify: unit tests for age logic (incl. 29 Feb birthdays); functions test for the birthday job.
   - Files: `app/lib/core/privacy/minor_policy.dart`, `firebase/functions/src/consent/turn18.ts`, tests
 
+> **Deferred owner check (from Task 10):** sign in with Google on the emulator against the real `roamio-dev-varun` project, using the owner's own Google account. Needs the owner at the Mac.
+
 ### ✅ Checkpoint 2 — Journey E passes manually
 - [ ] 16-year-old signs up → parent consents → child reaches Home · [ ] Decline deletes the child · [ ] Owner approves
 
