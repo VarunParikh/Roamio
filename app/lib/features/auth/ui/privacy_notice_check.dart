@@ -48,7 +48,7 @@ class PrivacyNoticeCheck extends StatelessWidget {
             padding: const EdgeInsets.only(left: 12),
             child: Text(
               'Please read and accept the privacy notice.',
-              style: text.bodySmall?.copyWith(color: RoamioColors.coral),
+              style: text.bodySmall?.copyWith(color: RoamioColors.coralText),
             ),
           ),
       ],

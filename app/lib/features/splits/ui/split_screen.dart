@@ -11,6 +11,7 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/budget/ui/budget_card.dart';
+import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
@@ -19,6 +20,7 @@ import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/splits/ui/settle_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
@@ -113,6 +115,31 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     final a = widget.adventure;
     final report = ref.watch(splitReportProvider(a.id));
     final r = report.value;
+    if (r == null && report.hasError) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'We couldn’t work out the split.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () {
+                ref
+                  ..invalidate(tabsProvider(a.id))
+                  ..invalidate(settlementsProvider(a.id));
+              },
+              child: const Text('Try again'),
+            ),
+          ],
+        ),
+      );
+    }
     if (r == null) return const Center(child: CircularProgressIndicator());
 
     final text = Theme.of(context).textTheme;
@@ -154,7 +181,7 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
                       'Shown in ${r.currency}: exchange rates aren’t '
                       'available yet.',
                       style: text.bodySmall?.copyWith(
-                        color: RoamioColors.coral,
+                        color: RoamioColors.coralText,
                       ),
                     ),
                   ],
@@ -462,7 +489,18 @@ class _Overall extends ConsumerWidget {
     final slate = text.bodyMedium?.copyWith(color: RoamioColors.slate);
     final currency = ref.watch(profileCurrencyProvider).value ?? 'INR';
     if (adventures.isEmpty) {
-      return Text('No adventures yet, so nothing to split.', style: slate);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('No adventures yet, so nothing to split.', style: slate),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => context.push(newAdventureRoute),
+            icon: const Icon(Icons.add),
+            label: const Text('New Adventure'),
+          ),
+        ],
+      );
     }
     final reports = {
       for (final a in adventures) a.id: ref.watch(splitReportProvider(a.id)),
@@ -490,7 +528,9 @@ class _Overall extends ConsumerWidget {
                   Text(
                     'Some adventures aren’t included: exchange rates aren’t '
                     'available yet.',
-                    style: text.bodySmall?.copyWith(color: RoamioColors.coral),
+                    style: text.bodySmall?.copyWith(
+                      color: RoamioColors.coralText,
+                    ),
                   ),
                 ],
               ],

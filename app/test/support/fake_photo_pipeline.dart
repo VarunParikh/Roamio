@@ -12,6 +12,9 @@ class FakePhotoPipeline implements PhotoPipeline {
   /// When true, the next pick is cancelled.
   bool cancelNext = false;
 
+  /// The picked file isn't an image the pipeline can read.
+  bool unreadable = false;
+
   @override
   Future<String?> pick({required bool camera}) async {
     picks.add(camera);
@@ -31,6 +34,7 @@ class FakePhotoPipeline implements PhotoPipeline {
     required String field,
     required UploadMode mode,
   }) async {
+    if (unreadable) throw const FormatException('not an image');
     queued.add('$path -> $storageDir ($docPath.$field ${mode.name})');
     kinds.add(kind);
   }

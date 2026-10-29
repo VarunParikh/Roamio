@@ -52,8 +52,8 @@ class PercentEditor extends StatelessWidget {
           '${formatBasisPoints(assigned)} of 100% assigned',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: assigned == fullBasisPoints
-                ? RoamioColors.mint
-                : RoamioColors.coral,
+                ? RoamioColors.mintText
+                : RoamioColors.coralText,
           ),
         ),
       ],

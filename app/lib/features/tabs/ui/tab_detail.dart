@@ -7,6 +7,7 @@ import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
+import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
@@ -34,6 +35,11 @@ class TabDetailScreen extends ConsumerWidget {
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final entry = tab.value;
     final live = entry != null && !entry.deleted && adventure != null;
+    if (adventure == null) {
+      return AdventureUnavailable(
+        loading: ref.watch(myAdventuresProvider).isLoading,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -55,12 +61,13 @@ class TabDetailScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
-        child: switch ((adventure, tab)) {
-          (_, AsyncLoading()) ||
-          (null, _) => const Center(child: CircularProgressIndicator()),
-          (final Adventure a, AsyncData(value: final TabEntry t))
-              when !t.deleted =>
-            _Details(adventure: a, tab: t, myUid: myUid),
+        child: switch (tab) {
+          AsyncLoading() => const Center(child: CircularProgressIndicator()),
+          AsyncData(value: final TabEntry t) when !t.deleted => _Details(
+            adventure: adventure,
+            tab: t,
+            myUid: myUid,
+          ),
           _ => _Gone(deleted: entry?.deleted ?? false),
         },
       ),

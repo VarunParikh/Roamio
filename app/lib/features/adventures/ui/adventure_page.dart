@@ -29,7 +29,7 @@ class AdventurePage extends ConsumerWidget {
         ?.where((a) => a.id == adventureId)
         .firstOrNull;
     if (adventure == null) {
-      return _Unavailable(loading: adventures.isLoading);
+      return AdventureUnavailable(loading: adventures.isLoading);
     }
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final open = adventure.tabsOpenOn(ref.watch(todayProvider));
@@ -199,8 +199,10 @@ class _TripHeader extends ConsumerWidget {
   }
 }
 
-class _Unavailable extends StatelessWidget {
-  const new({required this.loading});
+/// An adventure the person can't see (left, removed, or not loaded): one
+/// way back (spec §12). Used by every screen under an adventure.
+class AdventureUnavailable extends StatelessWidget {
+  const new({required this.loading, super.key});
 
   final bool loading;
 

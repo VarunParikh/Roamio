@@ -7,6 +7,7 @@ import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
+import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/adventures/ui/banner_editor.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
@@ -26,7 +27,9 @@ class EditAdventureScreen extends ConsumerWidget {
         ?.where((a) => a.id == adventureId)
         .firstOrNull;
     if (adventure == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return AdventureUnavailable(
+        loading: ref.watch(myAdventuresProvider).isLoading,
+      );
     }
     return _EditForm(adventure: adventure);
   }

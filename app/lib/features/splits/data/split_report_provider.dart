@@ -33,6 +33,13 @@ reportInProvider = Provider.family<AsyncValue<SplitReport>, (String, String)>((
   final tabs = ref.watch(tabsProvider(adventureId));
   final viewer = ref.watch(sessionFactsProvider).value?.uid;
   final settled = ref.watch(settlementsProvider(adventureId));
+  // A failed load is an error, not endless loading (spec §12: no dead ends).
+  if (tabs case AsyncError(:final error, :final stackTrace)) {
+    return AsyncError(error, stackTrace);
+  }
+  if (settled case AsyncError(:final error, :final stackTrace)) {
+    return AsyncError(error, stackTrace);
+  }
   if (adventure == null ||
       viewer == null ||
       !tabs.hasValue ||
