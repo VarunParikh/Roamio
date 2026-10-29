@@ -130,9 +130,10 @@ Common verification commands:
   - Verify: functions + rules tests for each role change and forbidden case (co-lead demoting leader, member removing anyone).
   - Files: `firebase/functions/src/squad/*.ts`, `app/lib/features/squad/**`, tests
 
-- [ ] **Task 20: Pals** — S · Deps: 19 · UC-18
+- [x] **Task 20: Pals** — S · Deps: 19 · UC-18
   - Acceptance: leads add a pal by nickname only; remove (marked Left if in tabs); pals listed in the squad with a "Pal" badge.
   - Verify: rules tests (member can't add pal); widget test.
+  - Done: Remove marks a pal Left (never deleted, per DATA_MODEL) and hides them from the squad; tabs keep their history.
   - Files: `app/lib/features/squad/ui/pals.dart`, `firebase/firestore.rules`, tests
 
 - [x] **Task 21: Edit and archive adventures** — S · Deps: 19 · UC-10, 11
