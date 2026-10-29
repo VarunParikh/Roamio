@@ -10,6 +10,7 @@ export { acceptAdultNotice, birthdaySweep } from "./auth/birthdays";
 export { setAgeStatus } from "./auth/setAgeStatus";
 export { getBanner } from "./banners/getBanner";
 export { createInvite, invitePreview, lookupInvite, revokeInvite } from "./invites/invites";
+export { joinAdventure } from "./invites/join";
 export {
   decideParentalConsent,
   describeConsentRequest,
@@ -17,6 +18,7 @@ export {
   withdrawParentalConsent,
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
+export { makeCoLead, removeMember } from "./squad/roles";
 
 /** Liveness check used by CI and the emulator smoke test. */
 export const health = onRequest((_req, res) => {

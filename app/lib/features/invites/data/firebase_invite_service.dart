@@ -42,6 +42,13 @@ class FirebaseInviteService implements InviteService {
   }
 
   @override
+  Future<String> join(String code) async {
+    final data = await _call('joinAdventure', {'code': code});
+    await forgetCode(code);
+    return data['adventureId'] as String;
+  }
+
+  @override
   Stream<List<String>> savedCodes() => _saved
       .orderBy('addedAt', descending: true)
       .snapshots()

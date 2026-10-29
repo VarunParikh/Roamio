@@ -49,6 +49,10 @@ abstract interface class InviteService {
 
   Future<InviteDetails> lookup(String code);
 
+  /// Joins the invite's squad as a Member and drops it from Invites;
+  /// returns the adventure's id (spec UC-13).
+  Future<String> join(String code);
+
   /// Codes the signed-in person has opened but not yet acted on.
   Stream<List<String>> savedCodes();
 

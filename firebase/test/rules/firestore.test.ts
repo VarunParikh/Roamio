@@ -137,6 +137,11 @@ beforeEach(async () => {
       amountMinor: 2000000,
       currency: "INR",
     });
+    await setDoc(doc(db, "users/alice/notifications/a1_joined_bob"), {
+      type: "member_joined",
+      adventureId: "a1",
+      memberUid: "bob",
+    });
     await setDoc(doc(db, "adventures/a1/activity/x1"), {
       type: "joined",
       actorUid: "bob",
@@ -256,6 +261,42 @@ describe("users/{uid}/invites", () => {
       setDoc(doc(as("pete"), "users/pete/invites/ROAM7KQ2"), {
         code: "OTHER",
         addedAt: 1,
+      }),
+    );
+  });
+});
+
+describe("users/{uid}/notifications (lead cards, spec UC-14)", () => {
+  const path = "users/alice/notifications/a1_joined_bob";
+
+  it("owner reads and dismisses their cards", async () => {
+    await assertSucceeds(getDoc(doc(as("alice"), path)));
+    await assertSucceeds(
+      getDocs(collection(as("alice"), "users/alice/notifications")),
+    );
+    await assertSucceeds(deleteDoc(doc(as("alice"), path)));
+  });
+
+  it("nobody else can read or dismiss them", async () => {
+    await assertFails(getDoc(doc(as("cara"), path)));
+    await assertFails(getDoc(doc(as("bob"), path)));
+    await assertFails(getDoc(doc(anon(), path)));
+    await assertFails(
+      getDocs(collection(as("cara"), "users/alice/notifications")),
+    );
+    await assertFails(deleteDoc(doc(as("bob"), path)));
+  });
+
+  it("only the server writes them, even for the owner", async () => {
+    await assertFails(
+      setDoc(doc(as("alice"), "users/alice/notifications/fake"), {
+        type: "member_joined",
+      }),
+    );
+    await assertFails(updateDoc(doc(as("alice"), path), { memberUid: "dan" }));
+    await assertFails(
+      setDoc(doc(as("bob"), "users/alice/notifications/fake"), {
+        type: "member_joined",
       }),
     );
   });

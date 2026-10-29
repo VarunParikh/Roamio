@@ -119,8 +119,9 @@ Common verification commands:
   - Verify: functions tests (expired, revoked, unknown code); manual: link opens app on emulator.
   - Files: `firebase/functions/src/invites/*.ts`, `firebase/hosting/i/index.html`, `app/lib/features/invites/**`, `app/android/app/src/main/AndroidManifest.xml`
 
-- [ ] **Task 18: Join a squad** — S · Deps: 17 · UC-13, 14
+- [x] **Task 18: Join a squad** — S · Deps: 17 · UC-13, 14
   - Acceptance: invites list on Home; Join squad calls `joinAdventure` (adds member server-side); leads get a push + in-app card with Make co-lead / Remove.
+  - Done: join, lead cards, `makeCoLead`/`removeMember` (card actions; Task 19 adds demote/leave/hand-over). **Push not yet sent**: it needs the `firebase_messaging` package (new dependency, owner OK pending); the card data in `users/{uid}/notifications` is ready to drive it.
   - Verify: functions test for join (already member, adventure archived, minor pending consent refused); widget test for the card.
   - Files: `firebase/functions/src/invites/join.ts`, `app/lib/features/invites/ui/*`, tests
 
