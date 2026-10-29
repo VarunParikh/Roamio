@@ -166,6 +166,7 @@ Future<void> pumpRoamio(
   bool ocrEnabled = true,
   FakeFxRepository? fx,
   String profileCurrency = 'INR',
+  FakeProfileService? profile,
   FakeSettlementService? settlements,
   SharedFiles? sharedFiles,
   bool exportEnabled = true,
@@ -204,7 +205,7 @@ Future<void> pumpRoamio(
         exportEnabledProvider.overrideWithValue(exportEnabled),
         budgetServiceProvider.overrideWithValue(budgets ?? FakeBudgetService()),
         profileServiceProvider.overrideWithValue(
-          FakeProfileService(profileCurrency),
+          profile ?? FakeProfileService(currency: profileCurrency),
         ),
         bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
         openLinkProvider.overrideWithValue(

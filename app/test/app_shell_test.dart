@@ -25,10 +25,7 @@ void main() {
 
     await tester.tap(find.text('You'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Your profile and privacy centre are coming soon.'),
-      findsOneWidget,
-    );
+    expect(find.text('Your profile'), findsOneWidget);
 
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
