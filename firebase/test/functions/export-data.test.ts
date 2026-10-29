@@ -108,6 +108,27 @@ describe("collectData (spec UC-29: download my data)", () => {
     expect(JSON.stringify(data)).not.toContain("70000");
   });
 
+  it("includes adventures the person has left, with their tabs (UC-16, UC-29)", async () => {
+    const ari = await person("Ari");
+    const bob = await person("Bob");
+    const id = await adventure(ari, { leftUids: [bob.uid] });
+    await db()
+      .doc(`adventures/${id}/tabs/paid`)
+      .set(tab(ari.uid, { payers: [{ id: bob.uid, amountMinor: 90000 }], participants: [ari.uid] }));
+    await db().doc(`adventures/${id}/tabs/byBob`).set(tab(bob.uid, { participants: [ari.uid] }));
+
+    const data = await collectData(bob.uid);
+
+    const [adv] = data.adventures;
+    expect(adv.id).toBe(id);
+    expect(adv.role).toBe("left");
+    expect(adv.tabs.map((t) => t.id).sort()).toEqual(["byBob", "paid"]);
+    expect(await photoPrefixes(bob.uid)).toEqual([
+      `users/${bob.uid}/avatar/`,
+      `adventures/${id}/tabs/byBob/`,
+    ]);
+  });
+
   it("includes a child's own consent record without the link secret, and a parent's linked children", async () => {
     const mum = await person("Mum");
     const kid = await person("Kid", "minor_active");

@@ -228,19 +228,19 @@ Common verification commands:
   - Acceptance: spike confirms `disableNetwork`/`enableNetwork` behaviour; offline banner + Sync button with the spec's exact text; queued tabs, settlements and photos upload on Sync; online-only actions disabled with reason; overwritten edits logged in activity.
   - Verify: integration test in airplane mode on emulator (Journey D).
   - Files: `app/lib/features/sync/**`, `app/lib/core/connectivity/*.dart`, tests
-  - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason, Sync retries photos regardless of backoff — all unit/widget tested. **Still open:** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (need a device/emulator), and an activity feed screen that shows `tab_edit_replaced` (the server writes it; owner approved the optional `baseUpdatedAt` field). It only arises when one creator edits the same tab from two devices: a lead's delete can't be overwritten because the rules reject edits to a deleted tab.
+  - Progress (not ticked): connectivity monitor (no new dependency), sync state machine, offline banner and Sync button on Home and the adventure page, online-only actions disabled with a reason (including a join card's Make co-lead/Remove and account deletion in the Privacy centre), Sync retries photos regardless of backoff — all unit/widget tested. **Still open:** the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (need a device/emulator), and an activity feed screen that shows `tab_edit_replaced` (the server writes it; owner approved the optional `baseUpdatedAt` field). It only arises when one creator edits the same tab from two devices: a lead's delete can't be overwritten because the rules reject edits to a deleted tab.
 
 - [x] **Task 34: You page** — S · Deps: 22 · UC-28
   - Acceptance: photo, name, description, profile currency, notification and location toggles.
   - Verify: widget tests.
   - Files: `app/lib/features/profile/**`, tests
-  - Done: photo (compressed, queued as the avatar), name, description, profile currency (saves at once), notification and location switches; widget-tested. Under-18 accounts see location off and locked, with the reason. **Not wired yet:** the Location switch stores `consents.location` but the Add-tab location picker still checks only the age policy, so it doesn't read the switch (decision for the owner). Not tried on a device.
+  - Done: photo (compressed, queued as the avatar), name, description, profile currency (saves at once), notification and location switches; widget-tested. Under-18 accounts see location off and locked, with the reason. The Add-tab location picker follows the Location switch (#34). Not tried on a device.
 
-- [ ] **Task 35: Privacy centre** — M · Deps: 34, 12 · UC-29, Spec §8
+- [x] **Task 35: Privacy centre** — M · Deps: 34, 12 · UC-29, Spec §8
   - Acceptance: download my data (JSON + photos zip via function), also offered to a parent for each linked child (deferred from Task 12); delete account (function: erase profile/photos/budgets, tabs keep "Deleted user"); nominate a person; grievance contact; per-purpose consent toggles; audit log entries kept 1 year.
   - Verify: functions tests for export and deletion (balances unchanged after deletion).
   - Files: `app/lib/features/profile/ui/privacy_centre.dart`, `firebase/functions/src/privacy/*.ts`, tests
-  - Progress: `deleteMyAccount` (#35); `exportMyData` JSON + photo zip parts, own data or a linked child's (Task 35b). Not yet: adventures someone has left are missing from the export.
+  - Done: #35 `deleteMyAccount`; #37 + #41 `exportMyData` (JSON + ≤ 6 MB photo zips, own or a granted child's, includes adventures left via `leftUids`); #38 Privacy centre screen (download, delete, notification/location/camera switches); #39 "Deleted user" and names of people who left; #40 audit log purged after 1 year inside the daily `consentSweep`; nominee (`account.nominee`, adults only, Task 35g). Grievance email stays a placeholder (`grievance@roamio.example`): the owner moved it to the next phase (Task 40). Not run on a device or real Firebase yet.
 
 - [x] **Task 36: Weather** — XS · Deps: 15 · UC-7
   - Acceptance: Open-Meteo on the Hero card, cached 30 min, hidden on failure, city-based for minors or without permission.

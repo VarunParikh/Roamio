@@ -49,9 +49,19 @@ function involves(uid: string, tab: Plain): boolean {
 }
 
 function roleIn(uid: string, adventure: DocumentSnapshot): string {
+  if (!(adventure.get("memberUids") ?? []).includes(uid)) return "left";
   if (adventure.get("leaderUid") === uid) return "leader";
   if ((adventure.get("coLeadUids") ?? []).includes(uid)) return "co_lead";
   return "member";
+}
+
+/** Adventures the person is in, then ones they left with tabs to their name. */
+async function adventuresOf(uid: string): Promise<DocumentSnapshot[]> {
+  const [current, left] = await Promise.all([
+    db().collection("adventures").where("memberUids", "array-contains", uid).get(),
+    db().collection("adventures").where("leftUids", "array-contains", uid).get(),
+  ]);
+  return [...current.docs, ...left.docs.filter((d) => !current.docs.some((c) => c.id === d.id))];
 }
 
 /** Everything Roamio holds about one person, minus other people's private data. */
@@ -65,13 +75,10 @@ export async function collectData(uid: string) {
     db().collection("parentalConsents").where("parentUid", "==", uid).get(),
     db().collection("auditLog").where("target", "==", uid).get(),
   ]);
-  const memberships = await db()
-    .collection("adventures")
-    .where("memberUids", "array-contains", uid)
-    .get();
+  const memberships = await adventuresOf(uid);
 
   const adventures = await Promise.all(
-    memberships.docs.map(async (adventure) => {
+    memberships.map(async (adventure) => {
       const [tabs, settlements, budget, activity] = await Promise.all([
         adventure.ref.collection("tabs").get(),
         adventure.ref.collection("settlements").get(),
@@ -115,12 +122,9 @@ export async function collectData(uid: string) {
 
 /** Where a person's photos live: profile photos and memories on tabs they added. */
 export async function photoPrefixes(uid: string): Promise<string[]> {
-  const memberships = await db()
-    .collection("adventures")
-    .where("memberUids", "array-contains", uid)
-    .get();
+  const memberships = await adventuresOf(uid);
   const prefixes = [`users/${uid}/avatar/`];
-  for (const adventure of memberships.docs) {
+  for (const adventure of memberships) {
     const tabs = await adventure.ref.collection("tabs").where("createdBy", "==", uid).get();
     prefixes.push(...tabs.docs.map((t) => `adventures/${adventure.id}/tabs/${t.id}/`));
   }
