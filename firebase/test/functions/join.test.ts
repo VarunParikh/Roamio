@@ -41,6 +41,19 @@ describe("joinAdventure (spec UC-13, UC-14)", () => {
     expect(activity.docs.map((d) => d.get("type"))).toEqual(["member_joined"]);
   });
 
+  it("someone who left and rejoins is no longer listed as Left", async () => {
+    const ari = await person("Ari");
+    const bob = await person("Bob");
+    const id = await adventure(ari, { leftUids: [bob.uid] });
+    const code = await inviteTo(id, ari);
+
+    expect((await call("joinAdventure", { code }, bob)).error).toBeUndefined();
+
+    const adv = (await db().doc(`adventures/${id}`).get()).data();
+    expect(adv?.memberUids).toEqual([ari.uid, bob.uid]);
+    expect(adv?.leftUids).toEqual([]);
+  });
+
   it("is a no-op for someone already in the squad", async () => {
     const ari = await person("Ari");
     const bob = await person("Bob");
