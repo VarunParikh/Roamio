@@ -248,10 +248,11 @@ Common verification commands:
   - Files: `app/lib/features/home/data/weather_client.dart`, test
   - Done: Open-Meteo via Dart's own HTTP client (no new dependency, no key, no Firebase cost); a "☀️ 30°C" pill on the Hero card; 30-minute cache; failures and loading show nothing. Uses where the phone is only for an adult with the Location switch on and permission already granted (never asks), rounded to ~1 km; otherwise the adventure's city (or country) via Open-Meteo's place search. `weather_enabled` defaults on until Task 37. The privacy notice (Task 40) should name Open-Meteo. Not tried on a device.
 
-- [ ] **Task 37: Remote config** — S · Deps: 4 · Spec §11
+- [x] **Task 37: Remote config** — S · Deps: 4 · Spec §11
   - Acceptance: all keys wired with in-app defaults; `docs/REMOTE_CONFIG.md` lists every key.
   - Verify: unit test that defaults load when fetch fails.
   - Files: `app/lib/core/config/remote_config.dart`, `docs/REMOTE_CONFIG.md`, test
+  - Done: `firebase_remote_config` (owner-approved). App keys `ocr_enabled`, `weather_enabled`, `export_enabled`, `cta_pulse_enabled`, `min_supported_version`, `category_order`; server keys `budget_alert_thresholds`, `invite_validity_days`, `consent_link_validity_days` via the Admin SDK's server template (no new backend dependency). Every key has a default; bad values fall back. No copy-text keys yet. Not tried against the real Remote Config.
 
 - [ ] **Task 38: Update popup** — S · Deps: 37 · UC-34
   - Acceptance: checks GitHub latest release at most once per 24 h; dismissible popup with notes and Download; blocking when below `min_supported_version`.

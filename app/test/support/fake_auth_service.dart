@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
@@ -239,6 +240,10 @@ Future<void> pumpRoamio(
           WeatherClient(weatherFetch ?? (_) async => throw Exception('no web')),
         ),
         weatherEnabledProvider.overrideWithValue(weatherEnabled),
+        // Remote Config unreachable: every in-app default applies.
+        remoteConfigSourceProvider.overrideWithValue(
+          const UnreachableRemoteConfig(),
+        ),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
         ),
@@ -252,4 +257,12 @@ Future<void> pumpRoamio(
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
   }
+}
+
+/// Remote Config that can't be reached, as on a first launch offline.
+class UnreachableRemoteConfig implements RemoteConfigSource {
+  const new();
+
+  @override
+  Future<Map<String, String>> load() async => throw Exception('offline');
 }
