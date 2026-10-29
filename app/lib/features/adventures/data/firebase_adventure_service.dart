@@ -57,6 +57,7 @@ class FirebaseAdventureService implements AdventureService {
       leaderUid: data['leaderUid'] as String,
       coLeadUids: list('coLeadUids'),
       memberUids: list('memberUids'),
+      activeInviteCode: data['activeInviteCode'] as String?,
     );
   }
 }

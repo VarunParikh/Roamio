@@ -8,6 +8,7 @@ initializeApp();
 
 export { acceptAdultNotice, birthdaySweep } from "./auth/birthdays";
 export { setAgeStatus } from "./auth/setAgeStatus";
+export { createInvite, invitePreview, lookupInvite, revokeInvite } from "./invites/invites";
 export {
   decideParentalConsent,
   describeConsentRequest,

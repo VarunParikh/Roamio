@@ -61,6 +61,19 @@
           }
         ]
       }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/invitePreview",
+        "function": {
+          "functionId": "invitePreview",
+          "region": "asia-south1"
+        }
+      },
+      {
+        "source": "/i/**",
+        "destination": "/i/index.html"
+      }
     ]
   }
 }

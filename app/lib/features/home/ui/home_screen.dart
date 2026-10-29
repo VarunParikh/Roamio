@@ -7,16 +7,30 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/invites/ui/invites_on_home.dart';
 
 const newAdventureRoute = '/adventures/new';
 
 /// Home (UC-5, UC-6): greeting, the hero adventure, what's coming up and
 /// what's past. With nothing yet, one pulsing New Adventure button.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const new({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => offerClipboardInvite(context, ref),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final first = ref
         .read(authServiceProvider)
@@ -39,6 +53,7 @@ class HomeScreen extends ConsumerWidget {
         children: [
           Text(greeting, style: text.displayLarge),
           const SizedBox(height: 24),
+          const InvitesList(),
           if (adventures.hasError)
             _Message(
               text: 'We couldn’t load your adventures.',
@@ -88,6 +103,11 @@ class HomeScreen extends ConsumerWidget {
               label: const Text('New adventure'),
             ),
           ],
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => showEnterInviteCode(context, ref),
+            child: const Text('Have an invite code?'),
+          ),
         ],
       ),
     );
