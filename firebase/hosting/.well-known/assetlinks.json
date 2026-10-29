@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.roamio.android.dev",
+      "sha256_cert_fingerprints": [
+        "E4:F4:40:E4:7F:A3:46:7A:CA:7F:FD:DE:C2:BC:6D:AE:EA:D9:D0:8E:1A:F2:45:A7:11:F1:4E:19:51:E4:5D:EA"
+      ]
+    }
+  }
+]

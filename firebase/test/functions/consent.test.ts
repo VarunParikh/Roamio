@@ -1,6 +1,12 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { runConsentSweep } from "../../functions/src/consent/sweep";
-import { getApps, getAuth, getFirestore, initializeApp, Timestamp } from "../support/admin";
+import {
+  getApps,
+  getAuth,
+  getFirestore,
+  initializeApp,
+  Timestamp,
+} from "../support/admin";
 
 const PROJECT = "demo-roamio";
 const FUNCTIONS = `http://127.0.0.1:5001/${PROJECT}/asia-south1`;
@@ -8,7 +14,8 @@ const AUTH = "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1";
 const DAY = 24 * 60 * 60 * 1000;
 
 let n = 0;
-const unique = (name: string) => `${name.toLowerCase()}${++n}.${Date.now()}@example.com`;
+const unique = (name: string) =>
+  `${name.toLowerCase()}${++n}.${Date.now()}@example.com`;
 
 beforeAll(() => {
   if (getApps().length === 0) initializeApp({ projectId: PROJECT });
@@ -311,6 +318,66 @@ describe("decideParentalConsent", () => {
       parent,
     );
     expect(r.error?.status).toBe("FAILED_PRECONDITION");
+  });
+});
+
+describe("withdrawParentalConsent (spec §7.3)", () => {
+  async function consented() {
+    const child = await person("Mia", "minor_pending");
+    const parent = await person("Pat", "adult");
+    const token = await requested(child, parent.email);
+    await call(
+      "decideParentalConsent",
+      { childUid: child.uid, token, decision: "grant" },
+      parent,
+    );
+    return { child, parent };
+  }
+
+  it("freezes the child at once and tells them", async () => {
+    const { child, parent } = await consented();
+
+    const r = await call(
+      "withdrawParentalConsent",
+      { childUid: child.uid },
+      parent,
+    );
+    expect(r.error).toBeUndefined();
+
+    expect((await accountOf(child.uid))?.ageStatus).toBe("minor_frozen");
+    const consent = await consentOf(child.uid);
+    expect(consent?.status).toBe("withdrawn");
+    expect(consent?.withdrawnAt).toBeDefined();
+    const toChild = await getFirestore()
+      .collection("mail")
+      .where("to", "==", child.email)
+      .get();
+    expect(toChild.size).toBe(1);
+  });
+
+  it("only the consenting parent can withdraw", async () => {
+    const { child } = await consented();
+    const stranger = await person("Rex", "adult");
+    expect(
+      (await call("withdrawParentalConsent", { childUid: child.uid }, stranger))
+        .error?.status,
+    ).toBe("PERMISSION_DENIED");
+    expect(
+      (await call("withdrawParentalConsent", { childUid: child.uid }, child))
+        .error?.status,
+    ).toBe("PERMISSION_DENIED");
+  });
+
+  it("the daily sweep deletes the child 48 hours later", async () => {
+    const { child, parent } = await consented();
+    await call("withdrawParentalConsent", { childUid: child.uid }, parent);
+
+    await runConsentSweep(new Date(Date.now() + 47 * 60 * 60 * 1000));
+    expect(await authUserExists(child.uid)).toBe(true);
+
+    await runConsentSweep(new Date(Date.now() + 48 * 60 * 60 * 1000 + 60_000));
+    expect(await authUserExists(child.uid)).toBe(false);
+    expect((await consentOf(child.uid))?.status).toBe("closed");
   });
 });
 

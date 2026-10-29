@@ -40,6 +40,7 @@ const accounts: Record<string, string> = {
   dan: "adult",
   mia: "minor_active",
   pete: "minor_pending",
+  fay: "minor_frozen",
 };
 
 const adventure = {
@@ -654,6 +655,12 @@ describe("invites, fx rates and banners", () => {
     await assertFails(
       setDoc(doc(as("alice"), "invites/NEW"), { adventureId: "a1" }),
     );
+  });
+
+  it("a minor whose consent was withdrawn loses access at once (spec §7.3)", async () => {
+    await assertFails(getDoc(doc(as("fay"), "invites/ROAM7KQ2")));
+    await assertFails(getDoc(doc(as("fay"), "fx_rates/2026-12-02")));
+    await assertSucceeds(getDoc(doc(as("fay"), "users/fay")));
   });
 
   it("pending minors can't open invites yet", async () => {

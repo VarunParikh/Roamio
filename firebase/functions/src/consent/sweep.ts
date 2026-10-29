@@ -6,14 +6,14 @@ import { nextConsentAction } from "./rules";
 import { hashToken, newToken } from "./token";
 
 /**
- * Reminds parents on day 3 and 6 and deletes unanswered minors on day 7
- * (spec §7.1 step 3). Only a token's hash is stored, so a reminder carries
+ * Reminds parents on day 3 and 6, deletes unanswered minors on day 7
+ * (spec §7.1 step 3) and deletes withdrawn minors after 48 hours (§7.3). Only a token's hash is stored, so a reminder carries
  * a fresh link that replaces the previous one.
  */
 export async function runConsentSweep(now: Date): Promise<void> {
   const open = await getFirestore()
     .collection("parentalConsents")
-    .where("status", "==", "requested")
+    .where("status", "in", ["requested", "withdrawn"])
     .get();
 
   for (const doc of open.docs) {
@@ -22,6 +22,7 @@ export async function runConsentSweep(now: Date): Promise<void> {
         status: doc.get("status"),
         requestedAt: (doc.get("requestedAt") as Timestamp).toMillis(),
         remindersSent: doc.get("remindersSent") ?? 0,
+        withdrawnAt: (doc.get("withdrawnAt") as Timestamp | undefined)?.toMillis(),
       },
       now.getTime(),
     );
@@ -36,6 +37,10 @@ export async function runConsentSweep(now: Date): Promise<void> {
       logger.info("Parental consent expired", { childUid: doc.id });
       await doc.ref.update({ status: "expired", tokenHash: null });
       await deleteChild(doc.id, "a parent or guardian didn't respond within 7 days");
+    } else if (action === "delete") {
+      logger.info("Deleting child after consent withdrawal", { childUid: doc.id });
+      await doc.ref.update({ status: "closed" });
+      await deleteChild(doc.id, "your parent or guardian withdrew their consent");
     }
   }
 }

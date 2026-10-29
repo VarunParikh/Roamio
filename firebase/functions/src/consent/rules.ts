@@ -4,19 +4,35 @@
 export const CONSENT_DAYS = 7;
 /** Days after the request on which the parent is reminded. */
 export const REMINDER_DAYS = [3, 6];
+/** Hours between a parent withdrawing consent and the child's deletion. */
+export const WITHDRAW_GRACE_HOURS = 48;
 /** Consent emails a child can trigger per day (India date). */
 export const MAX_REQUESTS_PER_DAY = 3;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * HOUR_MS;
 
-export type ConsentTiming = { status: string; requestedAt: number; remindersSent: number };
+export type ConsentTiming = {
+  status: string;
+  requestedAt: number;
+  remindersSent: number;
+  withdrawnAt?: number;
+};
 
 export function isExpired(requestedAt: number, now: number): boolean {
   return now - requestedAt >= CONSENT_DAYS * DAY_MS;
 }
 
 /** What the daily sweep should do with one consent request at [now]. */
-export function nextConsentAction(c: ConsentTiming, now: number): "remind" | "expire" | null {
+export function nextConsentAction(
+  c: ConsentTiming,
+  now: number,
+): "remind" | "expire" | "delete" | null {
+  if (c.status === "withdrawn") {
+    return c.withdrawnAt !== undefined && now - c.withdrawnAt >= WITHDRAW_GRACE_HOURS * HOUR_MS
+      ? "delete"
+      : null;
+  }
   if (c.status !== "requested") return null;
   if (isExpired(c.requestedAt, now)) return "expire";
   const daysWaiting = (now - c.requestedAt) / DAY_MS;

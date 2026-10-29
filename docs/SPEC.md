@@ -216,7 +216,7 @@ Roamio may serve users aged **13–17** only after a parent or lawful guardian g
 1. **Age detected:** at sign-up the date of birth shows the user is under 18. The account is created in state `pending_parental_consent`, storing only name, email, date of birth and auth ID.
 2. **Waiting screen:** the minor sees "Almost there! A parent or guardian needs to say yes." with one field: parent/guardian email (+ relationship). It must differ from the minor's email.
 3. **Consent request:** a Cloud Function emails the parent a single-use, signed link (valid **7 days**). Reminders are sent on day 3 and day 6. The minor can resend (max 3 per day) or change the parent email.
-4. **Parent verification:** the link opens the consent page (Hosting, or the app if installed). The parent must **sign in or create a Roamio account** with a verified email and a date of birth showing they are **18 or older** — reliable identity and age details held by the Data Fiduciary, as Rule 10 allows. The page states that falsely claiming to be the guardian is an offence.
+4. **Parent verification:** the link opens the app if installed; otherwise a Hosting page explains the request and offers the app. *(Pilot: the decision is always made in the app, since the parent needs a Roamio account anyway.)* The parent must **sign in or create a Roamio account** with a verified email and a date of birth showing they are **18 or older** — reliable identity and age details held by the Data Fiduciary, as Rule 10 allows. The page states that falsely claiming to be the guardian is an offence.
 5. **Notice & decision:** the parent sees the child-specific notice (what's collected, why, protections below, how to withdraw) and taps **I give consent** or **Decline**.
 6. **Record:** a `parentalConsents/{childUid}` record stores parent UID, child UID, notice version, verification method, timestamp and decision. It is kept for the life of the account plus 1 year and is never editable by the child.
 7. **Outcome:**
@@ -233,7 +233,7 @@ Roamio may serve users aged **13–17** only after a parent or lawful guardian g
 
 - See each linked child: status, date of consent.
 - **Withdraw consent:** the child's account is frozen at once and deleted after a 48 h grace period (the child is notified). Tabs they were part of remain for the squad as "Deleted user".
-- **Download the child's data** and **request correction**.
+- **Download the child's data** and **request correction** (uses the data export from Task 35).
 
 ### 7.4 Turning 18
 

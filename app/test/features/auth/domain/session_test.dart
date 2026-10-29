@@ -66,6 +66,19 @@ void main() {
     );
   });
 
+  test('a minor whose consent was withdrawn is paused (spec §7.3)', () {
+    expect(
+      stageFor(
+        const SessionFacts(
+          uid: 'u',
+          hasAccount: true,
+          ageStatus: 'minor_frozen',
+        ),
+      ),
+      SessionStage.paused,
+    );
+  });
+
   group('redirectFor', () {
     test('sends each stage to its screen', () {
       expect(redirectFor(SessionStage.loading, '/home'), '/splash');
@@ -80,6 +93,7 @@ void main() {
         redirectFor(SessionStage.awaitingConsent, '/home'),
         '/consent-pending',
       );
+      expect(redirectFor(SessionStage.paused, '/home'), '/account-paused');
       expect(redirectFor(SessionStage.ready, '/login'), '/home');
       expect(redirectFor(SessionStage.ready, '/splash'), '/home');
     });
@@ -94,6 +108,11 @@ void main() {
       expect(redirectFor(SessionStage.ready, '/you'), isNull);
     });
 
+    test('the consent page is only for signed-in, ready users', () {
+      expect(redirectFor(SessionStage.ready, '/consent'), isNull);
+      expect(redirectFor(SessionStage.signedOut, '/consent'), '/login');
+    });
+
     test('never lets an unfinished account reach the app', () {
       for (final stage in [
         SessionStage.signedOut,
@@ -101,11 +120,58 @@ void main() {
         SessionStage.needsProfile,
         SessionStage.settingUp,
         SessionStage.awaitingConsent,
+        SessionStage.paused,
       ]) {
         for (final tab in ['/home', '/split', '/you']) {
           expect(redirectFor(stage, tab), isNotNull, reason: '$stage at $tab');
         }
       }
+    });
+  });
+
+  group('resolveRoute (deep links survive sign-in)', () {
+    final link = Uri.parse('/consent?c=mia&t=abc');
+
+    test('remembers a consent link while the parent signs in', () {
+      final r = resolveRoute(SessionStage.signedOut, link, pending: null);
+      expect(r.redirect, '/login');
+      expect(r.pending, link.toString());
+    });
+
+    test('keeps remembering it through the sign-in screens', () {
+      final r = resolveRoute(
+        SessionStage.verifyEmail,
+        Uri.parse('/login'),
+        pending: link.toString(),
+      );
+      expect(r.redirect, '/verify-email');
+      expect(r.pending, link.toString());
+    });
+
+    test('opens it once the parent is ready, then forgets it', () {
+      final r = resolveRoute(
+        SessionStage.ready,
+        Uri.parse('/home'),
+        pending: link.toString(),
+      );
+      expect(r.redirect, link.toString());
+      expect(r.pending, isNull);
+    });
+
+    test('ready users open the link directly', () {
+      final r = resolveRoute(SessionStage.ready, link, pending: null);
+      expect(r.redirect, isNull);
+      expect(r.pending, isNull);
+    });
+
+    test('ordinary routes are not remembered', () {
+      final r = resolveRoute(
+        SessionStage.signedOut,
+        Uri.parse('/split'),
+        pending: null,
+      );
+      expect(r.redirect, '/login');
+      expect(r.pending, isNull);
     });
   });
 }
