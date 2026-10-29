@@ -133,6 +133,7 @@ class NewTab {
     required this.participants,
     this.percentBp,
     this.location,
+    this.basedOn,
   });
 
   final String description;
@@ -148,6 +149,10 @@ class NewTab {
 
   /// Where it happened, if an adult chose to add it (spec UC-21, §7.2).
   final MapPoint? location;
+
+  /// On an edit: the saved version being edited, so the server can tell if
+  /// this edit replaced a newer one (spec UC-32).
+  final DateTime? basedOn;
 
   /// Rates from the tab's own day convert it, so totals never shift (§9.1).
   String get fxDate => isoDate(date);

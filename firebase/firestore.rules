@@ -149,7 +149,9 @@ service cloud.firestore {
           let t = incoming();
           return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
-                   'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted'])
+                   'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
+                   'baseUpdatedAt'])
+            && t.get('baseUpdatedAt', request.time) is timestamp
             && t.amountMinor is int && t.amountMinor > 0
             && isCurrency(t.currency)
             && isDate(t.date) && isDate(t.fxDate)

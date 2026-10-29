@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getFirestore } from "../support/admin";
-import { tabProblem } from "../../functions/src/tabs/checkTab";
+import { getFirestore, Timestamp } from "../support/admin";
+import { tabProblem, replacedEdit } from "../../functions/src/tabs/checkTab";
 import { adventure, person } from "../support/callable";
 
 const db = () => getFirestore();
@@ -154,5 +154,49 @@ describe("tabProblem when a tab is edited", () => {
   it("won't add someone who has left to a tab", () => {
     const before = tab("ari", { participants: ["ari"] });
     expect(tabProblem(t, new Set(["ari"]), isMember, before)).toContain("squad");
+  });
+});
+
+describe("replacedEdit (spec UC-32)", () => {
+  const at = (s: number) => Timestamp.fromMillis(s * 1000);
+
+  it("flags an edit made from an older version than the one it replaced", () => {
+    expect(replacedEdit({ updatedAt: at(5) }, { updatedAt: at(9), baseUpdatedAt: at(3) })).toBe(true);
+  });
+
+  it("is quiet when the edit was based on the version it replaced", () => {
+    expect(replacedEdit({ updatedAt: at(5) }, { updatedAt: at(9), baseUpdatedAt: at(5) })).toBe(false);
+  });
+
+  it("is quiet without a base (made offline twice) or a previous version (new tab)", () => {
+    expect(replacedEdit({ updatedAt: at(5) }, { updatedAt: at(9) })).toBe(false);
+    expect(replacedEdit(undefined, { updatedAt: at(9), baseUpdatedAt: at(3) })).toBe(false);
+  });
+
+  it("ignores writes that did not change updatedAt, such as a photo link", () => {
+    expect(replacedEdit({ updatedAt: at(5) }, { updatedAt: at(5), baseUpdatedAt: at(3) })).toBe(false);
+  });
+});
+
+describe("a replaced edit is logged (spec UC-32)", () => {
+  it("writes tab_edit_replaced once, and none for a normal edit", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { updatedAt: Timestamp.fromMillis(5000) }));
+    await eventually(async () => {
+      expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).toBe(true);
+    });
+
+    // based on the version it replaces: nothing to say
+    await ref.update({ amountMinor: 80000, payers: [{ id: ari.uid, amountMinor: 80000 }],
+      updatedAt: Timestamp.fromMillis(6000), baseUpdatedAt: Timestamp.fromMillis(5000) });
+    // based on an older version: it overwrote someone's change
+    await ref.update({ amountMinor: 70000, payers: [{ id: ari.uid, amountMinor: 70000 }],
+      updatedAt: Timestamp.fromMillis(7000), baseUpdatedAt: Timestamp.fromMillis(5000) });
+
+    await eventually(async () => {
+      const log = await db().collection(`adventures/${id}/activity`).where("subject", "==", ref.id).get();
+      expect(log.docs.map((d) => [d.get("type"), d.get("actorUid")])).toEqual([["tab_edit_replaced", ari.uid]]);
+    });
   });
 });

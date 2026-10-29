@@ -1,4 +1,4 @@
-import { FieldValue, getFirestore, type DocumentData } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, type DocumentData, type Timestamp } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/firestore";
 import { logger } from "firebase-functions";
 
@@ -57,6 +57,19 @@ export function tabProblem(
   return null;
 }
 
+/**
+ * True when [after] is an edit made from an older version than the one it
+ * replaced (spec UC-32: last write wins, but the squad is told). Only writes
+ * that moved `updatedAt` count, so attaching a photo link never trips it.
+ */
+export function replacedEdit(before?: DocumentData, after?: DocumentData): boolean {
+  const base = after?.baseUpdatedAt as Timestamp | undefined;
+  const was = before?.updatedAt as Timestamp | undefined;
+  const now = after?.updatedAt as Timestamp | undefined;
+  if (!base || !was || !now || now.isEqual(was)) return false;
+  return !base.isEqual(was);
+}
+
 export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (event) => {
   const after = event.data?.after;
   const tab = after?.data();
@@ -82,7 +95,17 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const pals = await adventureRef.collection("pals").where("status", "==", "active").get();
   const active = new Set([...members, ...pals.docs.map((p) => p.id)]);
   const problem = tabProblem(tab, active, (id) => members.includes(id), event.data?.before?.data());
-  if (!problem) return;
+  if (!problem) {
+    if (replacedEdit(event.data?.before?.data(), tab)) {
+      await adventureRef.collection("activity").add({
+        type: "tab_edit_replaced",
+        actorUid: tab.createdBy,
+        subject: event.params.tid,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    return;
+  }
 
   logger.warn("Rejected tab", { adventure: event.params.aid, tab: event.params.tid, problem });
   const batch = db().batch();
