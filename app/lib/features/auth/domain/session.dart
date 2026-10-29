@@ -109,8 +109,10 @@ String? redirectFor(SessionStage stage, String location) {
   };
 }
 
-/// Links that should still open after the person signs in.
-const Set<String> _deepLinkRoutes = {AuthRoutes.consent};
+/// Links that should still open after the person signs in: parental
+/// consent and squad invites (`/i/<code>`).
+bool _isDeepLink(String path) =>
+    path == AuthRoutes.consent || path.startsWith('/i/');
 
 /// Like [redirectFor], but remembers a deep link ([pending]) while someone
 /// signs in, and opens it once they're ready.
@@ -124,6 +126,6 @@ const Set<String> _deepLinkRoutes = {AuthRoutes.consent};
     final open = pending != null && pending != uri.toString();
     return (redirect: open ? pending : redirect, pending: null);
   }
-  final remember = _deepLinkRoutes.contains(uri.path) && redirect != null;
+  final remember = _isDeepLink(uri.path) && redirect != null;
   return (redirect: redirect, pending: remember ? uri.toString() : pending);
 }

@@ -16,6 +16,7 @@ class Adventure {
     this.city = '',
     this.bannerUrl,
     this.coLeadUids = const [],
+    this.activeInviteCode,
   });
 
   final String id;
@@ -30,6 +31,9 @@ class Adventure {
   final String leaderUid;
   final List<String> coLeadUids;
   final List<String> memberUids;
+
+  /// The current invite code, if a lead has shared one (server-set).
+  final String? activeInviteCode;
 
   bool isLead(String uid) => uid == leaderUid || coLeadUids.contains(uid);
 
