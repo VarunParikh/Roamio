@@ -6,6 +6,9 @@ class FakePhotoPipeline implements PhotoPipeline {
   final List<bool> picks = [];
   final List<String> queued = [];
 
+  /// The size class of each queued photo, in the same order as [queued].
+  final List<PhotoKind> kinds = [];
+
   /// When true, the next pick is cancelled.
   bool cancelNext = false;
 
@@ -27,5 +30,8 @@ class FakePhotoPipeline implements PhotoPipeline {
     required String docPath,
     required String field,
     required UploadMode mode,
-  }) async => queued.add('$path -> $storageDir ($docPath.$field ${mode.name})');
+  }) async {
+    queued.add('$path -> $storageDir ($docPath.$field ${mode.name})');
+    kinds.add(kind);
+  }
 }

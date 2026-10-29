@@ -19,6 +19,7 @@ import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/notifications/data/notification_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/main.dart';
 
@@ -29,6 +30,7 @@ import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
 import 'fake_photo_pipeline.dart';
+import 'fake_receipt_scanner.dart';
 import 'fake_squad_service.dart';
 import 'fake_tab_service.dart';
 
@@ -147,6 +149,8 @@ Future<void> pumpRoamio(
   FakeNotificationService? notifications,
   FakePhotoPipeline? photos,
   FakeLocationService? location,
+  FakeReceiptScanner? scanner,
+  bool ocrEnabled = true,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -165,6 +169,10 @@ Future<void> pumpRoamio(
         locationServiceProvider.overrideWithValue(
           location ?? FakeLocationService(),
         ),
+        receiptScannerProvider.overrideWithValue(
+          scanner ?? FakeReceiptScanner(),
+        ),
+        ocrEnabledProvider.overrideWithValue(ocrEnabled),
         bannerServiceProvider.overrideWithValue(banners ?? FakeBannerService()),
         openLinkProvider.overrideWithValue(
           (uri) async => openedLinks?.add(uri),
