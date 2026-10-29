@@ -82,6 +82,8 @@ export async function dropMember(
   tx.update(ref, {
     memberUids: FieldValue.arrayRemove(memberUid),
     coLeadUids: FieldValue.arrayRemove(memberUid),
+    // Lets them still find it for a data download (spec UC-29).
+    ...(keep ? { leftUids: FieldValue.arrayUnion(memberUid) } : {}),
   });
   if (keep) tx.set(member, { role: "member", status: "left" }, { merge: true });
   else tx.delete(member);

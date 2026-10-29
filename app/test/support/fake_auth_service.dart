@@ -16,6 +16,8 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/home/data/weather_client.dart';
+import 'package:roamio/features/home/data/weather_provider.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
@@ -176,6 +178,8 @@ Future<void> pumpRoamio(
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
   FakePrivacyService? privacy,
+  FetchJson? weatherFetch,
+  bool weatherEnabled = true,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -230,6 +234,11 @@ Future<void> pumpRoamio(
         ),
         networkSwitchProvider.overrideWithValue(network ?? FakeNetworkSwitch()),
         photoFlushProvider.overrideWithValue(() async {}),
+        // Never the real network: unavailable unless a test answers.
+        weatherClientProvider.overrideWithValue(
+          WeatherClient(weatherFetch ?? (_) async => throw Exception('no web')),
+        ),
+        weatherEnabledProvider.overrideWithValue(weatherEnabled),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
         ),
