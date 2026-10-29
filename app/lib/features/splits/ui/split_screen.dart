@@ -15,6 +15,7 @@ import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
+import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/splits/ui/settle_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
@@ -162,6 +163,16 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
           ),
         ),
         const SizedBox(height: 16),
+        if (!empty && ref.watch(exportEnabledProvider))
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () =>
+                  showExportSheet(context, ref, adventure: a, report: r),
+              icon: const Icon(Icons.ios_share),
+              label: const Text('Export'),
+            ),
+          ),
         if (empty) ...[
           Text(
             'No tabs yet in ${a.name}.',

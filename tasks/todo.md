@@ -205,10 +205,11 @@ Common verification commands:
   - Verify: rules tests (who may record); split-engine test that settling all transfers gives all square.
   - Files: `app/lib/features/splits/ui/settle_sheet.dart`, `firebase/firestore.rules`, tests
 
-- [ ] **Task 31: Export PDF and Excel** — S · Deps: 29 · UC-27
+- [x] **Task 31: Export PDF and Excel** — S · Deps: 29 · UC-27
   - Acceptance: PDF and XLSX with summary, transfers, full tab list; shared via share sheet; no location in a minor's export.
   - Verify: unit test opens generated XLSX and checks totals; manual open of PDF.
   - Files: `app/lib/features/splits/data/export_service.dart`, tests
+  - Done: amounts in the trip currency; PDF uses currency codes (built-in font has no ₹/฿) and won't render Thai/Hindi descriptions; `export_enabled` in-app default until Task 37. Manual open of a real PDF still to do (owner).
 
 ### ✅ Checkpoint 4 — Journey C passes manually
 - [ ] Mixed-currency, multi-payer, custom-% trip with a pal is correct and can be settled to all square · [ ] Owner approves

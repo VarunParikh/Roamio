@@ -25,6 +25,7 @@ import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/notifications/data/firebase_notification_service.dart';
 import 'package:roamio/features/notifications/data/notification_service.dart';
+import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/firebase_squad_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
@@ -84,6 +85,11 @@ Future<void> main() async {
             FirebaseAuth.instance,
             FirebaseFirestore.instance,
             FirebaseMessaging.instance,
+          ),
+        ),
+        shareFilesProvider.overrideWithValue(
+          (files, names) => SharePlus.instance.share(
+            ShareParams(files: files, fileNameOverrides: names),
           ),
         ),
         shareTextProvider.overrideWithValue(
