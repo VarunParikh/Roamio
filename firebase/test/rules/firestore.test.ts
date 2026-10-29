@@ -513,6 +513,57 @@ describe("pals", () => {
     await assertFails(deleteDoc(doc(as("alice"), "adventures/a1/pals/kiko")));
   });
 
+  it("only leads remove or rename pals (spec UC-16, UC-18)", async () => {
+    await assertSucceeds(
+      updateDoc(doc(as("cara"), "adventures/a1/pals/kiko"), {
+        status: "left",
+      }),
+    );
+    for (const who of ["bob", "mia", "dan", "pete"]) {
+      await assertFails(
+        updateDoc(doc(as(who), "adventures/a1/pals/kiko"), { status: "left" }),
+      );
+      await assertFails(
+        updateDoc(doc(as(who), "adventures/a1/pals/kiko"), { nickname: "K" }),
+      );
+    }
+  });
+
+  it("outsiders can't add pals, and nicknames are 1-30 characters", async () => {
+    await assertFails(
+      setDoc(doc(as("dan"), "adventures/a1/pals/lu"), {
+        ...pal,
+        addedBy: "dan",
+      }),
+    );
+    await assertFails(
+      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), { ...pal, nickname: "" }),
+    );
+    await assertFails(
+      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), {
+        ...pal,
+        nickname: "x".repeat(31),
+      }),
+    );
+    await assertFails(
+      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), {
+        ...pal,
+        addedBy: "alice",
+      }),
+    );
+    await assertFails(
+      setDoc(doc(as("cara"), "adventures/a1/pals/lu"), {
+        ...pal,
+        status: "left",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1/pals/kiko"), {
+        addedBy: "cara",
+      }),
+    );
+  });
+
   it("members can read pals", async () => {
     await assertSucceeds(getDocs(collection(as("bob"), "adventures/a1/pals")));
     await assertFails(getDocs(collection(as("dan"), "adventures/a1/pals")));

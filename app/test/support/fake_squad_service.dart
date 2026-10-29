@@ -55,6 +55,47 @@ class FakeSquadService implements SquadService {
     for (final uid in uids) uid: names[uid] ?? uid,
   };
 
+  /// Active pals per adventure.
+  final Map<String, List<Pal>> palsByAdventure = {};
+  final _palChanges = StreamController<void>.broadcast();
+  int _nextPal = 0;
+
+  List<Pal> _palsOf(String adventureId) =>
+      palsByAdventure.putIfAbsent(adventureId, () => []);
+
+  @override
+  Stream<List<Pal>> pals(String adventureId) async* {
+    yield [..._palsOf(adventureId)];
+    yield* _palChanges.stream.map((_) => [..._palsOf(adventureId)]);
+  }
+
+  @override
+  Future<void> addPal(String adventureId, String nickname) async {
+    calls.add('addPal:$adventureId/$nickname');
+    _palsOf(adventureId).add(Pal(id: 'pal${++_nextPal}', nickname: nickname));
+    _palChanges.add(null);
+  }
+
+  @override
+  Future<void> renamePal(
+    String adventureId,
+    String palId,
+    String nickname,
+  ) async {
+    calls.add('renamePal:$palId/$nickname');
+    final pals = _palsOf(adventureId);
+    final i = pals.indexWhere((p) => p.id == palId);
+    pals[i] = Pal(id: palId, nickname: nickname);
+    _palChanges.add(null);
+  }
+
+  @override
+  Future<void> removePal(String adventureId, String palId) async {
+    calls.add('removePal:$palId');
+    _palsOf(adventureId).removeWhere((p) => p.id == palId);
+    _palChanges.add(null);
+  }
+
   Future<void> _act(String call, String adventureId, String memberUid) async {
     calls.add(call);
     final message = failNext;

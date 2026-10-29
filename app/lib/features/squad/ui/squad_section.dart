@@ -6,11 +6,13 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/pals.dart';
 
 enum _Action { makeCoLead, makeMember, makeLeader, remove }
 
-/// The squad on an adventure (spec UC-15 to UC-17): everyone with their
-/// role, a 🎩 on leads, the actions the viewer's role allows, and Leave.
+/// The squad on an adventure (spec UC-15 to UC-18): everyone with their
+/// role, a 🎩 on leads, pals with a Pal badge, the actions the viewer's
+/// role allows, and Leave.
 class SquadSection extends ConsumerWidget {
   const new({required this.adventure, required this.myUid, super.key});
 
@@ -47,11 +49,13 @@ class SquadSection extends ConsumerWidget {
     final uids = adventure.memberUids;
     final names = ref.watch(squadNamesProvider(uids.join(','))).value ?? {};
     String nameOf(String uid) => names[uid] ?? '…';
+    final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
+    final iLead = adventure.isLead(myUid);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Squad (${uids.length})', style: text.headlineSmall),
+        Text('Squad (${uids.length + pals.length})', style: text.headlineSmall),
         const SizedBox(height: 8),
         for (final uid in uids)
           _MemberTile(
@@ -61,6 +65,21 @@ class SquadSection extends ConsumerWidget {
             actions: _actionsOn(uid),
             onAction: (action) => _run(context, ref, action, uid, nameOf(uid)),
           ),
+        for (final pal in pals)
+          PalTile(
+            adventure: adventure,
+            pal: pal,
+            canManage: iLead,
+            allPals: pals,
+          ),
+        if (iLead) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => _addPal(context, ref, pals),
+            icon: const Icon(Icons.person_add_alt),
+            label: const Text('Add pal'),
+          ),
+        ],
         const SizedBox(height: 8),
         TextButton(
           onPressed: () => _leave(context, ref),
@@ -119,6 +138,22 @@ class SquadSection extends ConsumerWidget {
       if (context.mounted) showAuthMessage(context, done);
     } on SquadException catch (e) {
       if (context.mounted) showAuthMessage(context, e.message);
+    }
+  }
+
+  Future<void> _addPal(
+    BuildContext context,
+    WidgetRef ref,
+    List<Pal> pals,
+  ) async {
+    final name = await askPalNickname(
+      context,
+      title: 'Add a pal',
+      action: 'Add',
+      taken: [for (final p in pals) p.nickname],
+    );
+    if (name != null) {
+      await ref.read(squadServiceProvider).addPal(adventure.id, name);
     }
   }
 
