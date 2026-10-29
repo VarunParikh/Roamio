@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/ui/primary_button.dart';
+import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 
 import '../../support/fake_auth_service.dart';
 import '../../support/fake_consent_service.dart';
@@ -17,8 +19,9 @@ Future<FakeAuthService> _openPrivacy(
   FakeProfileService? profile,
   SharedFiles? sharedFiles,
   FakeConnectivity? connectivity,
+  SessionFacts facts = readyFacts,
 }) async {
-  final auth = FakeAuthService(initial: readyFacts);
+  final auth = FakeAuthService(initial: facts);
   await pumpRoamio(
     tester,
     auth,
@@ -206,6 +209,74 @@ void main() {
         find.widgetWithText(SwitchListTile, 'Notifications'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('an adult nominates a person, then removes them', (
+      tester,
+    ) async {
+      final profile = FakeProfileService();
+      await _openPrivacy(tester, profile: profile);
+
+      await _tapVisible(tester, _button('Choose a person'));
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Their name'),
+        '  Sam Rao ',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Their email'),
+        'sam@example.com',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(profile.nomineeSaved, [
+        const Nominee(name: 'Sam Rao', email: 'sam@example.com'),
+      ]);
+      expect(find.textContaining('Sam Rao'), findsOneWidget);
+
+      await _tapVisible(tester, find.widgetWithText(TextButton, 'Remove'));
+      expect(profile.nomineeSaved.last, isNull);
+      expect(find.textContaining('No one yet'), findsOneWidget);
+    });
+
+    testWidgets('a nominee needs a name and a real email address', (
+      tester,
+    ) async {
+      final profile = FakeProfileService();
+      await _openPrivacy(tester, profile: profile);
+
+      await _tapVisible(tester, _button('Choose a person'));
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Their email'),
+        'sam-at-example',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add their name.'), findsOneWidget);
+      expect(find.text('Check the email address.'), findsOneWidget);
+      expect(profile.nomineeSaved, isEmpty);
+    });
+
+    testWidgets('under-18s are told a parent acts for them instead (§7)', (
+      tester,
+    ) async {
+      await _openPrivacy(
+        tester,
+        facts: const SessionFacts(
+          uid: 'mia',
+          hasAccount: true,
+          ageStatus: 'minor_active',
+        ),
+      );
+
+      await tester.scrollUntilVisible(
+        find.text('Nominate a person'),
+        300,
+        scrollable: _topList,
+      );
+      expect(find.textContaining('parent or guardian'), findsWidgets);
+      expect(_button('Choose a person'), findsNothing);
     });
 
     testWidgets('shows how to correct data, nominate, and raise a concern', (
