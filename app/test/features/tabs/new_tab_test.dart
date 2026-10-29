@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
+import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 
 final _trip = Adventure(
@@ -25,6 +26,8 @@ void main() {
     String? category = 'food_dining',
     List<String> participants = const ['ari', 'bob'],
     DateTime? on,
+    Map<String, String>? payers,
+    Map<String, String>? percents,
   }) => tabProblems(
     adventure: _trip,
     amountText: amount,
@@ -33,6 +36,8 @@ void main() {
     today: on ?? today,
     category: category,
     participants: participants,
+    payerTexts: payers,
+    percentTexts: percents,
   );
 
   group('tabProblems (spec UC-21)', () {
@@ -66,6 +71,76 @@ void main() {
     });
   });
 
+  group('split payment (UC-21: payers must total the amount)', () {
+    test('payer amounts that add up are fine; blanks mean not paying', () {
+      expect(check(payers: {'ari': '700', 'bob': '500', 'cara': ''}), isEmpty);
+    });
+
+    test('anything else is a problem', () {
+      expect(check(payers: {'ari': '700', 'bob': '400'}), {
+        TabProblem.paymentsDontAddUp,
+      });
+      expect(check(payers: {'ari': '1,200', 'bob': 'x'}), {
+        TabProblem.paymentsDontAddUp,
+      });
+      expect(check(payers: {'ari': '', 'bob': ''}), {
+        TabProblem.paymentsDontAddUp,
+      });
+      expect(check(payers: {'ari': '1,200', 'bob': '0'}), isEmpty);
+    });
+
+    test('payersFrom keeps only people who paid something', () {
+      expect(
+        payersFrom({
+          'ari': '700',
+          'bob': '',
+          'cara': '0',
+          'dan': '500',
+        }, 'THB').map((p) => (p.payer, p.amountMinor)),
+        [('ari', 70000), ('dan', 50000)],
+      );
+    });
+  });
+
+  group('custom % (UC-21: must total exactly 100.00%)', () {
+    test('percentages that make 100% are fine', () {
+      expect(check(percents: {'ari': '66.67', 'bob': '33.33'}), isEmpty);
+    });
+
+    test('anything else is a problem', () {
+      expect(check(percents: {'ari': '60', 'bob': '30'}), {
+        TabProblem.percentagesDontAddUp,
+      });
+      expect(check(percents: {'ari': '100', 'bob': '0'}), {
+        TabProblem.percentagesDontAddUp,
+      });
+      expect(check(percents: {'ari': '100'}), {
+        TabProblem.percentagesDontAddUp,
+      });
+    });
+
+    test('parsePercent reads up to 2 decimals into basis points', () {
+      expect(parsePercent('33.33'), 3333);
+      expect(parsePercent(' 50 '), 5000);
+      expect(parsePercent('100'), 10000);
+      expect(parsePercent('0.01'), 1);
+      for (final bad in ['', '33.333', '-5', '100.01', 'abc', '1,5']) {
+        expect(parsePercent(bad), isNull, reason: bad);
+      }
+    });
+
+    test('formatBasisPoints shows them back', () {
+      expect(formatBasisPoints(3333), '33.33%');
+      expect(formatBasisPoints(10000), '100%');
+      expect(formatBasisPoints(5050), '50.5%');
+      expect(formatBasisPoints(0), '0%');
+    });
+
+    test('equalPercents splits 100% with the spare going first', () {
+      expect(equalPercents(['a', 'b', 'c']), {'a': 3334, 'b': 3333, 'c': 3333});
+    });
+  });
+
   group('NewTab', () {
     NewTab tab({String amount = '1,000.01'}) => NewTab(
       description: '  Dinner at Jay Fai ',
@@ -73,7 +148,7 @@ void main() {
       amountMinor: parseAmount(amount, 'THB')!,
       currency: 'THB',
       date: DateTime(2026, 10, 24),
-      payer: 'ari',
+      payers: [Payment('ari', parseAmount(amount, 'THB')!)],
       participants: const ['ari', 'bob', 'kiko'],
     );
 
@@ -90,6 +165,26 @@ void main() {
     test('your share is your equal part, or zero if not sharing', () {
       expect(tab(amount: '90').shareOf('bob'), 3000);
       expect(tab(amount: '90').shareOf('cara'), 0);
+    });
+
+    test('custom percentages and several payers split exactly', () {
+      final split = NewTab(
+        description: '',
+        category: 'food_dining',
+        amountMinor: 300000,
+        currency: 'INR',
+        date: DateTime(2026, 10, 24),
+        payers: const [Payment('ari', 200000), Payment('ben', 100000)],
+        participants: const ['ari', 'ben', 'kiko'],
+        percentBp: const {'ari': 5000, 'ben': 2500, 'kiko': 2500},
+      );
+      // Spec §6 worked example.
+      expect(split.shareOf('kiko'), 75000);
+      expect(netsFor(split.split), {
+        'ari': 50000,
+        'ben': 25000,
+        'kiko': -75000,
+      });
     });
   });
 }

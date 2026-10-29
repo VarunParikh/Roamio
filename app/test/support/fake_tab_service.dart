@@ -17,7 +17,7 @@ class FakeTabService implements TabService {
           description: t.description.trim(),
           category: t.category,
           date: t.date,
-          createdBy: t.payer,
+          createdBy: t.payers.first.payer,
           split: t.split,
           location: t.location,
         ),

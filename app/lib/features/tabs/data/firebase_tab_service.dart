@@ -39,10 +39,11 @@ class FirebaseTabService implements TabService {
       'date': isoDate(tab.date),
       'fxDate': tab.fxDate,
       'payers': [
-        {'id': tab.payer, 'amountMinor': tab.amountMinor},
+        for (final p in tab.payers)
+          {'id': p.payer, 'amountMinor': p.amountMinor},
       ],
       'participants': tab.participants,
-      'percentBp': null,
+      'percentBp': tab.percentBp,
       'memories': <String>[],
       if (tab.location case final p?) 'location': {'lat': p.lat, 'lng': p.lng},
       'createdBy': _auth.currentUser!.uid,
