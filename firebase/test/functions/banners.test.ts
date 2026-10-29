@@ -76,9 +76,16 @@ beforeAll(async () => {
 
 afterAll(() => new Promise<void>((r) => mock.close(() => r())));
 
-beforeEach(() => {
+beforeEach(async () => {
   requests = [];
   mode = "hit";
+  // Other test files may leave banners behind (the rules tests seed
+  // banners/TH); start each test with none cached for our countries.
+  await Promise.all(
+    ["TH", "JP", "IS", "PE", "FR"].map((c) =>
+      getFirestore().doc(`banners/${c}`).delete(),
+    ),
+  );
 });
 
 async function getBanner(countryCode: string, auth = true) {
