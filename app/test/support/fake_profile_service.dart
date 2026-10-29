@@ -9,18 +9,21 @@ class FakeProfileService implements ProfileService {
     this.profile = const Profile(name: 'Ari Chen', bio: 'Always lost'),
     this.location = false,
     this.camera = true,
+    this.nominee,
   });
 
   String currency;
   Profile profile;
   bool location;
   bool camera;
+  Nominee? nominee;
 
   /// Each save as "name | bio".
   final List<String> saved = [];
   final List<String> currencySaved = [];
   final List<bool> locationSaved = [];
   final List<bool> cameraSaved = [];
+  final List<Nominee?> nomineeSaved = [];
   final _changes = StreamController<void>.broadcast();
 
   Stream<T> _live<T>(T Function() read) async* {
@@ -65,6 +68,16 @@ class FakeProfileService implements ProfileService {
   Future<void> setCameraAllowed({required bool allowed}) async {
     cameraSaved.add(allowed);
     camera = allowed;
+    _changes.add(null);
+  }
+
+  @override
+  Stream<Nominee?> nomineeStream() => _live(() => nominee);
+
+  @override
+  Future<void> setNominee(Nominee? value) async {
+    nomineeSaved.add(value);
+    nominee = value;
     _changes.add(null);
   }
 }

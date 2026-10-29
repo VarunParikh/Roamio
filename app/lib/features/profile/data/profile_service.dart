@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meta/meta.dart';
 
 /// What the squad sees of a person (spec UC-28).
 class Profile {
@@ -11,6 +12,26 @@ class Profile {
   final String name;
   final String bio;
   final String? photoUrl;
+}
+
+/// Someone an adult names to use their privacy rights if they can't
+/// (spec UC-29, DPDP §14).
+@immutable
+class Nominee {
+  const new({required this.name, required this.email});
+
+  final String name;
+  final String email;
+
+  @override
+  bool operator ==(Object other) =>
+      other is Nominee && other.name == name && other.email == email;
+
+  @override
+  int get hashCode => Object.hash(name, email);
+
+  @override
+  String toString() => 'Nominee($name, $email)';
 }
 
 /// The signed-in person's profile and private settings (spec UC-28).
@@ -36,6 +57,12 @@ abstract interface class ProfileService {
   Stream<bool> cameraAllowed();
 
   Future<void> setCameraAllowed({required bool allowed});
+
+  /// Their nominee, or null when they haven't named one. Adults only.
+  Stream<Nominee?> nomineeStream();
+
+  /// Names, changes or (with null) removes their nominee.
+  Future<void> setNominee(Nominee? nominee);
 }
 
 /// Overridden in tests; reads the signed-in person's account otherwise.
@@ -58,6 +85,10 @@ final locationAllowedProvider = StreamProvider<bool>(
 
 final cameraAllowedProvider = StreamProvider<bool>(
   (ref) => ref.watch(profileServiceProvider).cameraAllowed(),
+);
+
+final nomineeProvider = StreamProvider<Nominee?>(
+  (ref) => ref.watch(profileServiceProvider).nomineeStream(),
 );
 
 class FirebaseProfileService implements ProfileService {
@@ -139,5 +170,24 @@ class FirebaseProfileService implements ProfileService {
   @override
   Future<void> setCameraAllowed({required bool allowed}) async {
     _account?.update({'consents.camera': allowed}).ignore();
+  }
+
+  @override
+  Stream<Nominee?> nomineeStream() =>
+      _account?.snapshots().map((s) {
+        final n = s.data()?['nominee'] as Map?;
+        return n == null
+            ? null
+            : Nominee(name: n['name'] as String, email: n['email'] as String);
+      }) ??
+      const Stream.empty();
+
+  @override
+  Future<void> setNominee(Nominee? nominee) async {
+    _account?.update({
+      'nominee': nominee == null
+          ? null
+          : {'name': nominee.name, 'email': nominee.email},
+    }).ignore();
   }
 }
