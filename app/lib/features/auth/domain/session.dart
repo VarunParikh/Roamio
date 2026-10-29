@@ -9,6 +9,9 @@ enum SessionStage {
 
   /// A parent withdrew consent; the account is deleted after 48 hours.
   paused,
+
+  /// Turned 18; must accept the adult privacy notice (spec §7.4).
+  confirmAdult,
   ready,
 }
 
@@ -52,6 +55,7 @@ SessionStage stageFor(SessionFacts f) {
     'adult' || 'minor_active' => SessionStage.ready,
     'minor_pending' => SessionStage.awaitingConsent,
     'minor_frozen' => SessionStage.paused,
+    'adult_unconfirmed' => SessionStage.confirmAdult,
     _ => SessionStage.settingUp,
   };
 }
@@ -65,6 +69,7 @@ abstract final class AuthRoutes {
   static const completeProfile = '/complete-profile';
   static const consentPending = '/consent-pending';
   static const accountPaused = '/account-paused';
+  static const confirmAdult = '/welcome-adult';
 
   /// A parent's consent link: `/consent?c=<childUid>&t=<token>` (spec §7.1).
   static const consent = '/consent';
@@ -84,6 +89,7 @@ const Set<String> _onboardingRoutes = {
   AuthRoutes.completeProfile,
   AuthRoutes.consentPending,
   AuthRoutes.accountPaused,
+  AuthRoutes.confirmAdult,
 };
 
 /// The route to send someone at [stage] to, or null to stay on [location].
@@ -97,6 +103,7 @@ String? redirectFor(SessionStage stage, String location) {
     SessionStage.needsProfile => only(AuthRoutes.completeProfile),
     SessionStage.awaitingConsent => only(AuthRoutes.consentPending),
     SessionStage.paused => only(AuthRoutes.accountPaused),
+    SessionStage.confirmAdult => only(AuthRoutes.confirmAdult),
     SessionStage.ready =>
       _onboardingRoutes.contains(location) ? AuthRoutes.home : null,
   };

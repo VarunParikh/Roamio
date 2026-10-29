@@ -5,6 +5,7 @@ import 'package:roamio/core/ui/placeholder_screen.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/account_paused_screen.dart';
 import 'package:roamio/features/auth/ui/complete_profile_screen.dart';
+import 'package:roamio/features/auth/ui/confirm_adult_screen.dart';
 import 'package:roamio/features/auth/ui/consent_pending_screen.dart';
 import 'package:roamio/features/auth/ui/create_account_screen.dart';
 import 'package:roamio/features/auth/ui/email_sign_in_screen.dart';
@@ -70,6 +71,10 @@ final _routes = <RouteBase>[
   GoRoute(
     path: AuthRoutes.accountPaused,
     builder: (_, _) => const AccountPausedScreen(),
+  ),
+  GoRoute(
+    path: AuthRoutes.confirmAdult,
+    builder: (_, _) => const ConfirmAdultScreen(),
   ),
   GoRoute(
     path: AuthRoutes.consent,

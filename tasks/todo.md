@@ -85,7 +85,7 @@ Common verification commands:
   - Verify: widget tests; manual run of consent and decline paths with two emulator accounts.
   - Files: `app/lib/features/consent/**`, `firebase/hosting/consent/index.html`, tests
 
-- [ ] **Task 13: Minor protections and turning 18** — S · Deps: 12 · Spec §7.2, §7.4
+- [x] **Task 13: Minor protections and turning 18** — S · Deps: 12 · Spec §7.2, §7.4
   - Acceptance: Crashlytics/analytics disabled for under-18 accounts; location features hidden; on 18th birthday user must accept the adult notice, parent link removed and parent notified.
   - Verify: unit tests for age logic (incl. 29 Feb birthdays); functions test for the birthday job.
   - Files: `app/lib/core/privacy/minor_policy.dart`, `firebase/functions/src/consent/turn18.ts`, tests

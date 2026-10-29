@@ -77,8 +77,12 @@ final authServiceProvider = Provider<AuthService>(
   (ref) => throw UnimplementedError('authServiceProvider must be overridden'),
 );
 
-final sessionStageProvider = StreamProvider<SessionStage>(
-  (ref) => ref.watch(authServiceProvider).session().map(stageFor),
+final sessionFactsProvider = StreamProvider<SessionFacts>(
+  (ref) => ref.watch(authServiceProvider).session(),
+);
+
+final sessionStageProvider = Provider<AsyncValue<SessionStage>>(
+  (ref) => ref.watch(sessionFactsProvider).whenData(stageFor),
 );
 
 /// Today's date; overridden in tests so age checks are deterministic.

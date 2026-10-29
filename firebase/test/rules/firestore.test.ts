@@ -41,6 +41,7 @@ const accounts: Record<string, string> = {
   mia: "minor_active",
   pete: "minor_pending",
   fay: "minor_frozen",
+  ola: "adult_unconfirmed",
 };
 
 const adventure = {
@@ -661,6 +662,11 @@ describe("invites, fx rates and banners", () => {
     await assertFails(getDoc(doc(as("fay"), "invites/ROAM7KQ2")));
     await assertFails(getDoc(doc(as("fay"), "fx_rates/2026-12-02")));
     await assertSucceeds(getDoc(doc(as("fay"), "users/fay")));
+  });
+
+  it("a newly-18 account waits until it accepts the adult notice (spec §7.4)", async () => {
+    await assertFails(getDoc(doc(as("ola"), "fx_rates/2026-12-02")));
+    await assertSucceeds(getDoc(doc(as("ola"), "users/ola/private/account")));
   });
 
   it("pending minors can't open invites yet", async () => {

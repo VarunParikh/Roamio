@@ -91,6 +91,27 @@ void main() {
     expect(find.text('Your account is paused'), findsOneWidget);
   });
 
+  testWidgets('turning 18: accept the adult notice to carry on (spec §7.4)', (
+    tester,
+  ) async {
+    final consent = FakeConsentService();
+    await pumpRoamio(
+      tester,
+      FakeAuthService(
+        initial: const SessionFacts(
+          uid: 'mia',
+          hasAccount: true,
+          ageStatus: 'adult_unconfirmed',
+        ),
+      ),
+      consent: consent,
+    );
+    expect(find.text('Happy 18th! 🎂'), findsOneWidget);
+    await tester.tap(find.text('Accept and continue'));
+    await tester.pumpAndSettle();
+    expect(consent.calls, ['acceptAdult']);
+  });
+
   group('parent decides (spec §7.1 steps 4–7)', () {
     const link = '/consent?c=mia&t=tok123';
 
