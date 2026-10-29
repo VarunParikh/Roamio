@@ -35,6 +35,26 @@ class FakeSquadService implements SquadService {
     _changes.add([...cards]);
   }
 
+  @override
+  Future<void> demoteCoLead(String adventureId, String memberUid) =>
+      _act('demote:$adventureId/$memberUid', adventureId, memberUid);
+
+  @override
+  Future<void> handOverLeadership(String adventureId, String memberUid) =>
+      _act('handOver:$adventureId/$memberUid', adventureId, memberUid);
+
+  @override
+  Future<void> leave(String adventureId) =>
+      _act('leave:$adventureId', adventureId, '');
+
+  /// Display names; anyone missing is shown by uid.
+  final Map<String, String> names = {};
+
+  @override
+  Future<Map<String, String>> namesOf(List<String> uids) async => {
+    for (final uid in uids) uid: names[uid] ?? uid,
+  };
+
   Future<void> _act(String call, String adventureId, String memberUid) async {
     calls.add(call);
     final message = failNext;

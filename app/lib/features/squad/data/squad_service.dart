@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 
 /// "Name joined your squad", shown to every lead (spec UC-14).
 class JoinCard {
@@ -39,12 +40,32 @@ abstract interface class SquadService {
 
   /// Hides a card for this lead only.
   Future<void> dismiss(String cardId);
+
+  /// Squad Leader only (spec UC-15).
+  Future<void> demoteCoLead(String adventureId, String memberUid);
+
+  /// Squad Leader only; they become a co-lead (spec UC-17).
+  Future<void> handOverLeadership(String adventureId, String memberUid);
+
+  /// The signed-in person leaves. The leader must hand over first, unless
+  /// they're alone, which archives the adventure (spec UC-17).
+  Future<void> leave(String adventureId);
+
+  /// Display names for [uids], from their public profiles.
+  Future<Map<String, String>> namesOf(List<String> uids);
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.
 final squadServiceProvider = Provider<SquadService>(
   (ref) => throw UnimplementedError('squadServiceProvider must be overridden'),
 );
+
+/// Names for a squad, keyed by the comma-joined uids so it reloads when
+/// the squad changes.
+final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
+    FutureProvider.family<Map<String, String>, String>(
+      (ref, uids) => ref.watch(squadServiceProvider).namesOf(uids.split(',')),
+    );
 
 final joinCardsProvider = StreamProvider<List<JoinCard>>(
   (ref) => ref.watch(squadServiceProvider).joinCards(),

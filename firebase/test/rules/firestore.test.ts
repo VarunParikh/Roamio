@@ -414,6 +414,41 @@ describe("adventures", () => {
     );
   });
 
+  it("role changes can't bypass the server (spec UC-15 to UC-17)", async () => {
+    // Co-lead demoting the leader or taking over.
+    await assertFails(
+      updateDoc(doc(as("cara"), "adventures/a1"), {
+        leaderUid: "cara",
+        coLeadUids: ["alice"],
+      }),
+    );
+    // Member removing someone, or leaving by editing the list.
+    await assertFails(
+      updateDoc(doc(as("bob"), "adventures/a1"), {
+        memberUids: ["alice", "bob", "cara"],
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("bob"), "adventures/a1"), {
+        memberUids: ["alice", "cara", "mia"],
+      }),
+    );
+    // Leader archiving or writing member roles directly.
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), { archived: true }),
+    );
+    await assertFails(
+      setDoc(doc(as("alice"), "adventures/a1/members/bob"), {
+        role: "co_lead",
+        status: "active",
+      }),
+    );
+    // The leader can still edit trip details.
+    await assertSucceeds(
+      updateDoc(doc(as("alice"), "adventures/a1"), { name: "Bangkok!" }),
+    );
+  });
+
   it("base currency is locked once the adventure has tabs", async () => {
     await assertSucceeds(
       updateDoc(doc(as("alice"), "adventures/a1"), { baseCurrency: "INR" }),

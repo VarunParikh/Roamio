@@ -8,6 +8,7 @@ import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:roamio/features/squad/ui/squad_section.dart';
 
 /// One adventure. Tabs, squad and invites arrive in later tasks
 /// (17, 19, 23, 27); for now it shows the trip so no tap leads nowhere.
@@ -74,8 +75,13 @@ class AdventureScreen extends ConsumerWidget {
                     myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
                   ),
                   const SizedBox(height: 24),
+                  SquadSection(
+                    adventure: adventure,
+                    myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
+                  ),
+                  const SizedBox(height: 24),
                   Text(
-                    'Tabs and your squad will appear here soon.',
+                    'Tabs will appear here soon.',
                     style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
                   ),
                 ],
