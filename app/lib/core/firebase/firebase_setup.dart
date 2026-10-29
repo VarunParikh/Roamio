@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:roamio/core/config/flavor.dart';
@@ -10,11 +11,16 @@ const _useEmulators = bool.fromEnvironment('USE_EMULATORS');
 /// The Android emulator reaches the Mac's localhost at this address.
 const _emulatorHost = '10.0.2.2';
 
+/// Server functions live in Mumbai (spec §8).
+FirebaseFunctions get roamioFunctions =>
+    FirebaseFunctions.instanceFor(region: 'asia-south1');
+
 /// Initialises Firebase from the flavor's `google-services.json`.
 Future<void> setUpFirebase() async {
   await Firebase.initializeApp();
   if (_useEmulators && currentFlavor == Flavor.dev) {
     await FirebaseAuth.instance.useAuthEmulator(_emulatorHost, 9099);
     FirebaseFirestore.instance.useFirestoreEmulator(_emulatorHost, 8080);
+    roamioFunctions.useFunctionsEmulator(_emulatorHost, 5001);
   }
 }

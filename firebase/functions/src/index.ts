@@ -11,6 +11,7 @@ export {
   decideParentalConsent,
   describeConsentRequest,
   requestParentalConsent,
+  withdrawParentalConsent,
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
 

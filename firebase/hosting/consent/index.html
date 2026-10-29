@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Roamio · Parental consent</title>
+  <style>
+    :root { --ink: #0F1115; --canvas: #F9FAFB; --lime: #D4FF00; --slate: #64748B; --line: #E4E4E7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink);
+      font: 16px/1.5 "Plus Jakarta Sans", system-ui, sans-serif; }
+    main { max-width: 480px; margin: 0 auto; padding: 32px 16px 48px; }
+    .logo { font-weight: 800; font-size: 32px; letter-spacing: -0.04em; }
+    .logo span { color: var(--lime); }
+    h1 { font-size: 26px; line-height: 32px; letter-spacing: -0.025em; margin: 24px 0 8px; }
+    p, li { color: var(--slate); }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin: 24px 0; }
+    .card h2 { font-size: 18px; margin: 0 0 8px; }
+    .btn { display: block; text-align: center; text-decoration: none; font-weight: 600;
+      border-radius: 9999px; padding: 16px; margin-top: 12px; }
+    .primary { background: var(--lime); color: var(--ink); }
+    .ghost { border: 1px solid var(--line); color: var(--ink); }
+    .error { color: #F43F5E; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="logo">roamio<span>.</span></div>
+  <h1>Your child wants to use Roamio</h1>
+  <p>Roamio is an app for splitting travel costs with friends. Because your child is under 18,
+    they need your consent first. You’ll give it inside the Roamio app, signed in with this email address.</p>
+
+  <div class="card">
+    <h2>What Roamio collects</h2>
+    <ul>
+      <li>Their name, email and date of birth.</li>
+      <li>Trips, shared expenses, receipts and photos they add.</li>
+    </ul>
+    <h2>How we protect under-18s</h2>
+    <ul>
+      <li>No tracking, analytics or ads, and no location tagging.</li>
+      <li>Their personal budget stays private. Data is stored in India.</li>
+      <li>You can withdraw consent at any time; their account is then deleted within 48 hours.</li>
+    </ul>
+  </div>
+
+  <p id="invalid" class="error" hidden>This link is incomplete. Use the link from the newest email.</p>
+  <a id="open" class="btn primary" href="#">Open in Roamio</a>
+  <a class="btn ghost" href="https://github.com/VarunParikh/Roamio/releases/latest">Don’t have Roamio? Download it</a>
+  <p>After installing, sign in (or create an account) with this email address, then tap the link in the email again.
+    If nobody answers within 7 days, the request expires and your child’s account is deleted.</p>
+</main>
+<script>
+  // Opens the app with the same link on Android; the app checks the token.
+  const params = new URLSearchParams(location.search);
+  const child = params.get("c"), token = params.get("t");
+  const open = document.getElementById("open");
+  if (!child || !token) {
+    document.getElementById("invalid").hidden = false;
+    open.hidden = true;
+  } else {
+    const path = location.host + "/consent" + location.search;
+    const pkg = location.host.startsWith("roamio-dev-") ? "app.roamio.android.dev" : "app.roamio.android";
+    open.href = "intent://" + path + "#Intent;scheme=https;package=" + pkg + ";end";
+  }
+</script>
+</body>
+</html>

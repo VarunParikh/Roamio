@@ -35,10 +35,12 @@ android {
             dimension = "env"
             applicationIdSuffix = ".dev"
             manifestPlaceholders["appName"] = "Roamio dev"
+            manifestPlaceholders["linkHost"] = "roamio-dev-varun.web.app"
         }
         create("prod") {
             dimension = "env"
             manifestPlaceholders["appName"] = "Roamio"
+            manifestPlaceholders["linkHost"] = "roamio-prod-varun.web.app"
         }
     }
 

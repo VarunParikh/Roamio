@@ -6,6 +6,9 @@ enum SessionStage {
   needsProfile,
   settingUp,
   awaitingConsent,
+
+  /// A parent withdrew consent; the account is deleted after 48 hours.
+  paused,
   ready,
 }
 
@@ -48,6 +51,7 @@ SessionStage stageFor(SessionFacts f) {
   return switch (f.ageStatus) {
     'adult' || 'minor_active' => SessionStage.ready,
     'minor_pending' => SessionStage.awaitingConsent,
+    'minor_frozen' => SessionStage.paused,
     _ => SessionStage.settingUp,
   };
 }
@@ -60,6 +64,10 @@ abstract final class AuthRoutes {
   static const verifyEmail = '/verify-email';
   static const completeProfile = '/complete-profile';
   static const consentPending = '/consent-pending';
+  static const accountPaused = '/account-paused';
+
+  /// A parent's consent link: `/consent?c=<childUid>&t=<token>` (spec §7.1).
+  static const consent = '/consent';
   static const home = '/home';
 }
 
@@ -75,6 +83,7 @@ const Set<String> _onboardingRoutes = {
   AuthRoutes.verifyEmail,
   AuthRoutes.completeProfile,
   AuthRoutes.consentPending,
+  AuthRoutes.accountPaused,
 };
 
 /// The route to send someone at [stage] to, or null to stay on [location].
@@ -87,7 +96,27 @@ String? redirectFor(SessionStage stage, String location) {
     SessionStage.verifyEmail => only(AuthRoutes.verifyEmail),
     SessionStage.needsProfile => only(AuthRoutes.completeProfile),
     SessionStage.awaitingConsent => only(AuthRoutes.consentPending),
+    SessionStage.paused => only(AuthRoutes.accountPaused),
     SessionStage.ready =>
       _onboardingRoutes.contains(location) ? AuthRoutes.home : null,
   };
+}
+
+/// Links that should still open after the person signs in.
+const Set<String> _deepLinkRoutes = {AuthRoutes.consent};
+
+/// Like [redirectFor], but remembers a deep link ([pending]) while someone
+/// signs in, and opens it once they're ready.
+({String? redirect, String? pending}) resolveRoute(
+  SessionStage stage,
+  Uri uri, {
+  required String? pending,
+}) {
+  final redirect = redirectFor(stage, uri.path);
+  if (stage == SessionStage.ready) {
+    final open = pending != null && pending != uri.toString();
+    return (redirect: open ? pending : redirect, pending: null);
+  }
+  final remember = _deepLinkRoutes.contains(uri.path) && redirect != null;
+  return (redirect: redirect, pending: remember ? uri.toString() : pending);
 }

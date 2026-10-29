@@ -80,7 +80,7 @@ Common verification commands:
   - Verify: functions tests for consent, decline, expiry, under-18 guardian, self-as-guardian, rate limit.
   - Files: `firebase/functions/src/consent/*.ts`, `firebase/firestore.rules`, tests
 
-- [ ] **Task 12: Parental consent UI** — M · Deps: 11 · Spec §7.1, §7.3
+- [x] **Task 12: Parental consent UI** — M · Deps: 11 · Spec §7.1, §7.3
   - Acceptance: child waiting screen (parent email, resend, change email); consent page on Hosting + in-app deep link with child notice and Give/Decline; parent "Linked children" list with withdraw (48 h freeze-then-delete) and data download.
   - Verify: widget tests; manual run of consent and decline paths with two emulator accounts.
   - Files: `app/lib/features/consent/**`, `firebase/hosting/consent/index.html`, tests
@@ -219,7 +219,7 @@ Common verification commands:
   - Files: `app/lib/features/profile/**`, tests
 
 - [ ] **Task 35: Privacy centre** — M · Deps: 34, 12 · UC-29, Spec §8
-  - Acceptance: download my data (JSON + photos zip via function); delete account (function: erase profile/photos/budgets, tabs keep "Deleted user"); nominate a person; grievance contact; per-purpose consent toggles; audit log entries kept 1 year.
+  - Acceptance: download my data (JSON + photos zip via function), also offered to a parent for each linked child (deferred from Task 12); delete account (function: erase profile/photos/budgets, tabs keep "Deleted user"); nominate a person; grievance contact; per-purpose consent toggles; audit log entries kept 1 year.
   - Verify: functions tests for export and deletion (balances unchanged after deletion).
   - Files: `app/lib/features/profile/ui/privacy_centre.dart`, `firebase/functions/src/privacy/*.ts`, tests
 

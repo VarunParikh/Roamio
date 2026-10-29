@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CONSENT_DAYS,
   MAX_REQUESTS_PER_DAY,
+  WITHDRAW_GRACE_HOURS,
   canRequestAgain,
   nextConsentAction,
 } from "../../functions/src/consent/rules";
@@ -11,7 +12,8 @@ import {
   tokensMatch,
 } from "../../functions/src/consent/token";
 
-const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 const sent = Date.parse("2026-10-29T06:00:00Z");
 
 describe("nextConsentAction (spec §7.1 step 3)", () => {
@@ -43,8 +45,18 @@ describe("nextConsentAction (spec §7.1 step 3)", () => {
     ).toBe("expire");
   });
 
+  it("deletes a withdrawn child 48 hours after withdrawal (spec §7.3)", () => {
+    const withdrawn = { ...pending, status: "withdrawn", withdrawnAt: sent };
+    expect(
+      nextConsentAction(withdrawn, sent + (WITHDRAW_GRACE_HOURS - 1) * HOUR),
+    ).toBeNull();
+    expect(
+      nextConsentAction(withdrawn, sent + WITHDRAW_GRACE_HOURS * HOUR),
+    ).toBe("delete");
+  });
+
   it("ignores requests that are already decided", () => {
-    for (const status of ["granted", "declined", "expired"]) {
+    for (const status of ["granted", "declined", "expired", "closed"]) {
       expect(
         nextConsentAction({ ...pending, status }, sent + 10 * DAY),
       ).toBeNull();

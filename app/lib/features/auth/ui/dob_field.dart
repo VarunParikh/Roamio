@@ -16,7 +16,7 @@ const _months = [
   'Dec',
 ];
 
-String formatDob(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
+String formatDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';
 
 /// Validation message for a date of birth, or null when it can be used.
 String? dobMessage(DateTime? dob, DateTime today) {
@@ -73,7 +73,7 @@ class DobField extends StatelessWidget {
           helperMaxLines: 2,
           suffixIcon: const Icon(Icons.cake_outlined),
         ),
-        child: Text(value == null ? 'Choose a date' : formatDob(value!)),
+        child: Text(value == null ? 'Choose a date' : formatDate(value!)),
       ),
     );
   }

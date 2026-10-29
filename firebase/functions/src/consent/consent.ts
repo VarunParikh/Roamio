@@ -4,7 +4,7 @@ import { HttpsError, onCall, type CallableRequest } from "firebase-functions/htt
 import { todayInIndia } from "../auth/age";
 import { deleteUserCompletely } from "../auth/deleteUser";
 import { queueMail, siteUrl } from "../mail";
-import { canRequestAgain, isExpired, type RequestCounter } from "./rules";
+import { canRequestAgain, isExpired, type RequestCounter, WITHDRAW_GRACE_HOURS } from "./rules";
 import { hashToken, newToken, tokensMatch } from "./token";
 
 /** Bumped whenever the child-specific privacy notice text changes. */
@@ -197,3 +197,35 @@ export async function deleteChild(childUid: string, reason: string): Promise<voi
   }
   await deleteUserCompletely(childUid);
 }
+
+/**
+ * The consenting parent withdraws consent (spec §7.3): the child's account is
+ * frozen at once and deleted by the daily sweep after the grace period.
+ */
+export const withdrawParentalConsent = onCall(async (request) => {
+  const parent = signedIn(request);
+  const childUid = String((request.data as { childUid?: unknown })?.childUid ?? "");
+  const snap = await consentDoc(childUid).get();
+  if (snap.get("status") !== "granted" || snap.get("parentUid") !== parent.uid) {
+    throw new HttpsError("permission-denied", "Only the parent who gave consent can withdraw it.");
+  }
+  const batch = getFirestore().batch();
+  batch.update(consentDoc(childUid), {
+    status: "withdrawn",
+    withdrawnAt: FieldValue.serverTimestamp(),
+  });
+  batch.update(accountDoc(childUid), { ageStatus: "minor_frozen" });
+  await batch.commit();
+
+  const email = (await getAuth().getUser(childUid)).email;
+  if (email) {
+    await queueMail(
+      email,
+      "Your Roamio account is paused",
+      "Your parent or guardian has withdrawn their consent, so your Roamio account is " +
+        `paused and will be deleted in ${WITHDRAW_GRACE_HOURS} hours. ` +
+        "Ask them if you think this is a mistake.",
+    );
+  }
+  return { ok: true };
+});

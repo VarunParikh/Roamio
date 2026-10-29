@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/main.dart';
+
+import 'fake_consent_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -96,6 +99,7 @@ Future<void> pumpRoamio(
   WidgetTester tester,
   FakeAuthService auth, {
   bool settle = true,
+  FakeConsentService? consent,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -104,6 +108,9 @@ Future<void> pumpRoamio(
     ProviderScope(
       overrides: [
         authServiceProvider.overrideWithValue(auth),
+        consentServiceProvider.overrideWithValue(
+          consent ?? FakeConsentService(),
+        ),
         todayProvider.overrideWithValue(DateTime(2026, 10, 29)),
       ],
       child: const RoamioApp(),

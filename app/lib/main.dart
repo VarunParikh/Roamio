@@ -11,6 +11,8 @@ import 'package:roamio/core/theme/roamio_theme.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/consent/data/firebase_consent_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,13 @@ Future<void> main() async {
             FirebaseAuth.instance,
             FirebaseFirestore.instance,
             GoogleSignIn.instance,
+          ),
+        ),
+        consentServiceProvider.overrideWithValue(
+          FirebaseConsentService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
+            roamioFunctions,
           ),
         ),
       ],
