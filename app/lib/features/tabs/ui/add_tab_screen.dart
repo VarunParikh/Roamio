@@ -18,6 +18,8 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
+import 'package:roamio/features/tabs/data/receipt_parser.dart';
+import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
@@ -298,7 +300,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       try {
         await photos.queueUpload(
           path: path,
-          kind: PhotoKind.photo,
+          kind: _billPaths.contains(path) ? PhotoKind.bill : PhotoKind.photo,
           storageDir: tabPath,
           docPath: tabPath,
           field: 'memories',
@@ -316,6 +318,52 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       );
     }
     context.pop();
+  }
+
+  /// Photos taken with Scan bill; kept at the larger bill size (spec §10).
+  final Set<String> _billPaths = {};
+  bool _scanning = false;
+
+  /// What Scan bill managed, shown under its button (a snackbar would
+  /// cover Save).
+  String? _scanNote;
+
+  /// Reads a bill photo on the phone and fills in what it finds; the
+  /// person checks it before saving (spec UC-21).
+  Future<void> _scanBill() async {
+    _doneTyping();
+    final path = await ref.read(photoPipelineProvider).pick(camera: true);
+    if (path == null || !mounted) return;
+    setState(() => _scanning = true);
+    ReceiptGuess guess;
+    try {
+      final text = await ref.read(receiptScannerProvider).readText(path);
+      guess = parseReceipt(
+        text,
+        currency: _currency,
+        today: ref.read(todayProvider),
+      );
+    } on Exception {
+      guess = const ReceiptGuess();
+    }
+    if (!mounted) return;
+    setState(() {
+      _scanning = false;
+      _scanNote = guess.isEmpty
+          ? 'Couldn’t read that bill. Please fill it in.'
+          : 'Check the amount, date and name we read.';
+      if (guess.amountMinor case final minor?) {
+        _amount.text = amountText(minor, _currency);
+      }
+      if (guess.date case final date?) _date = date;
+      if (guess.merchant case final name? when _description.text.isEmpty) {
+        _description.text = name;
+      }
+      if (!guess.isEmpty && _memories.length < maxMemories) {
+        _memories.add(path);
+        _billPaths.add(path);
+      }
+    });
   }
 
   Future<void> _addPhoto(bool camera) async {
@@ -384,6 +432,27 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_old == null && ref.watch(ocrEnabledProvider)) ...[
+            OutlinedButton.icon(
+              onPressed: _scanning ? null : _scanBill,
+              icon: _scanning
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.document_scanner_outlined),
+              label: const Text('Scan bill'),
+            ),
+            if (_scanNote case final note?)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  note,
+                  style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -178,10 +178,11 @@ Common verification commands:
   - Files: `app/lib/features/tabs/ui/memories.dart`, `location_picker.dart`, tests
   - Done: photos go through the Task 22 pipeline; location is read once on tap (offers to turn on location services / open app settings), stored as `{lat, lng}` only; hidden for minors and refused by rules. Not yet tried by hand on a device.
 
-- [ ] **Task 26: Scan bill (OCR)** — S · Deps: 22, 23
+- [x] **Task 26: Scan bill (OCR)** — S · Deps: 22, 23
   - Acceptance: ML Kit on-device text recognition prefills amount, date and merchant; user confirms; behind `ocr_enabled` flag.
   - Verify: unit tests of the parser with 10 sample receipt texts (₹, €, $, ฿ formats).
   - Files: `app/lib/features/tabs/data/receipt_parser.dart`, `ui/scan_bill.dart`, tests
+  - Done: Scan bill on Add tab; `ocr_enabled` is an in-app default (on) until Task 37 wires Remote Config. Real ML Kit verified on the Android emulator (`integration_test/receipt_ocr_test.dart`); that run showed OCR returns columns separately, so lines are rebuilt from their positions first.
 
 - [x] **Task 27: Adventure page** — M · Deps: 23 · UC-23
   - Acceptance: banner header with tab sheet scrolling over it; tabs grouped by day; row shows your share; tab detail (payers, shares, memories, map); creator edits, leads delete (soft).

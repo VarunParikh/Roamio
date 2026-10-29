@@ -7,12 +7,13 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { getBytes, ref, uploadString } from "firebase/storage";
 import { afterAll, beforeAll, describe, it } from "vitest";
+import { RULES_PROJECT } from "../support/rules-project";
 
 let env: RulesTestEnvironment;
 
 beforeAll(async () => {
   env = await initializeTestEnvironment({
-    projectId: "demo-roamio",
+    projectId: RULES_PROJECT,
     firestore: { rules: readFileSync("firestore.rules", "utf8") },
     storage: { rules: readFileSync("storage.rules", "utf8") },
   });
