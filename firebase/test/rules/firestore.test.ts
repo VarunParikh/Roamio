@@ -11,6 +11,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -151,7 +153,10 @@ beforeEach(async () => {
       adventureId: "a1",
       adventureName: "Bangkok",
     });
-    await setDoc(doc(db, "fx_rates/2026-12-02"), { rates: { INR: "84" } });
+    await setDoc(doc(db, "fx_rates/2026-12-02"), {
+      date: "2026-12-02",
+      rates: { INR: "84" },
+    });
     await setDoc(doc(db, "banners/TH"), { url: "https://example.com/th.webp" });
     await setDoc(doc(db, "parentalConsents/mia"), {
       parentUid: "dan",
@@ -959,6 +964,21 @@ describe("invites, fx rates and banners", () => {
       setDoc(doc(as("bob"), "fx_rates/2026-12-03"), { rates: {} }),
     );
     await assertFails(setDoc(doc(as("bob"), "banners/TH"), { url: "x" }));
+  });
+
+  it("the app's 'latest rates on or before a day' query (spec §9.1)", async () => {
+    const latest = (db: Firestore) =>
+      getDocs(
+        query(
+          collection(db, "fx_rates"),
+          where("date", "<=", "2026-12-05"),
+          orderBy("date", "desc"),
+          limit(1),
+        ),
+      );
+    await assertSucceeds(latest(as("mia")));
+    await assertFails(latest(as("pete")));
+    await assertFails(latest(anon()));
   });
 });
 
