@@ -27,6 +27,7 @@ import 'package:roamio/features/tabs/ui/location_picker.dart';
 import 'package:roamio/features/tabs/ui/memories.dart';
 import 'package:roamio/features/tabs/ui/payers_editor.dart';
 import 'package:roamio/features/tabs/ui/percent_editor.dart';
+import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// Add a tab (spec UC-21): who paid (you, or split between members), how
 /// it's shared (equal or custom %), up to 4 photos and, for adults, where
@@ -405,8 +406,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
         _everyone(pals).where((id) => !old.split.participants.contains(id)),
       );
     }
-    final names =
-        ref.watch(squadNamesProvider(_a.memberUids.join(','))).value ?? {};
+    final names = squadLabels(ref, _a);
     final countries = ref.watch(countriesProvider).value;
     final categories = ref.watch(categoriesProvider).value ?? const [];
     final now = _problems(pals);
@@ -421,9 +421,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
     String label(String id) {
       if (id == myUid) return '${names[id] ?? 'You'} (you)';
-      return names[id] ??
-          pals.where((p) => p.id == id).firstOrNull?.nickname ??
-          '…';
+      return names[id] ?? '…';
     }
 
     return AuthScaffold(
