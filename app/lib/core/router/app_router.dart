@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/ui/bottom_bar.dart';
 import 'package:roamio/core/ui/placeholder_screen.dart';
+import 'package:roamio/features/adventures/ui/adventure_screen.dart';
+import 'package:roamio/features/adventures/ui/create_adventure_screen.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/account_paused_screen.dart';
 import 'package:roamio/features/auth/ui/complete_profile_screen.dart';
@@ -12,6 +14,7 @@ import 'package:roamio/features/auth/ui/email_sign_in_screen.dart';
 import 'package:roamio/features/auth/ui/login_screen.dart';
 import 'package:roamio/features/auth/ui/verify_email_screen.dart';
 import 'package:roamio/features/consent/ui/parent_consent_screen.dart';
+import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
 
@@ -73,6 +76,15 @@ final _routes = <RouteBase>[
     builder: (_, _) => const AccountPausedScreen(),
   ),
   GoRoute(
+    path: '/adventures/new',
+    builder: (_, _) => const CreateAdventureScreen(),
+  ),
+  GoRoute(
+    path: '/adventures/:id',
+    builder: (_, state) =>
+        AdventureScreen(adventureId: state.pathParameters['id']!),
+  ),
+  GoRoute(
     path: AuthRoutes.confirmAdult,
     builder: (_, _) => const ConfirmAdultScreen(),
   ),
@@ -97,13 +109,7 @@ final _routes = <RouteBase>[
     branches: [
       StatefulShellBranch(
         routes: [
-          GoRoute(
-            path: Routes.home,
-            builder: (_, _) => const PlaceholderScreen(
-              title: 'Hey there 👋',
-              message: 'Your adventures will live here.',
-            ),
-          ),
+          GoRoute(path: Routes.home, builder: (_, _) => const HomeScreen()),
         ],
       ),
       StatefulShellBranch(

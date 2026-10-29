@@ -95,6 +95,12 @@ ThemeData buildRoamioTheme() {
         color: RoamioColors.surface,
       ),
     ),
+    // The pickers' headers default to the large headline style, which
+    // overflows a phone-width dialog once a date range is shown.
+    datePickerTheme: DatePickerThemeData(
+      headerHeadlineStyle: textTheme.headlineMedium,
+      rangePickerHeaderHeadlineStyle: textTheme.headlineSmall,
+    ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: RoamioColors.surface,

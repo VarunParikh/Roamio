@@ -74,7 +74,9 @@ service cloud.firestore {
           && isCurrency(incoming().baseCurrency);
       }
 
-      allow read: if isMember(aid);
+      // Checks the document itself, so "my adventures" queries
+      // (memberUids array-contains me) are allowed too.
+      allow read: if isActive() && me() in resource.data.memberUids;
       allow create: if isActive()
         && incoming().keys().hasAll(['name', 'countryCode', 'startDate', 'endDate',
              'baseCurrency', 'createdBy', 'leaderUid', 'coLeadUids', 'memberUids'])
