@@ -5,24 +5,23 @@ The owner works from a phone: never ask them to do device checks; add them to th
 
 ## Where things stand
 
-**Merged into `main` this session:** #30 Task 32 budget · #31 Task 33 part 1 (offline banner, Sync button, online-only guards) · #32 UC-32 conflict log (`baseUpdatedAt` + `tab_edit_replaced`) · #33 Task 34 You page · #34 Add-tab location follows the Location switch (merged late in the session, not by Claude).
+**Merged into `main` this session:** #30 Task 32 budget · #31 Task 33 part 1 (offline banner, Sync button, online-only guards) · #32 UC-32 conflict log (`baseUpdatedAt` + `tab_edit_replaced`) · #33 Task 34 You page · #34 Add-tab location follows the Location switch · #35 Task 35 part 1, `deleteMyAccount` (both merged late in the session by the owner, not by Claude).
 
-**Open, CI green, waiting on the owner's "merge":**
+**Open, waiting on the owner's "merge":**
 | PR | What | Branch |
 |---|---|---|
-| #35 | Task 35 part 1: `deleteMyAccount` (erasure) | `task-35a-delete-account` |
 | #36 | This handover (docs only) | `handover-2026-10-29` |
 
-Before starting new work, check these on GitHub (`mcp__github__pull_request_read`): if merged, branch from the new `main`; if still open, new Task 35 work that needs #35's code (e.g. the Privacy centre screen calling `deleteMyAccount`) should branch from `task-35a-delete-account` and say it is stacked.
+Before starting new work, check on GitHub (`mcp__github__pull_request_read`) whether #36 has merged, then branch from the latest `main`. `deleteMyAccount` is already on `main`, so nothing needs stacking.
 
 **Task status**
 - Task 33 — **not ticked.** Done: connectivity monitor, sync state machine, banner + Sync button on Home and the adventure page, online-only actions disabled with a reason, Sync retries photos regardless of backoff, UC-32 server log. Open: the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test (device only), an activity-feed screen (nothing in the app shows `tab_edit_replaced` yet), guard on the join-card Remove button, account-deletion guard (arrives with the Privacy centre).
 - Task 34 — ticked (#33).
-- Task 35 — **in progress.** Done (#35): `deleteMyAccount` callable. Left: see "Next steps".
+- Task 35 — **in progress.** Done (#35, merged): `deleteMyAccount` callable. Left: see "Next steps".
 - Tasks 36–44 untouched.
 
 ## Next steps (in order)
-1. Get #35 and #36 merged on the owner's word (`enable_pr_auto_merge`, method SQUASH; if the branch was updated afterwards auto-merge may be reset — check and use `merge_pull_request` only with the owner's approval).
+1. Get #36 merged on the owner's word (`enable_pr_auto_merge`, method SQUASH; if the branch is updated afterwards auto-merge may be reset — check and use `merge_pull_request` only with the owner's approval).
 2. **Task 35 remainder**, as separate small PRs:
    - Data export function (JSON + photos zip) and the same for a parent's linked children (`todo.md` Task 35; deferred from Task 12). Keep cost low: on-demand callable only, modest memory, short-lived output.
    - Privacy centre screen (`app/lib/features/profile/ui/privacy_centre.dart`): download my data, delete account (calls `deleteMyAccount`; pass `confirmLinkedChildren: true` only after the parent confirms; a leader gets the "hand over first" message), per-purpose consent toggles (location/camera/notifications), nominate a person, grievance contact.
@@ -31,7 +30,7 @@ Before starting new work, check these on GitHub (`mcp__github__pull_request_read
 3. Task 33 leftovers above; then Task 36 onward in order.
 
 ## Decisions waiting on the owner
-1. Merge #35? Merge #36?
+1. Merge #36 (this handover)?
 2. **Nominee storage** (Task 35 "nominate a person"): needs a new field; data-model change, ask before adding. Not yet approved.
 3. **Grievance contact email** (owner picks, Task 40): use a clearly marked placeholder until then.
 4. Whether to build an **activity feed** screen (none exists; needed for UC-32 to be visible to people).
