@@ -99,8 +99,8 @@ Common verification commands:
 
 ## Phase 3 — Adventures & squad
 
-- [ ] **Task 14: Countries and categories data** — S · Deps: 4
-  - Acceptance: a script converts `data/world_countries_dataset.md` and `data/travel_expense_categories_table.md` into bundled JSON (195 countries with code, flag, currency, symbol, landmark; 10 categories with icons).
+- [x] **Task 14: Countries and categories data** — S · Deps: 4
+  - Acceptance: `app/tool/import_data.dart` converts `data/world_countries_dataset.md` and `data/travel_expense_categories_table.md` into bundled JSON (195 countries with code, flag, currency, symbol, landmark; 10 categories with icons).
   - Verify: test asserts 195 countries and every currency code is valid ISO 4217.
   - Files: `tools/import_data.dart`, `app/assets/data/*.json`, test
 

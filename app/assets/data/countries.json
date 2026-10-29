@@ -1,0 +1,2344 @@
+[
+  {
+    "code": "AF",
+    "name": "Afghanistan",
+    "flag": "🇦🇫",
+    "currency": "AFN",
+    "currencies": [
+      "AFN"
+    ],
+    "symbol": "؋",
+    "landmark": "Band-e Amir Lakes & Minaret of Jam",
+    "landmarkType": "Natural Park / UNESCO Monument"
+  },
+  {
+    "code": "AL",
+    "name": "Albania",
+    "flag": "🇦🇱",
+    "currency": "ALL",
+    "currencies": [
+      "ALL"
+    ],
+    "symbol": "L",
+    "landmark": "Rozafa Castle & Berat Old Town",
+    "landmarkType": "Historic Fortress & Architecture"
+  },
+  {
+    "code": "DZ",
+    "name": "Algeria",
+    "flag": "🇩🇿",
+    "currency": "DZD",
+    "currencies": [
+      "DZD"
+    ],
+    "symbol": "د.ج",
+    "landmark": "Monument of the Martyrs (Maqam Echahid)",
+    "landmarkType": "National Monument"
+  },
+  {
+    "code": "AD",
+    "name": "Andorra",
+    "flag": "🇦🇩",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Sanctuary of Meritxell & Madriu-Perafita-Claror Valley",
+    "landmarkType": "Cultural Shrine / Glacial Valley"
+  },
+  {
+    "code": "AO",
+    "name": "Angola",
+    "flag": "🇦🇴",
+    "currency": "AOA",
+    "currencies": [
+      "AOA"
+    ],
+    "symbol": "Kz",
+    "landmark": "Kalandula Falls & Miradouro da Lua",
+    "landmarkType": "Waterfall / Coastal Cliffs"
+  },
+  {
+    "code": "AG",
+    "name": "Antigua and Barbuda",
+    "flag": "🇦🇬",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "Nelson's Dockyard (English Harbour)",
+    "landmarkType": "Historic Naval Dockyard"
+  },
+  {
+    "code": "AR",
+    "name": "Argentina",
+    "flag": "🇦🇷",
+    "currency": "ARS",
+    "currencies": [
+      "ARS"
+    ],
+    "symbol": "$",
+    "landmark": "Iguazu Falls & Perito Moreno Glacier",
+    "landmarkType": "Cataracts & Glacial Wonder"
+  },
+  {
+    "code": "AM",
+    "name": "Armenia",
+    "flag": "🇦🇲",
+    "currency": "AMD",
+    "currencies": [
+      "AMD"
+    ],
+    "symbol": "֏",
+    "landmark": "Khor Virap Monastery (Mount Ararat backdrop)",
+    "landmarkType": "Medieval Monastery"
+  },
+  {
+    "code": "AU",
+    "name": "Australia",
+    "flag": "🇦🇺",
+    "currency": "AUD",
+    "currencies": [
+      "AUD"
+    ],
+    "symbol": "$",
+    "landmark": "Sydney Opera House & Uluru (Ayers Rock)",
+    "landmarkType": "Architectural Icon / Monolith"
+  },
+  {
+    "code": "AT",
+    "name": "Austria",
+    "flag": "🇦🇹",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Schönbrunn Palace & Hallstatt Village",
+    "landmarkType": "Imperial Palace / Alpine Village"
+  },
+  {
+    "code": "AZ",
+    "name": "Azerbaijan",
+    "flag": "🇦🇿",
+    "currency": "AZN",
+    "currencies": [
+      "AZN"
+    ],
+    "symbol": "₼",
+    "landmark": "Flame Towers & Maiden Tower (Baku)",
+    "landmarkType": "Modern Skyscraper / Ancient Tower"
+  },
+  {
+    "code": "BS",
+    "name": "Bahamas",
+    "flag": "🇧🇸",
+    "currency": "BSD",
+    "currencies": [
+      "BSD"
+    ],
+    "symbol": "$",
+    "landmark": "Dean's Blue Hole & Atlantis Paradise Island",
+    "landmarkType": "Marine Sinkhole / Resort Complex"
+  },
+  {
+    "code": "BH",
+    "name": "Bahrain",
+    "flag": "🇧🇭",
+    "currency": "BHD",
+    "currencies": [
+      "BHD"
+    ],
+    "symbol": ".د.ب",
+    "landmark": "Tree of Life (Shajarat-al-Hayat) & Qal'at al-Bahrain",
+    "landmarkType": "Desert Wonder / Ancient Fort"
+  },
+  {
+    "code": "BD",
+    "name": "Bangladesh",
+    "flag": "🇧🇩",
+    "currency": "BDT",
+    "currencies": [
+      "BDT"
+    ],
+    "symbol": "৳",
+    "landmark": "Ahsan Manzil (Pink Palace) & Sundarbans Mangroves",
+    "landmarkType": "Historic Palace / Mangrove Forest"
+  },
+  {
+    "code": "BB",
+    "name": "Barbados",
+    "flag": "🇧🇧",
+    "currency": "BBD",
+    "currencies": [
+      "BBD"
+    ],
+    "symbol": "$",
+    "landmark": "Harrison's Cave & Historic Bridgetown",
+    "landmarkType": "Underground Cavern / Colonial Port"
+  },
+  {
+    "code": "BY",
+    "name": "Belarus",
+    "flag": "🇧🇾",
+    "currency": "BYN",
+    "currencies": [
+      "BYN"
+    ],
+    "symbol": "Br",
+    "landmark": "Mir Castle Complex & Brest Fortress",
+    "landmarkType": "Medieval Castle / Memorial Complex"
+  },
+  {
+    "code": "BE",
+    "name": "Belgium",
+    "flag": "🇧🇪",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Grand Place & Atomium (Brussels)",
+    "landmarkType": "Historic Square / Steel Monument"
+  },
+  {
+    "code": "BZ",
+    "name": "Belize",
+    "flag": "🇧🇿",
+    "currency": "BZD",
+    "currencies": [
+      "BZD"
+    ],
+    "symbol": "$",
+    "landmark": "Great Blue Hole & Xunantunich Mayan Ruins",
+    "landmarkType": "Marine Cavern / Mayan Pyramid"
+  },
+  {
+    "code": "BJ",
+    "name": "Benin",
+    "flag": "🇧🇯",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Royal Palaces of Abomey & Ganvié Stilt Village",
+    "landmarkType": "Royal Complex / Lake Village"
+  },
+  {
+    "code": "BT",
+    "name": "Bhutan",
+    "flag": "🇧🇹",
+    "currency": "BTN",
+    "currencies": [
+      "BTN"
+    ],
+    "symbol": "Nu.",
+    "landmark": "Paro Taktsang (Tiger's Nest Monastery)",
+    "landmarkType": "Cliffside Himalayan Monastery"
+  },
+  {
+    "code": "BO",
+    "name": "Bolivia",
+    "flag": "🇧🇴",
+    "currency": "BOB",
+    "currencies": [
+      "BOB"
+    ],
+    "symbol": "Bs.",
+    "landmark": "Salar de Uyuni (Salt Flats) & Tiwanaku Ruins",
+    "landmarkType": "Prehistoric Salt Plain / Ancient City"
+  },
+  {
+    "code": "BA",
+    "name": "Bosnia and Herzegovina",
+    "flag": "🇧🇦",
+    "currency": "BAM",
+    "currencies": [
+      "BAM"
+    ],
+    "symbol": "KM",
+    "landmark": "Stari Most (Old Bridge of Mostar)",
+    "landmarkType": "Ottoman Stone Bridge"
+  },
+  {
+    "code": "BW",
+    "name": "Botswana",
+    "flag": "🇧🇼",
+    "currency": "BWP",
+    "currencies": [
+      "BWP"
+    ],
+    "symbol": "P",
+    "landmark": "Okavango Delta & Chobe National Park",
+    "landmarkType": "Inland River Delta / Wildlife Reserve"
+  },
+  {
+    "code": "BR",
+    "name": "Brazil",
+    "flag": "🇧🇷",
+    "currency": "BRL",
+    "currencies": [
+      "BRL"
+    ],
+    "symbol": "R$",
+    "landmark": "Christ the Redeemer & Sugarloaf Mountain",
+    "landmarkType": "Art Deco Statue / Granite Peak"
+  },
+  {
+    "code": "BN",
+    "name": "Brunei",
+    "flag": "🇧🇳",
+    "currency": "BND",
+    "currencies": [
+      "BND"
+    ],
+    "symbol": "$",
+    "landmark": "Sultan Omar Ali Saifuddien Mosque",
+    "landmarkType": "Islamic Golden-Domed Mosque"
+  },
+  {
+    "code": "BG",
+    "name": "Bulgaria",
+    "flag": "🇧🇬",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Rila Monastery & Alexander Nevsky Cathedral",
+    "landmarkType": "Orthodox Monastery / Cathedral"
+  },
+  {
+    "code": "BF",
+    "name": "Burkina Faso",
+    "flag": "🇧🇫",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Sindou Peaks & Grand Mosque of Bobo-Dioulasso",
+    "landmarkType": "Sandstone Formations / Mud Mosque"
+  },
+  {
+    "code": "BI",
+    "name": "Burundi",
+    "flag": "🇧🇮",
+    "currency": "BIF",
+    "currencies": [
+      "BIF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Rusumo Falls & Lake Tanganyika Shoreline",
+    "landmarkType": "Cascading Falls / Rift Valley Lake"
+  },
+  {
+    "code": "CV",
+    "name": "Cabo Verde",
+    "flag": "🇨🇻",
+    "currency": "CVE",
+    "currencies": [
+      "CVE"
+    ],
+    "symbol": "Esc",
+    "landmark": "Pico do Fogo (Active Stratovolcano)",
+    "landmarkType": "Volcanic Peak"
+  },
+  {
+    "code": "KH",
+    "name": "Cambodia",
+    "flag": "🇰🇭",
+    "currency": "KHR",
+    "currencies": [
+      "KHR"
+    ],
+    "symbol": "៛",
+    "landmark": "Angkor Wat (Siem Reap)",
+    "landmarkType": "Ancient Temple Complex"
+  },
+  {
+    "code": "CM",
+    "name": "Cameroon",
+    "flag": "🇨🇲",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Mount Cameroon & Rhumsiki Peaks",
+    "landmarkType": "Volcanic Peak / Volcanic Plugs"
+  },
+  {
+    "code": "CA",
+    "name": "Canada",
+    "flag": "🇨🇦",
+    "currency": "CAD",
+    "currencies": [
+      "CAD"
+    ],
+    "symbol": "$",
+    "landmark": "Niagara Falls & CN Tower (Toronto)",
+    "landmarkType": "Massive Waterfalls / Telecomm Tower"
+  },
+  {
+    "code": "CF",
+    "name": "Central African Republic",
+    "flag": "🇨🇫",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Dzanga-Sangha National Park & Boali Falls",
+    "landmarkType": "Rainforest Reserve / Cascades"
+  },
+  {
+    "code": "TD",
+    "name": "Chad",
+    "flag": "🇹🇩",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Ennedi Plateau (Rock Arches) & Lake Chad",
+    "landmarkType": "Desert Sandstone Monoliths"
+  },
+  {
+    "code": "CL",
+    "name": "Chile",
+    "flag": "🇨🇱",
+    "currency": "CLP",
+    "currencies": [
+      "CLP"
+    ],
+    "symbol": "$",
+    "landmark": "Torres del Paine & Moai of Easter Island",
+    "landmarkType": "Granite Towers / Monolithic Statues"
+  },
+  {
+    "code": "CN",
+    "name": "China",
+    "flag": "🇨🇳",
+    "currency": "CNY",
+    "currencies": [
+      "CNY"
+    ],
+    "symbol": "¥",
+    "landmark": "Great Wall of China & The Forbidden City",
+    "landmarkType": "Ancient Fortification / Imperial Palace"
+  },
+  {
+    "code": "CO",
+    "name": "Colombia",
+    "flag": "🇨🇴",
+    "currency": "COP",
+    "currencies": [
+      "COP"
+    ],
+    "symbol": "$",
+    "landmark": "Cocora Valley (Wax Palms) & Ciudad Perdida",
+    "landmarkType": "Andean Valley / Ancient Lost City"
+  },
+  {
+    "code": "KM",
+    "name": "Comoros",
+    "flag": "🇰🇲",
+    "currency": "KMF",
+    "currencies": [
+      "KMF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Mount Karthala & Lac Salé (Salt Lake)",
+    "landmarkType": "Active Shield Volcano / Crater Lake"
+  },
+  {
+    "code": "CD",
+    "name": "Congo, Democratic Republic of the",
+    "flag": "🇨🇩",
+    "currency": "CDF",
+    "currencies": [
+      "CDF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Mount Nyiragongo (Lava Lake) & Virunga Park",
+    "landmarkType": "Stratovolcano / Mountain Gorilla Park"
+  },
+  {
+    "code": "CG",
+    "name": "Congo, Republic of the",
+    "flag": "🇨🇬",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Basilique Sainte-Anne & Odzala-Kokoua Park",
+    "landmarkType": "Modernist Basilica / Rainforest"
+  },
+  {
+    "code": "CR",
+    "name": "Costa Rica",
+    "flag": "🇨🇷",
+    "currency": "CRC",
+    "currencies": [
+      "CRC"
+    ],
+    "symbol": "₡",
+    "landmark": "Arenal Volcano & Manuel Antonio National Park",
+    "landmarkType": "Stratovolcano / Coastal Rainforest"
+  },
+  {
+    "code": "HR",
+    "name": "Croatia",
+    "flag": "🇭🇷",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Walls of Dubrovnik & Plitvice Lakes",
+    "landmarkType": "Medieval Ramparts / Terraced Lakes"
+  },
+  {
+    "code": "CU",
+    "name": "Cuba",
+    "flag": "🇨🇺",
+    "currency": "CUP",
+    "currencies": [
+      "CUP"
+    ],
+    "symbol": "$",
+    "landmark": "El Capitolio & Old Havana (Habana Vieja)",
+    "landmarkType": "Neoclassical Landmark / Historic Hub"
+  },
+  {
+    "code": "CY",
+    "name": "Cyprus",
+    "flag": "🇨🇾",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Aphrodite's Rock (Petra tou Romiou) & Kourion",
+    "landmarkType": "Coastal Sea Stack / Greco-Roman Ruins"
+  },
+  {
+    "code": "CZ",
+    "name": "Czech Republic (Czechia)",
+    "flag": "🇨🇿",
+    "currency": "CZK",
+    "currencies": [
+      "CZK"
+    ],
+    "symbol": "Kč",
+    "landmark": "Charles Bridge & Prague Castle",
+    "landmarkType": "Historic Stone Bridge / Castle Complex"
+  },
+  {
+    "code": "DK",
+    "name": "Denmark",
+    "flag": "🇩🇰",
+    "currency": "DKK",
+    "currencies": [
+      "DKK"
+    ],
+    "symbol": "kr",
+    "landmark": "Nyhavn Waterfront & The Little Mermaid",
+    "landmarkType": "17th-Century Canal / Bronze Statue"
+  },
+  {
+    "code": "DJ",
+    "name": "Djibouti",
+    "flag": "🇩🇯",
+    "currency": "DJF",
+    "currencies": [
+      "DJF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Lake Assal & Lake Abbe Limestone Chimneys",
+    "landmarkType": "Saline Crater Lake / Mineral Chimneys"
+  },
+  {
+    "code": "DM",
+    "name": "Dominica",
+    "flag": "🇩🇲",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "Boiling Lake & Morne Trois Pitons",
+    "landmarkType": "Fumarole Lake / Volcanic National Park"
+  },
+  {
+    "code": "DO",
+    "name": "Dominican Republic",
+    "flag": "🇩🇴",
+    "currency": "DOP",
+    "currencies": [
+      "DOP"
+    ],
+    "symbol": "$",
+    "landmark": "Alcázar de Colón & Pico Duarte",
+    "landmarkType": "Colonial Palace / Caribbean Peak"
+  },
+  {
+    "code": "TL",
+    "name": "East Timor (Timor-Leste)",
+    "flag": "🇹🇱",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Cristo Rei of Dili & Atauro Island Coral Reefs",
+    "landmarkType": "Colossal Statue / Marine Biosphere"
+  },
+  {
+    "code": "EC",
+    "name": "Ecuador",
+    "flag": "🇪🇨",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Galápagos Islands & Cotopaxi Volcano",
+    "landmarkType": "Volcanic Archipelago / Snowcapped Peak"
+  },
+  {
+    "code": "EG",
+    "name": "Egypt",
+    "flag": "🇪🇬",
+    "currency": "EGP",
+    "currencies": [
+      "EGP"
+    ],
+    "symbol": "£",
+    "landmark": "Great Pyramids of Giza & The Sphinx",
+    "landmarkType": "Ancient Necropolis Monuments"
+  },
+  {
+    "code": "SV",
+    "name": "El Salvador",
+    "flag": "🇸🇻",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Santa Ana Volcano (Ilamatepec) & Joya de Cerén",
+    "landmarkType": "Volcanic Crater Lake / Buried Village"
+  },
+  {
+    "code": "GQ",
+    "name": "Equatorial Guinea",
+    "flag": "🇬🇶",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Basílica de la Inmaculada Concepción & Pico Basile",
+    "landmarkType": "Neo-Gothic Basilica / Volcanic Summit"
+  },
+  {
+    "code": "ER",
+    "name": "Eritrea",
+    "flag": "🇪🇷",
+    "currency": "ERN",
+    "currencies": [
+      "ERN"
+    ],
+    "symbol": "Nfk",
+    "landmark": "Fiat Tagliero Building & Asmara Art Deco Quarter",
+    "landmarkType": "Futurist Service Station / Architecture"
+  },
+  {
+    "code": "EE",
+    "name": "Estonia",
+    "flag": "🇪🇪",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Tallinn Old Town (Vanalinn) & Alexander Nevsky Cathedral",
+    "landmarkType": "Medieval Walled City / Orthodox Dome"
+  },
+  {
+    "code": "SZ",
+    "name": "Eswatini",
+    "flag": "🇸🇿",
+    "currency": "SZL",
+    "currencies": [
+      "SZL"
+    ],
+    "symbol": "L",
+    "landmark": "Sibebe Rock & Mlilwane Wildlife Sanctuary",
+    "landmarkType": "Granite Pluton Monolith / Valley Park"
+  },
+  {
+    "code": "ET",
+    "name": "Ethiopia",
+    "flag": "🇪🇹",
+    "currency": "ETB",
+    "currencies": [
+      "ETB"
+    ],
+    "symbol": "Br",
+    "landmark": "Rock-Hewn Churches of Lalibela & Simien Mountains",
+    "landmarkType": "Monolithic Churches / High Plateau"
+  },
+  {
+    "code": "FJ",
+    "name": "Fiji",
+    "flag": "🇫🇯",
+    "currency": "FJD",
+    "currencies": [
+      "FJD"
+    ],
+    "symbol": "$",
+    "landmark": "Sri Siva Subramaniya Temple & Mamanuca Islands",
+    "landmarkType": "Dravidian Hindu Temple / Atolls"
+  },
+  {
+    "code": "FI",
+    "name": "Finland",
+    "flag": "🇫🇮",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Suomenlinna Fortress & Helsinki Cathedral",
+    "landmarkType": "Sea Fortress Island / Neoclassical Church"
+  },
+  {
+    "code": "FR",
+    "name": "France",
+    "flag": "🇫🇷",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Eiffel Tower & Mont Saint-Michel",
+    "landmarkType": "Iron Lattice Tower / Tidal Island Abbey"
+  },
+  {
+    "code": "GA",
+    "name": "Gabon",
+    "flag": "🇬🇦",
+    "currency": "XAF",
+    "currencies": [
+      "XAF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Loango National Park (\"Surfing Hippos Beach\")",
+    "landmarkType": "Coastal Forest Ecosystem"
+  },
+  {
+    "code": "GM",
+    "name": "Gambia",
+    "flag": "🇬🇲",
+    "currency": "GMD",
+    "currencies": [
+      "GMD"
+    ],
+    "symbol": "D",
+    "landmark": "Kunta Kinteh Island & Senegambian Stone Circles",
+    "landmarkType": "Historic River Island / Megalith Circles"
+  },
+  {
+    "code": "GE",
+    "name": "Georgia",
+    "flag": "🇬🇪",
+    "currency": "GEL",
+    "currencies": [
+      "GEL"
+    ],
+    "symbol": "₾",
+    "landmark": "Gergeti Trinity Church (Stepantsminda) & Narikala",
+    "landmarkType": "Mountain Church / Ancient Citadel"
+  },
+  {
+    "code": "DE",
+    "name": "Germany",
+    "flag": "🇩🇪",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Brandenburg Gate & Neuschwanstein Castle",
+    "landmarkType": "Neoclassical Arch / Fairy-Tale Castle"
+  },
+  {
+    "code": "GH",
+    "name": "Ghana",
+    "flag": "🇬🇭",
+    "currency": "GHS",
+    "currencies": [
+      "GHS"
+    ],
+    "symbol": "₵",
+    "landmark": "Cape Coast Castle & Black Star Square (Accra)",
+    "landmarkType": "Historic Coastal Castle / Independence Arch"
+  },
+  {
+    "code": "GR",
+    "name": "Greece",
+    "flag": "🇬🇷",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Parthenon (Acropolis of Athens) & Santorini Caldera",
+    "landmarkType": "Classical Greek Temple / Volcanic Cliffs"
+  },
+  {
+    "code": "GD",
+    "name": "Grenada",
+    "flag": "🇬🇩",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "Grand Anse Beach & Fort George (St. George's)",
+    "landmarkType": "Powder-Sand Bay / Bastion Fort"
+  },
+  {
+    "code": "GT",
+    "name": "Guatemala",
+    "flag": "🇬🇹",
+    "currency": "GTQ",
+    "currencies": [
+      "GTQ"
+    ],
+    "symbol": "Q",
+    "landmark": "Tikal Temple I (Temple of the Great Jaguar)",
+    "landmarkType": "Ancient Maya Pyramid"
+  },
+  {
+    "code": "GN",
+    "name": "Guinea",
+    "flag": "🇬🇳",
+    "currency": "GNF",
+    "currencies": [
+      "GNF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Fouta Djallon Highlands & Chutes de Tinkisso",
+    "landmarkType": "Plateau Waterfalls / Escarpments"
+  },
+  {
+    "code": "GW",
+    "name": "Guinea-Bissau",
+    "flag": "🇬🇼",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Bijagós Archipelago & Fortaleza de São José da Amura",
+    "landmarkType": "Island Biosphere / Colonial Citadel"
+  },
+  {
+    "code": "GY",
+    "name": "Guyana",
+    "flag": "🇬🇾",
+    "currency": "GYD",
+    "currencies": [
+      "GYD"
+    ],
+    "symbol": "$",
+    "landmark": "Kaieteur Falls & St. George's Cathedral",
+    "landmarkType": "Single-Drop Waterfall / Wooden Church"
+  },
+  {
+    "code": "HT",
+    "name": "Haiti",
+    "flag": "🇭🇹",
+    "currency": "HTG",
+    "currencies": [
+      "HTG"
+    ],
+    "symbol": "G",
+    "landmark": "Citadelle Laferrière & Sans-Souci Palace",
+    "landmarkType": "Mountaintop Fortress / Imperial Ruin"
+  },
+  {
+    "code": "VA",
+    "name": "Holy See (Vatican City)",
+    "flag": "🇻🇦",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "St. Peter's Basilica & Sistine Chapel",
+    "landmarkType": "Renaissance Papal Basilica / Frescoed Hall"
+  },
+  {
+    "code": "HN",
+    "name": "Honduras",
+    "flag": "🇭🇳",
+    "currency": "HNL",
+    "currencies": [
+      "HNL"
+    ],
+    "symbol": "L",
+    "landmark": "Copán Mayan Ruins & Roatán Barrier Reef",
+    "landmarkType": "Hieroglyphic Stairway Ruins / Coral Reef"
+  },
+  {
+    "code": "HU",
+    "name": "Hungary",
+    "flag": "🇭🇺",
+    "currency": "HUF",
+    "currencies": [
+      "HUF"
+    ],
+    "symbol": "Ft",
+    "landmark": "Hungarian Parliament Building & Fisherman's Bastion",
+    "landmarkType": "Gothic Revival Edifice / Panoramic Terrace"
+  },
+  {
+    "code": "IS",
+    "name": "Iceland",
+    "flag": "🇮🇸",
+    "currency": "ISK",
+    "currencies": [
+      "ISK"
+    ],
+    "symbol": "kr",
+    "landmark": "Blue Lagoon & Gullfoss Waterfall (Golden Circle)",
+    "landmarkType": "Geothermal Spa / Glacial Cataract"
+  },
+  {
+    "code": "IN",
+    "name": "India",
+    "flag": "🇮🇳",
+    "currency": "INR",
+    "currencies": [
+      "INR"
+    ],
+    "symbol": "₹",
+    "landmark": "Red Fort (Delhi) & Taj Mahal (Agra)",
+    "landmarkType": "Mughal Sandstone Citadel / Marble Tomb"
+  },
+  {
+    "code": "ID",
+    "name": "Indonesia",
+    "flag": "🇮🇩",
+    "currency": "IDR",
+    "currencies": [
+      "IDR"
+    ],
+    "symbol": "Rp",
+    "landmark": "Borobudur Temple & Uluwatu Temple (Bali)",
+    "landmarkType": "Mahayana Buddhist Sanctuary / Cliff Temple"
+  },
+  {
+    "code": "IR",
+    "name": "Iran",
+    "flag": "🇮🇷",
+    "currency": "IRR",
+    "currencies": [
+      "IRR"
+    ],
+    "symbol": "﷼",
+    "landmark": "Persepolis & Naqsh-e Jahan Square (Isfahan)",
+    "landmarkType": "Achaemenid Capital / Grand Safavid Square"
+  },
+  {
+    "code": "IQ",
+    "name": "Iraq",
+    "flag": "🇮🇶",
+    "currency": "IQD",
+    "currencies": [
+      "IQD"
+    ],
+    "symbol": "ع.د",
+    "landmark": "Ziggurat of Ur & Ishtar Gate Remains (Babylon)",
+    "landmarkType": "Mesopotamian Step Pyramid / Ancient Portal"
+  },
+  {
+    "code": "IE",
+    "name": "Ireland",
+    "flag": "🇮🇪",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Cliffs of Moher & Trinity College Long Room",
+    "landmarkType": "Atlantic Ocean Precipice / Old Library"
+  },
+  {
+    "code": "IL",
+    "name": "Israel",
+    "flag": "🇮🇱",
+    "currency": "ILS",
+    "currencies": [
+      "ILS"
+    ],
+    "symbol": "₪",
+    "landmark": "Western Wall & Dome of the Rock / Old City",
+    "landmarkType": "Sacred Ancient Rampart / Golden Shrine"
+  },
+  {
+    "code": "IT",
+    "name": "Italy",
+    "flag": "🇮🇹",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Colosseum (Rome) & Leaning Tower of Pisa",
+    "landmarkType": "Flavian Amphitheatre / Freestanding Campanile"
+  },
+  {
+    "code": "CI",
+    "name": "Ivory Coast (Côte d'Ivoire)",
+    "flag": "🇨🇮",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Basilica of Our Lady of Peace (Yamoussoukro)",
+    "landmarkType": "Colossal Dome Basilica"
+  },
+  {
+    "code": "JM",
+    "name": "Jamaica",
+    "flag": "🇯🇲",
+    "currency": "JMD",
+    "currencies": [
+      "JMD"
+    ],
+    "symbol": "$",
+    "landmark": "Dunn's River Falls & Blue Mountain Peak",
+    "landmarkType": "Terraced Waterfall / Mountain Ridge"
+  },
+  {
+    "code": "JP",
+    "name": "Japan",
+    "flag": "🇯🇵",
+    "currency": "JPY",
+    "currencies": [
+      "JPY"
+    ],
+    "symbol": "¥",
+    "landmark": "Mount Fuji with Cherry Blossoms & Fushimi Inari",
+    "landmarkType": "Snowcapped Sacred Peak / Torii Gate Path"
+  },
+  {
+    "code": "JO",
+    "name": "Jordan",
+    "flag": "🇯🇴",
+    "currency": "JOD",
+    "currencies": [
+      "JOD"
+    ],
+    "symbol": "د.ا",
+    "landmark": "The Treasury (Al-Khazneh, Petra) & Wadi Rum",
+    "landmarkType": "Rock-Cut Nabataean Facade / Desert Valley"
+  },
+  {
+    "code": "KZ",
+    "name": "Kazakhstan",
+    "flag": "🇰🇿",
+    "currency": "KZT",
+    "currencies": [
+      "KZT"
+    ],
+    "symbol": "₸",
+    "landmark": "Baiterek Tower (Astana) & Charyn Canyon",
+    "landmarkType": "Monumental Tower / Red Sandstone Gorge"
+  },
+  {
+    "code": "KE",
+    "name": "Kenya",
+    "flag": "🇰🇪",
+    "currency": "KES",
+    "currencies": [
+      "KES"
+    ],
+    "symbol": "Sh",
+    "landmark": "Maasai Mara Wildlife Reserve & Mount Kenya",
+    "landmarkType": "Savannah Migration Plains / Stratovolcano"
+  },
+  {
+    "code": "KI",
+    "name": "Kiribati",
+    "flag": "🇰🇮",
+    "currency": "AUD",
+    "currencies": [
+      "AUD"
+    ],
+    "symbol": "$",
+    "landmark": "Millennium Island (Caroline Atoll)",
+    "landmarkType": "Pacific Coral Atoll"
+  },
+  {
+    "code": "KW",
+    "name": "Kuwait",
+    "flag": "🇰🇼",
+    "currency": "KWD",
+    "currencies": [
+      "KWD"
+    ],
+    "symbol": "د.ك",
+    "landmark": "Kuwait Towers & Grand Mosque of Kuwait",
+    "landmarkType": "Reinforced Concrete Spheres / Main Mosque"
+  },
+  {
+    "code": "KG",
+    "name": "Kyrgyzstan",
+    "flag": "🇰🇬",
+    "currency": "KGS",
+    "currencies": [
+      "KGS"
+    ],
+    "symbol": "с",
+    "landmark": "Ala Archa Gorge & Lake Issyk-Kul",
+    "landmarkType": "Alpine National Park / Mountain Lake"
+  },
+  {
+    "code": "LA",
+    "name": "Laos",
+    "flag": "🇱🇦",
+    "currency": "LAK",
+    "currencies": [
+      "LAK"
+    ],
+    "symbol": "₭",
+    "landmark": "Kuang Si Falls & Pha That Luang (Vientiane)",
+    "landmarkType": "Multi-Tier Turquoise Falls / Golden Stupa"
+  },
+  {
+    "code": "LV",
+    "name": "Latvia",
+    "flag": "🇱🇻",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Freedom Monument (Milda) & Rundāle Palace",
+    "landmarkType": "Triumphal Monument / Baroque Palace"
+  },
+  {
+    "code": "LB",
+    "name": "Lebanon",
+    "flag": "🇱🇧",
+    "currency": "LBP",
+    "currencies": [
+      "LBP"
+    ],
+    "symbol": "ل.ل",
+    "landmark": "Temple of Bacchus (Baalbek) & Jeita Grotto",
+    "landmarkType": "Roman Temple Complex / Karstic Cave"
+  },
+  {
+    "code": "LS",
+    "name": "Lesotho",
+    "flag": "🇱🇸",
+    "currency": "LSL",
+    "currencies": [
+      "LSL"
+    ],
+    "symbol": "L",
+    "landmark": "Maletsunyane Falls (Semonkong) & Thaba Bosiu",
+    "landmarkType": "Single-Drop Plume Waterfall / Flat Mesa"
+  },
+  {
+    "code": "LR",
+    "name": "Liberia",
+    "flag": "🇱🇷",
+    "currency": "LRD",
+    "currencies": [
+      "LRD"
+    ],
+    "symbol": "$",
+    "landmark": "Providence Island & Mount Nimba Strict Reserve",
+    "landmarkType": "Historic Settlement / Mountain Crest"
+  },
+  {
+    "code": "LY",
+    "name": "Libya",
+    "flag": "🇱🇾",
+    "currency": "LYD",
+    "currencies": [
+      "LYD"
+    ],
+    "symbol": "ل.د",
+    "landmark": "Leptis Magna Roman Ruins & Arch of Marcus Aurelius",
+    "landmarkType": "Preserved Roman Metropolis / Triumphal Arch"
+  },
+  {
+    "code": "LI",
+    "name": "Liechtenstein",
+    "flag": "🇱🇮",
+    "currency": "CHF",
+    "currencies": [
+      "CHF"
+    ],
+    "symbol": "CHF",
+    "landmark": "Vaduz Castle (Schloss Vaduz)",
+    "landmarkType": "Alpine Princely Palace"
+  },
+  {
+    "code": "LT",
+    "name": "Lithuania",
+    "flag": "🇱🇹",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Trakai Island Castle & Hill of Crosses",
+    "landmarkType": "Red-Brick Lake Castle / Pilgrimage Hillock"
+  },
+  {
+    "code": "LU",
+    "name": "Luxembourg",
+    "flag": "🇱🇺",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Bock Casemates & Adolphe Bridge",
+    "landmarkType": "Defense Tunnels / Stone Arch Viaduct"
+  },
+  {
+    "code": "MG",
+    "name": "Madagascar",
+    "flag": "🇲🇬",
+    "currency": "MGA",
+    "currencies": [
+      "MGA"
+    ],
+    "symbol": "Ar",
+    "landmark": "Avenue of the Baobabs & Tsingy de Bemaraha",
+    "landmarkType": "Century-Old Baobab Trees / Limestone Needles"
+  },
+  {
+    "code": "MW",
+    "name": "Malawi",
+    "flag": "🇲🇼",
+    "currency": "MWK",
+    "currencies": [
+      "MWK"
+    ],
+    "symbol": "MK",
+    "landmark": "Lake Malawi National Park & Mount Mulanje",
+    "landmarkType": "Freshwater Cichlid Lake / Granite Massif"
+  },
+  {
+    "code": "MY",
+    "name": "Malaysia",
+    "flag": "🇲🇾",
+    "currency": "MYR",
+    "currencies": [
+      "MYR"
+    ],
+    "symbol": "RM",
+    "landmark": "Petronas Twin Towers & Batu Caves (Kuala Lumpur)",
+    "landmarkType": "Postmodern Skyscraper Pair / Cave Shrine"
+  },
+  {
+    "code": "MV",
+    "name": "Maldives",
+    "flag": "🇲🇻",
+    "currency": "MVR",
+    "currencies": [
+      "MVR"
+    ],
+    "symbol": "Rf",
+    "landmark": "Overwater Villas of Malé Atoll & Old Friday Mosque",
+    "landmarkType": "Turquoise Coral Lagoon / Coral-Stone Mosque"
+  },
+  {
+    "code": "ML",
+    "name": "Mali",
+    "flag": "🇲🇱",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Great Mosque of Djenné & Cliffs of Bandiagara",
+    "landmarkType": "Earth-Adobe Structure / Dogon Escarpment"
+  },
+  {
+    "code": "MT",
+    "name": "Malta",
+    "flag": "🇲🇹",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Saint John's Co-Cathedral & Blue Grotto",
+    "landmarkType": "Baroque Cathedral / Sea Cavern"
+  },
+  {
+    "code": "MH",
+    "name": "Marshall Islands",
+    "flag": "🇲🇭",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Majuro Atoll Lagoon & Laura Beach",
+    "landmarkType": "Outer Barrier Reef Spit"
+  },
+  {
+    "code": "MR",
+    "name": "Mauritania",
+    "flag": "🇲🇷",
+    "currency": "MRU",
+    "currencies": [
+      "MRU"
+    ],
+    "symbol": "UM",
+    "landmark": "Richat Structure (Eye of the Sahara) & Chinguetti",
+    "landmarkType": "Concentric Dome Relief / Saharan Ksar"
+  },
+  {
+    "code": "MU",
+    "name": "Mauritius",
+    "flag": "🇲🇺",
+    "currency": "MUR",
+    "currencies": [
+      "MUR"
+    ],
+    "symbol": "₨",
+    "landmark": "Le Morne Brabant & Seven Coloured Earths (Chamarel)",
+    "landmarkType": "Basalt Monolith / Dunes Geological Formation"
+  },
+  {
+    "code": "MX",
+    "name": "Mexico",
+    "flag": "🇲🇽",
+    "currency": "MXN",
+    "currencies": [
+      "MXN"
+    ],
+    "symbol": "$",
+    "landmark": "Chichen Itza (El Castillo) & Angel of Independence",
+    "landmarkType": "Step Pyramid / Historic Victory Column"
+  },
+  {
+    "code": "FM",
+    "name": "Micronesia",
+    "flag": "🇫🇲",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Nan Madol Ruins (Pohnpei)",
+    "landmarkType": "Ancient Megalithic Canal City"
+  },
+  {
+    "code": "MD",
+    "name": "Moldova",
+    "flag": "🇲🇩",
+    "currency": "MDL",
+    "currencies": [
+      "MDL"
+    ],
+    "symbol": "L",
+    "landmark": "Orheiul Vechi Monastic Complex & Cricova Cellars",
+    "landmarkType": "Cave Monastery / Subterranean Wine Cellars"
+  },
+  {
+    "code": "MC",
+    "name": "Monaco",
+    "flag": "🇲🇨",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Monte Carlo Casino & Prince's Palace of Monaco",
+    "landmarkType": "Belle Époque Gambling Hall / Royal Bastion"
+  },
+  {
+    "code": "MN",
+    "name": "Mongolia",
+    "flag": "🇲🇳",
+    "currency": "MNT",
+    "currencies": [
+      "MNT"
+    ],
+    "symbol": "₮",
+    "landmark": "Genghis Khan Equestrian Statue & Gobi Sand Dunes",
+    "landmarkType": "Giant Stainless-Steel Statue / Desert Basin"
+  },
+  {
+    "code": "ME",
+    "name": "Montenegro",
+    "flag": "🇲🇪",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Bay of Kotor & Ostrog Monastery",
+    "landmarkType": "Fjord-Like Rias / Vertical Cliff Monastery"
+  },
+  {
+    "code": "MA",
+    "name": "Morocco",
+    "flag": "🇲🇦",
+    "currency": "MAD",
+    "currencies": [
+      "MAD"
+    ],
+    "symbol": "د.م.",
+    "landmark": "Hassan II Mosque (Casablanca) & Jemaa el-Fnaa",
+    "landmarkType": "Ocean-Facing Minaret / Historic Medina Square"
+  },
+  {
+    "code": "MZ",
+    "name": "Mozambique",
+    "flag": "🇲🇿",
+    "currency": "MZN",
+    "currencies": [
+      "MZN"
+    ],
+    "symbol": "MT",
+    "landmark": "Bazaruto Archipelago & Island of Mozambique",
+    "landmarkType": "Coral Barrier Atolls / Fortified UNESCO Port"
+  },
+  {
+    "code": "MM",
+    "name": "Myanmar (Burma)",
+    "flag": "🇲🇲",
+    "currency": "MMK",
+    "currencies": [
+      "MMK"
+    ],
+    "symbol": "Ks",
+    "landmark": "Shwedagon Pagoda (Yangon) & Bagan Temple Plains",
+    "landmarkType": "Golden Buddhist Stupa / Thousands of Pagodas"
+  },
+  {
+    "code": "NA",
+    "name": "Namibia",
+    "flag": "🇳🇦",
+    "currency": "NAD",
+    "currencies": [
+      "NAD"
+    ],
+    "symbol": "$",
+    "landmark": "Sossusvlei Sand Dunes (Dune 45) & Deadvlei",
+    "landmarkType": "Giant Ochre Dunes / Clay Pan with Dead Trees"
+  },
+  {
+    "code": "NR",
+    "name": "Nauru",
+    "flag": "🇳🇷",
+    "currency": "AUD",
+    "currencies": [
+      "AUD"
+    ],
+    "symbol": "$",
+    "landmark": "Command Ridge & Anibare Bay Pinnacles",
+    "landmarkType": "Island High Point / Coastal Limestone Pinnacles"
+  },
+  {
+    "code": "NP",
+    "name": "Nepal",
+    "flag": "🇳🇵",
+    "currency": "NPR",
+    "currencies": [
+      "NPR"
+    ],
+    "symbol": "₨",
+    "landmark": "Mount Everest (Sagarmatha) & Boudhanath Stupa",
+    "landmarkType": "Earth's Highest Peak / Vast Spherical Mandala"
+  },
+  {
+    "code": "NL",
+    "name": "Netherlands",
+    "flag": "🇳🇱",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Windmills of Kinderdijk & Keukenhof Tulip Gardens",
+    "landmarkType": "Historic Pumping Mills / Spring Bulb Fields"
+  },
+  {
+    "code": "NZ",
+    "name": "New Zealand",
+    "flag": "🇳🇿",
+    "currency": "NZD",
+    "currencies": [
+      "NZD"
+    ],
+    "symbol": "$",
+    "landmark": "Milford Sound (Piopiotahi) & Mount Cook (Aoraki)",
+    "landmarkType": "Glacial Fjord / Southern Alps Peak"
+  },
+  {
+    "code": "NI",
+    "name": "Nicaragua",
+    "flag": "🇳🇮",
+    "currency": "NIO",
+    "currencies": [
+      "NIO"
+    ],
+    "symbol": "C$",
+    "landmark": "Masaya Volcano & Granada Cathedral of Assumption",
+    "landmarkType": "Lava-Lake Crater / Bright Yellow Cathedral"
+  },
+  {
+    "code": "NE",
+    "name": "Niger",
+    "flag": "🇳🇪",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Grand Mosque of Agadez & Aïr and Ténéré Reserve",
+    "landmarkType": "Clay-Brick Minaret / Desert Massif"
+  },
+  {
+    "code": "NG",
+    "name": "Nigeria",
+    "flag": "🇳🇬",
+    "currency": "NGN",
+    "currencies": [
+      "NGN"
+    ],
+    "symbol": "₦",
+    "landmark": "Zuma Rock (Abuja) & Olumo Rock (Abeokuta)",
+    "landmarkType": "Giant Monolith / Sacred Fortress Rock"
+  },
+  {
+    "code": "KP",
+    "name": "North Korea",
+    "flag": "🇰🇵",
+    "currency": "KPW",
+    "currencies": [
+      "KPW"
+    ],
+    "symbol": "₩",
+    "landmark": "Juche Tower & Ryugyong Hotel (Pyongyang)",
+    "landmarkType": "Stone Flame Monolith / Pyramidal Skyscraper"
+  },
+  {
+    "code": "MK",
+    "name": "North Macedonia",
+    "flag": "🇲🇰",
+    "currency": "MKD",
+    "currencies": [
+      "MKD"
+    ],
+    "symbol": "ден",
+    "landmark": "Church of Saint John at Kaneo (Lake Ohrid)",
+    "landmarkType": "Cliffside Byzantine Church / Ancient Lake"
+  },
+  {
+    "code": "NO",
+    "name": "Norway",
+    "flag": "🇳🇴",
+    "currency": "NOK",
+    "currencies": [
+      "NOK"
+    ],
+    "symbol": "kr",
+    "landmark": "Geirangerfjord & Trolltunga Rock Ledge",
+    "landmarkType": "Precipitous Fjord / High Overhanging Precipice"
+  },
+  {
+    "code": "OM",
+    "name": "Oman",
+    "flag": "🇴🇲",
+    "currency": "OMR",
+    "currencies": [
+      "OMR"
+    ],
+    "symbol": "ر.ع.",
+    "landmark": "Sultan Qaboos Grand Mosque & Nizwa Fort",
+    "landmarkType": "Sandstone Islamic Monument / Omani Castle"
+  },
+  {
+    "code": "PK",
+    "name": "Pakistan",
+    "flag": "🇵🇰",
+    "currency": "PKR",
+    "currencies": [
+      "PKR"
+    ],
+    "symbol": "₨",
+    "landmark": "Badshahi Mosque & K2 (Godwin-Austen Peak)",
+    "landmarkType": "Mughal Imperial Mosque / Karakoram Mountain"
+  },
+  {
+    "code": "PW",
+    "name": "Palau",
+    "flag": "🇵🇼",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Rock Islands Southern Lagoon (Chelbacheb)",
+    "landmarkType": "Mushroom-Shaped Coral Islands"
+  },
+  {
+    "code": "PS",
+    "name": "Palestine",
+    "flag": "🇵🇸",
+    "currency": "ILS",
+    "currencies": [
+      "ILS",
+      "JOD"
+    ],
+    "symbol": "₪",
+    "landmark": "Church of the Nativity (Bethlehem) & Hisham's Palace",
+    "landmarkType": "Ancient Pilgrimage Basilica / Umayyad Ruin"
+  },
+  {
+    "code": "PA",
+    "name": "Panama",
+    "flag": "🇵🇦",
+    "currency": "PAB",
+    "currencies": [
+      "PAB",
+      "USD"
+    ],
+    "symbol": "B",
+    "landmark": "Miraflores Locks (Panama Canal) & Casco Viejo",
+    "landmarkType": "Trans-Oceanic Waterway / Colonial Quarter"
+  },
+  {
+    "code": "PG",
+    "name": "Papua New Guinea",
+    "flag": "🇵🇬",
+    "currency": "PGK",
+    "currencies": [
+      "PGK"
+    ],
+    "symbol": "K",
+    "landmark": "Mount Wilhelm & Rabaul Caldera (Tavurvur Volcano)",
+    "landmarkType": "Rugged Summit / Active Caldera Waterfront"
+  },
+  {
+    "code": "PY",
+    "name": "Paraguay",
+    "flag": "🇵🇾",
+    "currency": "PYG",
+    "currencies": [
+      "PYG"
+    ],
+    "symbol": "₲",
+    "landmark": "Itaipu Dam & Jesuit Missions of La Santísima Trinidad",
+    "landmarkType": "Hydroelectric Facility / Historic Mission Ruins"
+  },
+  {
+    "code": "PE",
+    "name": "Peru",
+    "flag": "🇵🇪",
+    "currency": "PEN",
+    "currencies": [
+      "PEN"
+    ],
+    "symbol": "S",
+    "landmark": "Machu Picchu & Rainbow Mountain (Vinicunca)",
+    "landmarkType": "Incan Citadel / Mineral-Banded Mountain"
+  },
+  {
+    "code": "PH",
+    "name": "Philippines",
+    "flag": "🇵🇭",
+    "currency": "PHP",
+    "currencies": [
+      "PHP"
+    ],
+    "symbol": "₱",
+    "landmark": "Banaue Rice Terraces & Mayon Volcano",
+    "landmarkType": "Hand-Carved Terraces / Symmetrical Stratovolcano"
+  },
+  {
+    "code": "PL",
+    "name": "Poland",
+    "flag": "🇵🇱",
+    "currency": "PLN",
+    "currencies": [
+      "PLN"
+    ],
+    "symbol": "zł",
+    "landmark": "Wawel Royal Castle (Kraków) & Wieliczka Salt Mine",
+    "landmarkType": "Renaissance Castle / Subterranean Salt Works"
+  },
+  {
+    "code": "PT",
+    "name": "Portugal",
+    "flag": "🇵🇹",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Belém Tower (Lisbon) & Pena Palace (Sintra)",
+    "landmarkType": "Manueline Fortress / Romanticist Fairytale Castle"
+  },
+  {
+    "code": "QA",
+    "name": "Qatar",
+    "flag": "🇶🇦",
+    "currency": "QAR",
+    "currencies": [
+      "QAR"
+    ],
+    "symbol": "ر.ق",
+    "landmark": "Museum of Islamic Art & Souq Waqif (Doha)",
+    "landmarkType": "Geometric Waterfront Museum / Traditional Bazaar"
+  },
+  {
+    "code": "RO",
+    "name": "Romania",
+    "flag": "🇷🇴",
+    "currency": "RON",
+    "currencies": [
+      "RON"
+    ],
+    "symbol": "lei",
+    "landmark": "Bran Castle (\"Dracula's Castle\") & Palace of Parliament",
+    "landmarkType": "Transylvanian Bastion / Giant Administrative Building"
+  },
+  {
+    "code": "RU",
+    "name": "Russia",
+    "flag": "🇷🇺",
+    "currency": "RUB",
+    "currencies": [
+      "RUB"
+    ],
+    "symbol": "₽",
+    "landmark": "Saint Basil's Cathedral & Winter Palace (Hermitage)",
+    "landmarkType": "Onion-Domed Cathedral / Tsarist Palace"
+  },
+  {
+    "code": "RW",
+    "name": "Rwanda",
+    "flag": "🇷🇼",
+    "currency": "RWF",
+    "currencies": [
+      "RWF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Volcanoes National Park & Kigali Genocide Memorial",
+    "landmarkType": "Gorilla Habitat / National Memorial"
+  },
+  {
+    "code": "KN",
+    "name": "Saint Kitts and Nevis",
+    "flag": "🇰🇳",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "Brimstone Hill Fortress National Park",
+    "landmarkType": "Hilltop British Military Fort"
+  },
+  {
+    "code": "LC",
+    "name": "Saint Lucia",
+    "flag": "🇱🇨",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "The Pitons (Gros Piton & Petit Piton)",
+    "landmarkType": "Twin Volcanic Spire Peaks"
+  },
+  {
+    "code": "VC",
+    "name": "Saint Vincent and the Grenadines",
+    "flag": "🇻🇨",
+    "currency": "XCD",
+    "currencies": [
+      "XCD"
+    ],
+    "symbol": "$",
+    "landmark": "La Soufrière Volcano & Tobago Cays Marine Park",
+    "landmarkType": "Active Volcanic Ridge / Coral Lagoons"
+  },
+  {
+    "code": "WS",
+    "name": "Samoa",
+    "flag": "🇼🇸",
+    "currency": "WST",
+    "currencies": [
+      "WST"
+    ],
+    "symbol": "T",
+    "landmark": "To-Sua Ocean Trench & Robert Louis Stevenson Museum",
+    "landmarkType": "Natural Tidal Swimming Hole / Historic Villa"
+  },
+  {
+    "code": "SM",
+    "name": "San Marino",
+    "flag": "🇸🇲",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "The Three Towers of San Marino (Guaita Fortress)",
+    "landmarkType": "Mountaintop Citadel Towers"
+  },
+  {
+    "code": "ST",
+    "name": "São Tomé and Príncipe",
+    "flag": "🇸🇹",
+    "currency": "STN",
+    "currencies": [
+      "STN"
+    ],
+    "symbol": "Db",
+    "landmark": "Pico Cão Grande (Great Dog Peak)",
+    "landmarkType": "Volcanic Needle Spire"
+  },
+  {
+    "code": "SA",
+    "name": "Saudi Arabia",
+    "flag": "🇸🇦",
+    "currency": "SAR",
+    "currencies": [
+      "SAR"
+    ],
+    "symbol": "ر.س",
+    "landmark": "Kaaba in Masjid al-Haram (Mecca) & Hegra (AlUla)",
+    "landmarkType": "Holiest Islamic Sanctuary / Nabataean Tombs"
+  },
+  {
+    "code": "SN",
+    "name": "Senegal",
+    "flag": "🇸🇳",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "African Renaissance Monument & Gorée Island",
+    "landmarkType": "Giant Bronze Statue / Colonial Slaves' Port"
+  },
+  {
+    "code": "RS",
+    "name": "Serbia",
+    "flag": "🇷🇸",
+    "currency": "RSD",
+    "currencies": [
+      "RSD"
+    ],
+    "symbol": "дин.",
+    "landmark": "Belgrade Fortress (Kalemegdan) & Temple of Saint Sava",
+    "landmarkType": "Confluence Fort / Colossal Orthodox Temple"
+  },
+  {
+    "code": "SC",
+    "name": "Seychelles",
+    "flag": "🇸🇨",
+    "currency": "SCR",
+    "currencies": [
+      "SCR"
+    ],
+    "symbol": "₨",
+    "landmark": "Anse Source d'Argent (La Digue)",
+    "landmarkType": "Granite Boulder Beach"
+  },
+  {
+    "code": "SL",
+    "name": "Sierra Leone",
+    "flag": "🇸🇱",
+    "currency": "SLE",
+    "currencies": [
+      "SLE"
+    ],
+    "symbol": "Le",
+    "landmark": "Cotton Tree Landmark (Freetown) & Banana Islands",
+    "landmarkType": "Historic Liberty Tree / Coastal Archipelago"
+  },
+  {
+    "code": "SG",
+    "name": "Singapore",
+    "flag": "🇸🇬",
+    "currency": "SGD",
+    "currencies": [
+      "SGD"
+    ],
+    "symbol": "$",
+    "landmark": "Marina Bay Sands & Supertree Grove (Gardens by Bay)",
+    "landmarkType": "Triple-Tower SkyPark / Futuristic Vertical Gardens"
+  },
+  {
+    "code": "SK",
+    "name": "Slovakia",
+    "flag": "🇸🇰",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Spiš Castle & Bojnice Romantic Castle",
+    "landmarkType": "Sprawling Medieval Ruin / Romanesque Castle"
+  },
+  {
+    "code": "SI",
+    "name": "Slovenia",
+    "flag": "🇸🇮",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Lake Bled (with Island Church) & Predjama Castle",
+    "landmarkType": "Glacial Alpine Lake / Cave-Imbedded Fortress"
+  },
+  {
+    "code": "SB",
+    "name": "Solomon Islands",
+    "flag": "🇸🇧",
+    "currency": "SBD",
+    "currencies": [
+      "SBD"
+    ],
+    "symbol": "$",
+    "landmark": "Marovo Lagoon & Tenaru Falls",
+    "landmarkType": "Double-Barrier Lagoon / Jungle Cascade"
+  },
+  {
+    "code": "SO",
+    "name": "Somalia",
+    "flag": "🇸🇴",
+    "currency": "SOS",
+    "currencies": [
+      "SOS"
+    ],
+    "symbol": "Sh",
+    "landmark": "Laas Geel Cave Paintings & Mogadishu Lighthouse",
+    "landmarkType": "Neolithic Rock Art / Historic Waterfront Tower"
+  },
+  {
+    "code": "ZA",
+    "name": "South Africa",
+    "flag": "🇿🇦",
+    "currency": "ZAR",
+    "currencies": [
+      "ZAR"
+    ],
+    "symbol": "R",
+    "landmark": "Table Mountain (Cape Town) & Kruger National Park",
+    "landmarkType": "Flat-Topped Sandstone Mountain / Safari Reserve"
+  },
+  {
+    "code": "KR",
+    "name": "South Korea",
+    "flag": "🇰🇷",
+    "currency": "KRW",
+    "currencies": [
+      "KRW"
+    ],
+    "symbol": "₩",
+    "landmark": "Gyeongbokgung Palace & N Seoul Tower",
+    "landmarkType": "Joseon Royal Palace / Mount Namsan Tower"
+  },
+  {
+    "code": "SS",
+    "name": "South Sudan",
+    "flag": "🇸🇸",
+    "currency": "SSP",
+    "currencies": [
+      "SSP"
+    ],
+    "symbol": "£",
+    "landmark": "The Sudd Wetland & Boma National Park",
+    "landmarkType": "Expansive Swamp Basin / Savannah Ecosystem"
+  },
+  {
+    "code": "ES",
+    "name": "Spain",
+    "flag": "🇪🇸",
+    "currency": "EUR",
+    "currencies": [
+      "EUR"
+    ],
+    "symbol": "€",
+    "landmark": "Sagrada Família (Barcelona) & Alhambra (Granada)",
+    "landmarkType": "Gaudí's Basilica / Moorish Palace Complex"
+  },
+  {
+    "code": "LK",
+    "name": "Sri Lanka",
+    "flag": "🇱🇰",
+    "currency": "LKR",
+    "currencies": [
+      "LKR"
+    ],
+    "symbol": "Rs",
+    "landmark": "Sigiriya (Lion Rock Fortress) & Temple of the Tooth",
+    "landmarkType": "Sheer Granite Citadel / Buddhist Relic Shrine"
+  },
+  {
+    "code": "SD",
+    "name": "Sudan",
+    "flag": "🇸🇩",
+    "currency": "SDG",
+    "currencies": [
+      "SDG"
+    ],
+    "symbol": "ج.س.",
+    "landmark": "Meroë Pyramids & Confluence of the Nile (Khartoum)",
+    "landmarkType": "Nubian Royal Pyramids / River Junction"
+  },
+  {
+    "code": "SR",
+    "name": "Suriname",
+    "flag": "🇸🇷",
+    "currency": "SRD",
+    "currencies": [
+      "SRD"
+    ],
+    "symbol": "$",
+    "landmark": "Saint Peter and Paul Cathedral & Brownsberg Park",
+    "landmarkType": "High Wooden Basilica / Rainforest Nature Park"
+  },
+  {
+    "code": "SE",
+    "name": "Sweden",
+    "flag": "🇸🇪",
+    "currency": "SEK",
+    "currencies": [
+      "SEK"
+    ],
+    "symbol": "kr",
+    "landmark": "Vasa Museum (Stockholm) & Drottningholm Palace",
+    "landmarkType": "Salvaged 1628 Warship / Royal Domain"
+  },
+  {
+    "code": "CH",
+    "name": "Switzerland",
+    "flag": "🇨🇭",
+    "currency": "CHF",
+    "currencies": [
+      "CHF"
+    ],
+    "symbol": "CHF",
+    "landmark": "The Matterhorn & Chapel Bridge (Lucerne)",
+    "landmarkType": "Pyramidal Alpine Peak / Covered Wooden Bridge"
+  },
+  {
+    "code": "SY",
+    "name": "Syria",
+    "flag": "🇸🇾",
+    "currency": "SYP",
+    "currencies": [
+      "SYP"
+    ],
+    "symbol": "£",
+    "landmark": "Palmyra Ancient Colonnades & Citadel of Aleppo",
+    "landmarkType": "Greco-Roman Ruins / Medieval Fortified Citadel"
+  },
+  {
+    "code": "TJ",
+    "name": "Tajikistan",
+    "flag": "🇹🇯",
+    "currency": "TJS",
+    "currencies": [
+      "TJS"
+    ],
+    "symbol": "ЅM",
+    "landmark": "Pamir Highway (Roof of the World) & Iskanderkul",
+    "landmarkType": "High-Altitude Pass / Turquoise Mountain Lake"
+  },
+  {
+    "code": "TZ",
+    "name": "Tanzania",
+    "flag": "🇹🇿",
+    "currency": "TZS",
+    "currencies": [
+      "TZS"
+    ],
+    "symbol": "Sh",
+    "landmark": "Mount Kilimanjaro & Serengeti National Park",
+    "landmarkType": "Free-Standing Stratovolcano / Migration Plains"
+  },
+  {
+    "code": "TH",
+    "name": "Thailand",
+    "flag": "🇹🇭",
+    "currency": "THB",
+    "currencies": [
+      "THB"
+    ],
+    "symbol": "฿",
+    "landmark": "Grand Palace & Wat Arun (Bangkok)",
+    "landmarkType": "Royal Complex / Temple of Dawn Spire"
+  },
+  {
+    "code": "TG",
+    "name": "Togo",
+    "flag": "🇹🇬",
+    "currency": "XOF",
+    "currencies": [
+      "XOF"
+    ],
+    "symbol": "Fr",
+    "landmark": "Koutammakou (Batamariba Mud Tower-Houses)",
+    "landmarkType": "Earthen Architecture Compound"
+  },
+  {
+    "code": "TO",
+    "name": "Tonga",
+    "flag": "🇹🇴",
+    "currency": "TOP",
+    "currencies": [
+      "TOP"
+    ],
+    "symbol": "T$",
+    "landmark": "Ha'amonga 'a Maui Trilithon & Mapu'a 'a Vaea",
+    "landmarkType": "Megalithic Stone Arch / Coastal Blowholes"
+  },
+  {
+    "code": "TT",
+    "name": "Trinidad and Tobago",
+    "flag": "🇹🇹",
+    "currency": "TTD",
+    "currencies": [
+      "TTD"
+    ],
+    "symbol": "$",
+    "landmark": "Pitch Lake & Pigeon Point Heritage Park",
+    "landmarkType": "Natural Asphalt Basin / Coconut-Fringed Peninsula"
+  },
+  {
+    "code": "TN",
+    "name": "Tunisia",
+    "flag": "🇹🇳",
+    "currency": "TND",
+    "currencies": [
+      "TND"
+    ],
+    "symbol": "د.ت",
+    "landmark": "Amphitheatre of El Jem & Ruins of Carthage",
+    "landmarkType": "Roman Colosseum / Ancient Punic Metropolis"
+  },
+  {
+    "code": "TR",
+    "name": "Turkey",
+    "flag": "🇹🇷",
+    "currency": "TRY",
+    "currencies": [
+      "TRY"
+    ],
+    "symbol": "₺",
+    "landmark": "Hagia Sophia (Istanbul) & Cappadocia Fairy Chimneys",
+    "landmarkType": "Byzantine Dome / Volcanic Tufa Valleys"
+  },
+  {
+    "code": "TM",
+    "name": "Turkmenistan",
+    "flag": "🇹🇲",
+    "currency": "TMT",
+    "currencies": [
+      "TMT"
+    ],
+    "symbol": "m",
+    "landmark": "Darvaza Gas Crater (\"Door to Hell\")",
+    "landmarkType": "Burning Methane Field"
+  },
+  {
+    "code": "TV",
+    "name": "Tuvalu",
+    "flag": "🇹🇻",
+    "currency": "AUD",
+    "currencies": [
+      "AUD"
+    ],
+    "symbol": "$",
+    "landmark": "Funafuti Conservation Area & Marine Lagoon",
+    "landmarkType": "Protected Islets and Coral Reefs"
+  },
+  {
+    "code": "UG",
+    "name": "Uganda",
+    "flag": "🇺🇬",
+    "currency": "UGX",
+    "currencies": [
+      "UGX"
+    ],
+    "symbol": "Sh",
+    "landmark": "Bwindi Impenetrable Forest & Murchison Falls",
+    "landmarkType": "Mountain Gorilla Sanctuary / Narrow River Gap"
+  },
+  {
+    "code": "UA",
+    "name": "Ukraine",
+    "flag": "🇺🇦",
+    "currency": "UAH",
+    "currencies": [
+      "UAH"
+    ],
+    "symbol": "₴",
+    "landmark": "Kyiv Pechersk Lavra & Saint Sophia Cathedral",
+    "landmarkType": "Cave Monastery / Golden-Domed Sanctuary"
+  },
+  {
+    "code": "AE",
+    "name": "United Arab Emirates",
+    "flag": "🇦🇪",
+    "currency": "AED",
+    "currencies": [
+      "AED"
+    ],
+    "symbol": "د.إ",
+    "landmark": "Burj Khalifa & Sheikh Zayed Grand Mosque",
+    "landmarkType": "World's Tallest Skyscraper / Pure White Mosque"
+  },
+  {
+    "code": "GB",
+    "name": "United Kingdom",
+    "flag": "🇬🇧",
+    "currency": "GBP",
+    "currencies": [
+      "GBP"
+    ],
+    "symbol": "£",
+    "landmark": "Big Ben (Elizabeth Tower) & Stonehenge",
+    "landmarkType": "Gothic Revival Clock Tower / Stone Circle"
+  },
+  {
+    "code": "US",
+    "name": "United States",
+    "flag": "🇺🇸",
+    "currency": "USD",
+    "currencies": [
+      "USD"
+    ],
+    "symbol": "$",
+    "landmark": "Golden Gate Bridge & Statue of Liberty",
+    "landmarkType": "Art Deco Suspension Bridge / Copper Torchbearer"
+  },
+  {
+    "code": "UY",
+    "name": "Uruguay",
+    "flag": "🇺🇾",
+    "currency": "UYU",
+    "currencies": [
+      "UYU"
+    ],
+    "symbol": "$",
+    "landmark": "Casapueblo (Punta Ballena) & Colonia del Sacramento",
+    "landmarkType": "Whitewashed Sculptural Villa / Historic Portuguese Town"
+  },
+  {
+    "code": "UZ",
+    "name": "Uzbekistan",
+    "flag": "🇺🇿",
+    "currency": "UZS",
+    "currencies": [
+      "UZS"
+    ],
+    "symbol": "so'm",
+    "landmark": "Registan Square (Samarkand) & Ark of Bukhara",
+    "landmarkType": "Mosaic-Tiled Madrasahs / Ancient Citadel"
+  },
+  {
+    "code": "VU",
+    "name": "Vanuatu",
+    "flag": "🇻🇺",
+    "currency": "VUV",
+    "currencies": [
+      "VUV"
+    ],
+    "symbol": "Vt",
+    "landmark": "Mount Yasur Active Volcano (Tanna) & Champagne Beach",
+    "landmarkType": "Accessible Strombolian Volcano / White Lagoon"
+  },
+  {
+    "code": "VE",
+    "name": "Venezuela",
+    "flag": "🇻🇪",
+    "currency": "VED",
+    "currencies": [
+      "VED"
+    ],
+    "symbol": "Bs.",
+    "landmark": "Angel Falls (Salto Ángel) & Mount Roraima",
+    "landmarkType": "Highest Uninterrupted Waterfall / Flat Tableland"
+  },
+  {
+    "code": "VN",
+    "name": "Vietnam",
+    "flag": "🇻🇳",
+    "currency": "VND",
+    "currencies": [
+      "VND"
+    ],
+    "symbol": "₫",
+    "landmark": "Ha Long Bay & Golden Bridge (Hands of God, Da Nang)",
+    "landmarkType": "Emerald Karst Waters / Sculpted Hands Walkway"
+  },
+  {
+    "code": "YE",
+    "name": "Yemen",
+    "flag": "🇾🇪",
+    "currency": "YER",
+    "currencies": [
+      "YER"
+    ],
+    "symbol": "﷼",
+    "landmark": "Old Walled City of Shibam (\"Manhattan of Desert\")",
+    "landmarkType": "Mud-Brick High-Rise Tower City"
+  },
+  {
+    "code": "ZM",
+    "name": "Zambia",
+    "flag": "🇿🇲",
+    "currency": "ZMW",
+    "currencies": [
+      "ZMW"
+    ],
+    "symbol": "ZK",
+    "landmark": "Victoria Falls (Mosi-oa-Tunya) & South Luangwa",
+    "landmarkType": "World's Largest Falling Water / Safari Basin"
+  },
+  {
+    "code": "ZW",
+    "name": "Zimbabwe",
+    "flag": "🇿🇼",
+    "currency": "ZWG",
+    "currencies": [
+      "ZWG"
+    ],
+    "symbol": "ZiG",
+    "landmark": "Great Zimbabwe Ruins & Victoria Falls (Zambezi)",
+    "landmarkType": "Medieval Stone Enclosures / Iconic Cascades"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "pre_trip_preparation",
+    "name": "Pre-Trip Preparation",
+    "emoji": "🧳",
+    "examples": "visas, passport renewals, travel insurance, vaccinations, medication, specialized luggage, travel gear",
+    "timing": "Pre-departure"
+  },
+  {
+    "id": "primary_transportation",
+    "name": "Primary Transportation",
+    "emoji": "✈️",
+    "examples": "round-trip flights, long-distance trains, intercity buses, ferry tickets, baggage fees, seat selection",
+    "timing": "Pre-departure"
+  },
+  {
+    "id": "accommodation",
+    "name": "Accommodation",
+    "emoji": "🏨",
+    "examples": "hotel rooms, hostels, vacation rental stays, resort fees, city tourism taxes, security deposits",
+    "timing": "Pre-trip / On-arrival"
+  },
+  {
+    "id": "local_transportation",
+    "name": "Local Transportation",
+    "emoji": "🛺",
+    "examples": "metro/subway passes, local bus tickets, ride-hailing (uber/grab), taxis, car/scooter rentals, fuel, tolls, parking",
+    "timing": "Daily during trip"
+  },
+  {
+    "id": "food_dining",
+    "name": "Food & Dining",
+    "emoji": "🍜",
+    "examples": "breakfast, lunch, dinner, street food, cafes, coffee, groceries, bottled water, snacks, culinary experiences",
+    "timing": "Daily during trip"
+  },
+  {
+    "id": "activities_sightseeing",
+    "name": "Activities & Sightseeing",
+    "emoji": "🎟️",
+    "examples": "museum tickets, historic monument passes, guided city tours, national park entries, adventure excursions, event tickets",
+    "timing": "Mixed (Pre-booked / On-site)"
+  },
+  {
+    "id": "shopping_souvenirs",
+    "name": "Shopping & Souvenirs",
+    "emoji": "🛍️",
+    "examples": "local crafts, textiles, duty-free items, regional gifts, postcards, apparel purchases",
+    "timing": "Throughout trip / Departure"
+  },
+  {
+    "id": "connectivity_technology",
+    "name": "Connectivity & Technology",
+    "emoji": "📶",
+    "examples": "local sim cards, esim data plans, portable wi-fi rentals, power adapters, replacement cables",
+    "timing": "Pre-trip / On-arrival"
+  },
+  {
+    "id": "incidentals",
+    "name": "Incidentals",
+    "emoji": "💸",
+    "examples": "currency exchange margins, atm withdrawal fees, service tips/gratuities, laundromat/laundry services, luggage storage",
+    "timing": "As incurred"
+  },
+  {
+    "id": "miscellaneous",
+    "name": "Miscellaneous",
+    "emoji": "🧩",
+    "examples": "unplanned pharmacy runs, replacement toiletries, umbrellas/ponchos, printouts, unexpected baggage surcharges, emergency contingency buffer",
+    "timing": "As incurred / Emergency"
+  }
+]
