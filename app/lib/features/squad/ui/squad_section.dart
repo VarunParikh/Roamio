@@ -7,6 +7,8 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 enum _Action { makeCoLead, makeMember, makeLeader, remove }
 
@@ -51,6 +53,7 @@ class SquadSection extends ConsumerWidget {
     String nameOf(String uid) => names[uid] ?? '…';
     final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
     final iLead = adventure.isLead(myUid);
+    final offline = ref.watch(isOfflineProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,7 +65,7 @@ class SquadSection extends ConsumerWidget {
             name: uid == myUid ? '${nameOf(uid)} (you)' : nameOf(uid),
             role: _role(uid),
             isLead: adventure.isLead(uid),
-            actions: _actionsOn(uid),
+            actions: offline ? const [] : _actionsOn(uid),
             onAction: (action) => _run(context, ref, action, uid, nameOf(uid)),
           ),
         for (final pal in pals)
@@ -82,9 +85,10 @@ class SquadSection extends ConsumerWidget {
         ],
         const SizedBox(height: 8),
         TextButton(
-          onPressed: () => _leave(context, ref),
+          onPressed: offline ? null : () => _leave(context, ref),
           child: const Text('Leave adventure'),
         ),
+        if (offline) const NeedsConnectionNote(),
       ],
     );
   }
