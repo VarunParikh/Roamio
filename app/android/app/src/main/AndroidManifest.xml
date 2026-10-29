@@ -24,13 +24,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Parental consent links (spec §7.1) open the app when installed;
+            <!-- Parental consent (spec §7.1) and squad invite (UC-12) links
+                 open the app when installed;
                  verified through hosting/.well-known/assetlinks.json. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="${linkHost}" android:pathPrefix="/consent"/>
+                <data android:scheme="https" android:host="${linkHost}" android:pathPrefix="/i/"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

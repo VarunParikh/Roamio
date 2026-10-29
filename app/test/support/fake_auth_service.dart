@@ -11,11 +11,15 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/invites/data/invite_service.dart';
+import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/main.dart';
 
 import 'fake_adventure_service.dart';
 import 'fake_banner_service.dart';
 import 'fake_consent_service.dart';
+import 'fake_invite_service.dart';
 
 /// In-memory [AuthService]: tests push [SessionFacts] and inspect [calls].
 class FakeAuthService implements AuthService {
@@ -119,6 +123,9 @@ Future<void> pumpRoamio(
   FakeAdventureService? adventures,
   FakeBannerService? banners,
   List<Uri>? openedLinks,
+  FakeInviteService? invites,
+  List<String>? shared,
+  String? clipboard,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -135,6 +142,9 @@ Future<void> pumpRoamio(
         adventureServiceProvider.overrideWithValue(
           adventures ?? FakeAdventureService(),
         ),
+        inviteServiceProvider.overrideWithValue(invites ?? FakeInviteService()),
+        shareTextProvider.overrideWithValue((text) async => shared?.add(text)),
+        readClipboardProvider.overrideWithValue(() async => clipboard),
         consentServiceProvider.overrideWithValue(
           consent ?? FakeConsentService(),
         ),

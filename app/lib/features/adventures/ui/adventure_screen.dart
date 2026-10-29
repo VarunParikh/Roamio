@@ -5,7 +5,9 @@ import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/ui/adventure_card.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/invites/ui/invite_section.dart';
 
 /// One adventure. Tabs, squad and invites arrive in later tasks
 /// (17, 19, 23, 27); for now it shows the trip so no tap leads nowhere.
@@ -65,6 +67,11 @@ class AdventureScreen extends ConsumerWidget {
                     'Trip currency: ${adventure.baseCurrency}'
                     '${country == null ? '' : ' · ${country.landmark}'}',
                     style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+                  ),
+                  const SizedBox(height: 24),
+                  InviteSection(
+                    adventure: adventure,
+                    myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
                   ),
                   const SizedBox(height: 24),
                   Text(

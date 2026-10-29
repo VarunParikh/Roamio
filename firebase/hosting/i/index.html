@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Roamio · Join the squad</title>
+  <style>
+    :root { --ink: #0F1115; --canvas: #F9FAFB; --lime: #D4FF00; --slate: #64748B; --line: #E4E4E7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink);
+      font: 16px/1.5 "Plus Jakarta Sans", system-ui, sans-serif; }
+    main { max-width: 480px; margin: 0 auto; padding: 32px 16px 48px; }
+    .logo { font-weight: 800; font-size: 32px; letter-spacing: -0.04em; }
+    .logo span { color: var(--lime); }
+    h1 { font-size: 26px; line-height: 32px; letter-spacing: -0.025em; margin: 24px 0 8px; }
+    p { color: var(--slate); }
+    .code { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 16px 20px; margin: 24px 0; }
+    .code strong { font-size: 24px; letter-spacing: 0.08em; }
+    button, .btn { font: inherit; font-weight: 600; border-radius: 9999px; cursor: pointer; }
+    button { border: 1px solid var(--line); background: #fff; padding: 10px 16px; }
+    .btn { display: block; text-align: center; text-decoration: none; padding: 16px; margin-top: 12px; }
+    .primary { background: var(--lime); color: var(--ink); }
+    .ghost { border: 1px solid var(--line); color: var(--ink); }
+    ol { color: var(--slate); padding-left: 20px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="logo">roamio<span>.</span></div>
+  <h1 id="title">You’re invited to an adventure</h1>
+  <p id="sub">Roamio splits trip costs with your squad. Split bills, not friendships.</p>
+
+  <div class="code" id="codeBox" hidden>
+    <div><div style="color: var(--slate); font-size: 14px;">Invite code</div><strong id="code"></strong></div>
+    <button id="copy" type="button">Copy</button>
+  </div>
+
+  <a id="open" class="btn primary" href="#" hidden>Open in Roamio</a>
+  <a class="btn ghost" href="https://github.com/VarunParikh/Roamio/releases/latest">Don’t have Roamio? Download it</a>
+  <ol>
+    <li>Install Roamio and create your account.</li>
+    <li>Tap this link again, or on Home tap <em>Have an invite code?</em> and paste the code.</li>
+    <li>Your invite appears under Invites. Join the squad from there.</li>
+  </ol>
+</main>
+<script>
+  // /i/<code>: show the code (copy it before installing) and, if the invite
+  // is still live, the adventure name from the public preview endpoint.
+  const raw = decodeURIComponent(location.pathname.split("/i/")[1] || "").toUpperCase().replace(/[\s-]/g, "");
+  const valid = /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/.test(raw);
+  const pretty = raw.slice(0, 4) + "-" + raw.slice(4);
+  if (valid) {
+    document.getElementById("code").textContent = pretty;
+    document.getElementById("codeBox").hidden = false;
+    document.getElementById("copy").onclick = async () => {
+      await navigator.clipboard.writeText(pretty);
+      document.getElementById("copy").textContent = "Copied ✓";
+    };
+    const open = document.getElementById("open");
+    const pkg = location.host.startsWith("roamio-dev-") ? "app.roamio.android.dev" : "app.roamio.android";
+    open.href = "intent://" + location.host + "/i/" + raw + "#Intent;scheme=https;package=" + pkg + ";end";
+    open.hidden = false;
+    fetch("/api/invitePreview?code=" + raw)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((i) => {
+        document.getElementById("title").textContent = i.leaderName + " invited you to “" + i.adventureName + "”";
+      })
+      .catch(() => {
+        document.getElementById("sub").textContent =
+          "We couldn’t check this invite right now. It may have expired; if so, ask for a new link.";
+      });
+  } else {
+    document.getElementById("title").textContent = "This invite link looks incomplete";
+    document.getElementById("sub").textContent = "Ask the person who sent it to share it again.";
+  }
+</script>
+</body>
+</html>

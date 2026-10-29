@@ -17,6 +17,10 @@ import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/consent/data/firebase_consent_service.dart';
+import 'package:roamio/features/invites/data/firebase_invite_service.dart';
+import 'package:roamio/features/invites/data/invite_service.dart';
+import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> main() async {
@@ -43,6 +47,16 @@ Future<void> main() async {
         ),
         openLinkProvider.overrideWithValue(
           (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
+        ),
+        inviteServiceProvider.overrideWithValue(
+          FirebaseInviteService(
+            FirebaseAuth.instance,
+            FirebaseFirestore.instance,
+            roamioFunctions,
+          ),
+        ),
+        shareTextProvider.overrideWithValue(
+          (text) => SharePlus.instance.share(ShareParams(text: text)),
         ),
         consentServiceProvider.overrideWithValue(
           FirebaseConsentService(

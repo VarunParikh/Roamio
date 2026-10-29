@@ -114,7 +114,7 @@ Common verification commands:
   - Verify: functions test with mocked Unsplash (hit, miss, API failure); second creation for same country makes no API call.
   - Files: `firebase/functions/src/banners/*.ts`, `app/lib/features/adventures/ui/banner.dart`, tests
 
-- [ ] **Task 17: Invite links** — M · Deps: 15 · UC-9, 12
+- [x] **Task 17: Invite links** — M · Deps: 15 · UC-9, 12
   - Acceptance: leads generate/revoke 8-char codes valid 14 days; Share invite opens the share sheet; Hosting landing page `/i/<code>` shows adventure name, copy-code and Download APK; Android App Link opens the app; clipboard check on first launch and "Have an invite code?" field on Home.
   - Verify: functions tests (expired, revoked, unknown code); manual: link opens app on emulator.
   - Files: `firebase/functions/src/invites/*.ts`, `firebase/hosting/i/index.html`, `app/lib/features/invites/**`, `app/android/app/src/main/AndroidManifest.xml`
