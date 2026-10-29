@@ -70,4 +70,7 @@ class FakeConsentService implements ConsentService {
 
   @override
   Future<void> withdraw(String childUid) => _act('withdraw:$childUid');
+
+  @override
+  Future<void> acceptAdultNotice() => _act('acceptAdult');
 }

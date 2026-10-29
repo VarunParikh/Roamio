@@ -84,6 +84,9 @@ class FirebaseConsentService implements ConsentService {
   Future<void> withdraw(String childUid) =>
       _call('withdrawParentalConsent', {'childUid': childUid});
 
+  @override
+  Future<void> acceptAdultNotice() => _call('acceptAdultNotice', {});
+
   Future<Map<String, dynamic>> _call(
     String name,
     Map<String, Object?> data,
