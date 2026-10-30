@@ -61,10 +61,20 @@ class FirebaseSquadService implements SquadService {
 
   @override
   Future<Map<String, String>> namesOf(List<String> uids) async {
-    final docs = await Future.wait(
-      uids.map((uid) => _db.doc('users/$uid').get()),
-    );
-    return {for (final d in docs) d.id: nameFromProfile(d.data())};
+    // Profiles are visible only to squadmates (S3b); one that can't be read
+    // is left out rather than hiding everyone's name.
+    Future<DocumentSnapshot<Map<String, dynamic>>?> read(String uid) => _db
+        .doc('users/$uid')
+        .get()
+        .then<DocumentSnapshot<Map<String, dynamic>>?>(
+          (d) => d,
+          onError: (Object _) => null,
+        );
+    final docs = await Future.wait(uids.map(read));
+    return {
+      for (final d in docs)
+        if (d != null) d.id: nameFromProfile(d.data()),
+    };
   }
 
   CollectionReference<Map<String, dynamic>> _pals(String adventureId) =>

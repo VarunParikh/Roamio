@@ -26,12 +26,12 @@ Severity means:
 | S4 | Medium | Tab photo links could be any web address, so they could be used to track members | `firestore.rules` (tabs `memories`) | **Fixed** |
 | S5 | Medium | Frozen or unconfirmed accounts could still manage squads and invites | `functions/src/squad/roles.ts`, `invites/invites.ts` | **Fixed** |
 | S6 | Medium | The child's name went into consent emails unchecked (phishing) | `functions/src/consent/consent.ts` | **Fixed** |
-| S7 | Medium | A removed member can rejoin with the same invite link | `squad/roles.ts`, `invites/join.ts` | Follow-up |
-| S8 | Medium | Account deletion keeps photos the person added to tabs | `privacy/deleteAccount.ts` | Follow-up (owner decision) |
+| S7 | Medium | A removed member can rejoin with the same invite link | `squad/roles.ts`, `invites/join.ts` | Owner decision: leave as is |
+| S8 | Medium | Account deletion keeps photos the person added to tabs | `privacy/deleteAccount.ts` | Owner decision: tab photos stay with the squad (spec §8 updated) |
 | S9 | Low | Photo-link checks accept any Firebase bucket, and emulator addresses in production | `firestore.rules` (`isStoredPhoto`) | **Fixed** (bucket and folder; emulator addresses remain, see below) |
 | S10 | Low | Profile photo uploads need no account record and have no cap | `storage.rules` (avatars) | **Fixed** (record + file name; no count cap) |
 | S11 | Low | Some adventure and tab fields have no type or length check | `firestore.rules` | **Fixed** |
-| S12 | Low | Sent-mail records (parent emails) are never deleted | `functions/src/mail.ts` | Follow-up |
+| S12 | Low | Sent-mail records (parent emails) are never deleted | `functions/src/mail.ts` | **Fixed**: deleted after 30 days (TTL) |
 | S13 | Low | A parent's download of a child's data includes other adults' tab locations | `privacy/exportData.ts` | **Fixed** |
 | S14 | Low | CI actions are pinned by tag, not commit; releases have no protected environment | `.github/workflows/*.yml` | Follow-up (CI change, needs owner OK) |
 | S15 | Info | No App Check, so anyone can call the functions and use up the 5-instance cap | `functions/src/index.ts` | Follow-up (cost) |
@@ -125,7 +125,12 @@ Each has a test that failed first.
 - **S11:** an adventure's `countryCode` must be 2 capital letters and `city` at most 80 characters; a tab's `category` must be one of the 10 in `app/assets/data/categories.json`.
 - **S13:** a data download keeps `location` only on tabs the person added themselves.
 
-Still open, waiting on the owner: S3b (data model), S7 (product), S8 (product), S12 (data model), S14 (CI change), S15 (cost).
+Owner decisions (2026-10-30) and what followed:
+- **S3b, fixed:** profiles are visible only to people who share, or shared, a squad, and to a child's consenting parent. A server-kept `profileReaders/{uid}` list backs the rule (see DATA_MODEL.md).
+- **S7, left as is:** a removed member can rejoin with the same invite link; the lead can make a new link.
+- **S8, decided:** photos added to tabs stay with the squad when an account is deleted. Spec §8 and the child section of the privacy notice now say so.
+- **S12, fixed:** queued emails carry `expiresAt` (30 days), with a Firestore TTL policy in `firestore.indexes.json`. The privacy notice says so.
+- **S14 and S15:** in their own PRs (a CI change, and a new package).
 
 ## App privacy guards (checked, nothing to fix)
 - **No analytics or Crashlytics.** Neither package is installed (`app/pubspec.yaml`), so nothing can report about under-18s.

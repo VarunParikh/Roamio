@@ -9,6 +9,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
@@ -150,6 +151,12 @@ class _Details extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text([formatDay(tab.date), ?category?.name].join(' · '), style: slate),
+        if (tab.split.fxDate != isoDate(tab.date))
+          Text(
+            'Converted at exchange rates from '
+            '${formatDay(parseIsoDate(tab.split.fxDate))}',
+            style: slate,
+          ),
         const SizedBox(height: 16),
         Text(money(tab.amount.minor), style: text.displaySmall),
         const SizedBox(height: 24),
