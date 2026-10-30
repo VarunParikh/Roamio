@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One-colour version of the launcher icon for Android 13+ themed icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="512" android:viewportHeight="512">
+    <group android:translateX="102.40" android:translateY="97.00" android:scaleX="0.6" android:scaleY="0.6"><group android:translateY="12"><group android:translateX="-15"><path android:pathData="M256,436 C214,376 136,300 136,214 A120,120 0 0,1 256,94 Z M256,170 A44,44 0 0,0 256,258 Z" android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:strokeColor="#FFFFFFFF" android:strokeWidth="18" android:strokeLineJoin="round"/></group><group android:translateX="15" android:translateY="-24"><path android:pathData="M256,436 C298,376 376,300 376,214 A120,120 0 0,0 256,94 Z" android:strokeColor="#FFFFFFFF" android:strokeWidth="18" android:strokeLineJoin="round"/><path android:pathData="M256,170 A44,44 0 0,1 256,258 Z" android:fillColor="#FFFFFFFF"/></group></group></group>
+</vector>
