@@ -81,9 +81,19 @@ service cloud.firestore {
           && (incoming().get('photoUrl', null) == null || incoming().photoUrl is string)
           && isText(incoming().get('bio', ''), 0, 200);
       }
-      // One profile at a time (get, never list), so nobody can collect
-      // every user's name and photo, minors' included.
-      allow get: if signedIn() && (me() == uid || isActive());
+      // Someone who shares, or shared, a squad (profileReaders, kept by the
+      // server; follow-up S3b), or the child's consenting parent.
+      function canSee() {
+        let readers = /databases/$(database)/documents/profileReaders/$(uid);
+        let consent = /databases/$(database)/documents/parentalConsents/$(uid);
+        return (exists(readers) && me() in get(readers).data.uids)
+          || (exists(consent) && get(consent).data.get('parentUid', null) == me());
+      }
+      // One profile at a time (get, never list), only for those who share
+      // a squad, so nobody can collect names and photos, minors' included.
+      // A deleted account just reads as gone ("Deleted user" on tabs).
+      allow get: if signedIn() && (me() == uid
+        || (isActive() && (resource == null || canSee())));
       allow create, update: if signedIn() && me() == uid && validProfile();
 
       match /private/account {
@@ -192,7 +202,7 @@ service cloud.firestore {
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))
             && isCurrency(t.currency)
-            && isDate(t.date) && isDate(t.fxDate)
+            && isDate(t.date) && isDate(t.fxDate) && t.fxDate <= t.date
             && t.payers is list && t.payers.size() >= 1 && t.payers.size() <= 50
             && t.participants is list && t.participants.size() >= 1
             && t.participants.size() <= 50

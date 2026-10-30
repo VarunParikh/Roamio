@@ -16,7 +16,7 @@
 | C1 | High | Deleting a child left them in their squads | `consent/consent.ts` | **Fixed** (same as S2) |
 | C2 | High | The consent sweep never retried a deletion that failed | `consent/sweep.ts`, `consent/consent.ts` | **Fixed** |
 | C3 | High | A tab's creator could delete their own tab, or undo a lead's delete, without it showing anywhere | `firestore.rules` (tabs update) | **Fixed** |
-| C4 | Medium (reviewer said High) | A tab's exchange rate can change once a missing day's rates arrive | `app/lib/features/tabs/domain/new_tab.dart`, `splits/data/fx_repository.dart` | Follow-up |
+| C4 | Medium (reviewer said High) | A tab's exchange rate can change once a missing day's rates arrive | `app/lib/features/tabs/domain/new_tab.dart`, `splits/data/fx_repository.dart` | **Fixed** (owner decision) |
 | C5 | Medium | No upper limit on amounts in the rules | `firestore.rules` | **Fixed** (rules, then app in the follow-ups PR) |
 | C6 | Medium | Account deletion checked "leader must hand over" outside the transaction | `privacy/deleteAccount.ts` | **Fixed** |
 | C7 | Medium | After settling exactly, people who view in another currency may still see a few cents owed | `app/lib/features/splits/domain/split_report.dart` | **Fixed** (follow-ups PR) |
@@ -26,7 +26,7 @@
 | C11 | Low | `signOutIfDeleted` might reload in a loop for a brand-new sign-up (unconfirmed) | `app/lib/features/auth/data/firebase_auth_service.dart` | **Fixed** (follow-ups PR) |
 | C12 | Low | An invite revoked during a join still lets that join through | `invites/join.ts` | **Fixed** (follow-ups PR) |
 | C13 | Low | The spreadsheet export turns money text into a `double` | `app/lib/features/splits/data/export_service.dart` | Checked: exact up to the largest tab; test added |
-| C14 | Low | The app sets `fxDate` and the server doesn't check it, so a member could backdate a rate | `firestore.rules`, `checkTab.ts` | Follow-up |
+| C14 | Low | The app sets `fxDate` and the server doesn't check it, so a member could backdate a rate | `firestore.rules`, `checkTab.ts` | **Fixed** |
 
 ### C2 — The consent sweep could lose a deletion (High, fixed)
 **Problem.** The daily sweep marked a request `expired` or `closed` *before* deleting the child. The "decline" button did the same. The sweep only looks at open requests, so if a deletion failed half-way (a timeout, or Storage being down) that child was never deleted. Also, one failing request stopped the whole sweep, including the audit-log clean-up.
@@ -95,7 +95,7 @@ Each has a test that failed first, except C12 (a race; the existing join tests c
 - **C12:** `joinAdventure` checks the invite again inside its transaction.
 - **C13:** spreadsheet cells are binary numbers by nature. A test shows the largest allowed tab, and a third share of it, come out exact to the paisa, so the one conversion at the file's edge loses nothing.
 
-Still open, waiting on the owner: C4 (exchange-rate day) and C14, which goes with C4.
+**C4 + C14, fixed (owner decision 2026-10-30):** a tab saves as `fxDate` the day of the latest rates known for its date, so it no longer shifts once that day's rates arrive. Edits keep it unless the date changes, and the tab screen says which day's rates convert it. The rules refuse an `fxDate` after the tab's date, and `checkTab` rejects one more than 7 days earlier (only when it changes), so nobody can backdate to a better rate.
 
 ## What's done well
 - **Exact exchange rates end to end.** The rates response is read as text and never becomes a floating-point number. BigInt is used on the server and in Dart, and rounding matches on both sides.

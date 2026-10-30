@@ -43,6 +43,25 @@ export const joinAdventure = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "This adventure has already ended.");
     }
 
+    // The newcomer and the squad can see each other's profiles straight
+    // away (S3b); the profileReaders trigger rebuilds the lists later.
+    const squad = [...memberUids, ...((adventure.get("leftUids") as string[]) ?? [])].filter(
+      (other) => other !== uid,
+    );
+    if (squad.length > 0) {
+      tx.set(
+        db().doc(`profileReaders/${uid}`),
+        { uids: FieldValue.arrayUnion(...squad) },
+        { merge: true },
+      );
+    }
+    for (const other of squad) {
+      tx.set(
+        db().doc(`profileReaders/${other}`),
+        { uids: FieldValue.arrayUnion(uid) },
+        { merge: true },
+      );
+    }
     tx.update(adventureRef, {
       memberUids: FieldValue.arrayUnion(uid),
       leftUids: FieldValue.arrayRemove(uid),

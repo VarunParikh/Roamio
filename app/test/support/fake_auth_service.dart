@@ -173,7 +173,7 @@ Future<void> pumpRoamio(
   FakeLocationService? location,
   FakeReceiptScanner? scanner,
   bool ocrEnabled = true,
-  FakeFxRepository? fx,
+  FxRepository? fx,
   String profileCurrency = 'INR',
   FakeProfileService? profile,
   FakeSettlementService? settlements,

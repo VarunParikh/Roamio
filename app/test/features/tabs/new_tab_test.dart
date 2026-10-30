@@ -40,6 +40,59 @@ void main() {
     percentTexts: percents,
   );
 
+  group('fxDateFor (follow-up C4: a tab keeps the rates it used)', () {
+    final oct29 = DateTime(2026, 10, 29);
+
+    test('the day of the rates actually used, not the tab’s own day', () {
+      // Rates for the 29th arrive at 06:00 India time; before then the
+      // latest are the 28th's, and the tab keeps those for good.
+      expect(fxDateFor(date: oct29, ratesDay: '2026-10-28'), '2026-10-28');
+      expect(fxDateFor(date: oct29, ratesDay: '2026-10-29'), '2026-10-29');
+    });
+
+    test('the tab’s own day when no rates are known yet', () {
+      expect(fxDateFor(date: oct29), '2026-10-29');
+    });
+
+    test('never a day after the tab', () {
+      expect(fxDateFor(date: oct29, ratesDay: '2026-10-30'), '2026-10-29');
+    });
+
+    test('an edit keeps the old rate day unless the date changes', () {
+      expect(
+        fxDateFor(
+          date: oct29,
+          ratesDay: '2026-10-29',
+          previous: (date: oct29, fxDate: '2026-10-28'),
+        ),
+        '2026-10-28',
+      );
+      expect(
+        fxDateFor(
+          date: DateTime(2026, 10, 30),
+          ratesDay: '2026-10-30',
+          previous: (date: oct29, fxDate: '2026-10-28'),
+        ),
+        '2026-10-30',
+      );
+    });
+
+    test('a saved tab uses it', () {
+      final tab = NewTab(
+        description: '',
+        category: 'food_dining',
+        amountMinor: 100,
+        currency: 'THB',
+        date: oct29,
+        payers: const [Payment('ari', 100)],
+        participants: const ['ari'],
+        fxDate: '2026-10-28',
+      );
+      expect(tab.fxDate, '2026-10-28');
+      expect(tab.split.fxDate, '2026-10-28');
+    });
+  });
+
   group('tabProblems (spec UC-21)', () {
     test('a complete tab has no problems', () {
       expect(check(), isEmpty);

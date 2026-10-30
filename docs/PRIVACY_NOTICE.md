@@ -62,6 +62,7 @@ Like any website, these services see your phone's internet (IP) address when you
 ### How long we keep it
 - **While your account is open**, we keep your data so the app works.
 - **When you delete your account**, your profile, profile photos, budgets, settings, notification codes and sign-in are deleted straight away (and always within 30 days). Tabs you were part of — including photos you added to them — stay with your squad, with your name shown as "Deleted user", so everyone's balances stay right.
+- **Emails we send** (consent requests and account notices) are deleted from our outbox after **30 days**.
 - **Audit records** are deleted after **1 year**.
 - **Parental consent records** (if you are a parent) are kept for the life of the child's account plus **1 year**, as proof of consent.
 
@@ -126,7 +127,8 @@ Your child can also change their notification and camera choices, download their
 
 ### How long we keep it
 - While the account is open.
-- When the account is deleted (by them, by you withdrawing, or by a declined or expired request), their profile, photos, budgets and sign-in are deleted straight away (always within 30 days); tabs stay with the squad as "Deleted user".
+- When the account is deleted (by them, by you withdrawing, or by a declined or expired request), their profile, profile photos, budgets and sign-in are deleted straight away (always within 30 days); tabs, including photos they added to them, stay with the squad as "Deleted user".
+- Emails we sent about the request are deleted from our outbox after **30 days**.
 - **Your consent record** is kept for the life of the child's account plus **1 year**, as proof of consent.
 - Audit records are deleted after **1 year**.
 
