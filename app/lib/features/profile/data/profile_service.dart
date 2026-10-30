@@ -7,11 +7,23 @@ import 'package:meta/meta.dart';
 
 /// What the squad sees of a person (spec UC-28).
 class Profile {
-  const new({required this.name, this.bio = '', this.photoUrl});
+  const new({
+    required this.name,
+    this.bio = '',
+    this.photoUrl,
+    this.characterId,
+    this.characterOffered = true,
+  });
 
   final String name;
   final String bio;
   final String? photoUrl;
+
+  /// Their display picture (`features/profile/domain/characters.dart`).
+  final String? characterId;
+
+  /// Whether they've been offered a character, so Home asks only once.
+  final bool characterOffered;
 }
 
 /// Someone an adult names to use their privacy rights if they can't
@@ -43,6 +55,9 @@ abstract interface class ProfileService {
 
   /// Saves name and description. Like tabs, it's queued when offline.
   Future<void> saveProfile({required String name, required String bio});
+
+  /// Sets their character; null means none, and that they've been asked.
+  Future<void> setCharacter(String? id);
 
   Future<void> setProfileCurrency(String code);
 
@@ -128,6 +143,9 @@ class FirebaseProfileService implements ProfileService {
             (data?['name'] as String?) ?? _auth.currentUser?.displayName ?? '',
         bio: (data?['bio'] as String?) ?? '',
         photoUrl: data?['photoUrl'] as String?,
+        characterId: data?['characterId'] as String?,
+        // New accounts have no such field until they answer.
+        characterOffered: data?.containsKey('characterId') ?? true,
       );
     });
   }
@@ -141,6 +159,11 @@ class FirebaseProfileService implements ProfileService {
       (_auth.currentUser?.updateDisplayName(name) ?? Future<void>.value())
           .catchError((Object _) {}),
     );
+  }
+
+  @override
+  Future<void> setCharacter(String? id) async {
+    _profile?.set({'characterId': id}, SetOptions(merge: true)).ignore();
   }
 
   @override

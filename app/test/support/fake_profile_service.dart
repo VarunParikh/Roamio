@@ -20,6 +20,9 @@ class FakeProfileService implements ProfileService {
 
   /// Each save as "name | bio".
   final List<String> saved = [];
+
+  /// Each character chosen; null is "Not now".
+  final List<String?> characterSaved = [];
   final List<String> currencySaved = [];
   final List<bool> locationSaved = [];
   final List<bool> cameraSaved = [];
@@ -40,7 +43,25 @@ class FakeProfileService implements ProfileService {
   @override
   Future<void> saveProfile({required String name, required String bio}) async {
     saved.add('$name | $bio');
-    profile = Profile(name: name, bio: bio, photoUrl: profile.photoUrl);
+    profile = Profile(
+      name: name,
+      bio: bio,
+      photoUrl: profile.photoUrl,
+      characterId: profile.characterId,
+      characterOffered: profile.characterOffered,
+    );
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> setCharacter(String? id) async {
+    characterSaved.add(id);
+    profile = Profile(
+      name: profile.name,
+      bio: profile.bio,
+      photoUrl: profile.photoUrl,
+      characterId: id,
+    );
     _changes.add(null);
   }
 

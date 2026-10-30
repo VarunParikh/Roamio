@@ -150,7 +150,7 @@ class FirebaseAuthService implements AuthService {
     );
     final user = cred.user!;
     await user.updateDisplayName(name);
-    await _writeRecords(user.uid, name: name, photoUrl: null, dob: dob);
+    await _writeRecords(user.uid, name: name, dob: dob);
     await user.sendEmailVerification();
   });
 
@@ -163,7 +163,6 @@ class FirebaseAuthService implements AuthService {
       name: name.isEmpty
           ? 'Traveller'
           : name.substring(0, name.length.clamp(0, 60)),
-      photoUrl: user.photoURL,
       dob: dob,
     );
   });
@@ -174,12 +173,11 @@ class FirebaseAuthService implements AuthService {
   Future<void> _writeRecords(
     String uid, {
     required String name,
-    required String? photoUrl,
     required DateTime? dob,
   }) async {
     await _db.doc('users/$uid').set({
       'name': name,
-      'photoUrl': photoUrl,
+      'photoUrl': null,
       'bio': '',
     });
     await _account(uid).set({
