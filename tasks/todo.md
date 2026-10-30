@@ -355,7 +355,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: rows show up to 4 sharers then "+N", you first; Add tab's lists, tab details and invites have pictures; the server copies the leader's character onto invites.
   - Verify: widget tests incl. a small phone; functions and rules tests for invites.
 
-- [ ] **Task 55: Open Split on an adventure** — S · Deps: none · UC-5, UC-20
+- [x] **Task 55: Open Split on an adventure** — S · Deps: none · UC-5, UC-20
   - Acceptance: Split can be opened on a chosen adventure; the budget alert uses it, fixing the wrong-adventure dead end.
   - Verify: widget tests.
 
