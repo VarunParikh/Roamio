@@ -120,6 +120,21 @@ Set<TabProblem> tabProblems({
   };
 }
 
+/// The day whose exchange rates convert a tab, saved with it so its total
+/// never shifts (spec §9.1, follow-up C4): the day of the latest rates
+/// known when it's saved ([ratesDay]), never after the tab's [date]; the
+/// tab's own day if none are known yet. An edit keeps its [previous] rate
+/// day unless the date changes.
+String fxDateFor({
+  required DateTime date,
+  String? ratesDay,
+  ({DateTime date, String fxDate})? previous,
+}) {
+  final day = isoDate(date);
+  if (previous != null && isoDate(previous.date) == day) return previous.fxDate;
+  return ratesDay != null && ratesDay.compareTo(day) <= 0 ? ratesDay : day;
+}
+
 /// A tab ready to save: who paid what, and how it's shared (equal unless
 /// [percentBp] is set).
 class NewTab {
@@ -134,6 +149,7 @@ class NewTab {
     this.percentBp,
     this.location,
     this.basedOn,
+    this._fxDate,
   });
 
   final String description;
@@ -154,8 +170,11 @@ class NewTab {
   /// this edit replaced a newer one (spec UC-32).
   final DateTime? basedOn;
 
-  /// Rates from the tab's own day convert it, so totals never shift (§9.1).
-  String get fxDate => isoDate(date);
+  final String? _fxDate;
+
+  /// The day whose rates convert it (see [fxDateFor]); the tab's own day
+  /// if none was given.
+  String get fxDate => _fxDate ?? isoDate(date);
 
   TabSplit get split => TabSplit(
     amount: Money(amountMinor, currency),

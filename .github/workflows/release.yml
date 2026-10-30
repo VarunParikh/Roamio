@@ -11,27 +11,34 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+# Read-only by default; only the publish job may write (the Release).
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    name: Build and publish
+  build:
+    name: Build and sign
     runs-on: ubuntu-latest
+    # Waits for the owner's approval in the "release" environment, whose
+    # secrets (signing key, prod config) only this job can read.
+    environment: release
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     defaults:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
       - name: Read pinned Flutter version
         id: fvm
         run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ steps.fvm.outputs.version }}
           channel: stable
           cache: true
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 17
@@ -85,17 +92,44 @@ jobs:
           cp "$apk" "$out"
           echo "path=$out" >> "$GITHUB_OUTPUT"
 
-      - name: Publish the GitHub Release
+      - name: Write the release notes
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: dart run tool/release_check.dart notes "$VERSION" > "$RUNNER_TEMP/notes.md"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release
+          path: |
+            ${{ steps.apk.outputs.path }}
+            ${{ runner.temp }}/notes.md
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks" android/app/src/prod/google-services.json
+
+  publish:
+    name: Publish the GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release
+          path: release
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.version.outputs.version }}
-          PRERELEASE: ${{ steps.version.outputs.prerelease }}
-          APK: ${{ steps.apk.outputs.path }}
+          GH_REPO: ${{ github.repository }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
         run: |
-          dart run tool/release_check.dart notes "$VERSION" > "$RUNNER_TEMP/notes.md"
           args=(--verify-tag --title "Roamio $GITHUB_REF_NAME")
-          if [ -s "$RUNNER_TEMP/notes.md" ]; then
-            args+=(--notes-file "$RUNNER_TEMP/notes.md")
+          if [ -s release/notes.md ]; then
+            args+=(--notes-file release/notes.md)
           else
             args+=(--generate-notes)
           fi
@@ -104,8 +138,4 @@ jobs:
           else
             args+=(--latest)
           fi
-          gh release create "$GITHUB_REF_NAME" "$APK" "${args[@]}"
-
-      - name: Remove the key from the runner
-        if: always()
-        run: rm -f "$RUNNER_TEMP/upload.jks" android/app/src/prod/google-services.json
+          gh release create "$GITHUB_REF_NAME" "release/Roamio-$GITHUB_REF_NAME.apk" "${args[@]}"

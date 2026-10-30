@@ -157,6 +157,27 @@ describe("tabProblem when a tab is edited", () => {
   });
 });
 
+describe("tabProblem: the rate day (follow-up C14)", () => {
+  const active = new Set(["ari"]);
+  const isMember = (id: string) => id === "ari";
+
+  it("accepts the tab's own day or an earlier rates day within a week", () => {
+    expect(tabProblem(tab("ari"), active, isMember)).toBeNull();
+    expect(tabProblem(tab("ari", { fxDate: "2026-12-01" }), active, isMember)).toBeNull();
+    expect(tabProblem(tab("ari", { fxDate: "2026-11-25" }), active, isMember)).toBeNull();
+  });
+
+  it("refuses a rates day after the tab, or backdated more than a week", () => {
+    expect(tabProblem(tab("ari", { fxDate: "2026-12-03" }), active, isMember)).toContain("rates");
+    expect(tabProblem(tab("ari", { fxDate: "2026-11-24" }), active, isMember)).toContain("rates");
+  });
+
+  it("keeps an old tab's rate day when someone else's edit doesn't touch it", () => {
+    const old = tab("ari", { fxDate: "2026-11-01" });
+    expect(tabProblem({ ...old, description: "Lunch" }, active, isMember, old)).toBeNull();
+  });
+});
+
 describe("replacedEdit (spec UC-32)", () => {
   const at = (s: number) => Timestamp.fromMillis(s * 1000);
 

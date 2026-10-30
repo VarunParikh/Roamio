@@ -51,6 +51,7 @@ On Google's Firebase service, in the **Mumbai (asia-south1)** region in India. D
 | Service | What they get | Why |
 |---|---|---|
 | **Google Firebase** (Authentication, Firestore, Storage, Cloud Functions, Cloud Messaging, Remote Config, Hosting) | Everything above, as our data processor | To run the app. If you sign in with Google, Google also confirms who you are. |
+| **Google Play Integrity** (part of Google Play services on your phone) | A check that the app on your phone is the real Roamio and hasn't been tampered with; it says nothing about what you do in the app | To protect Roamio's servers from fake apps (Firebase App Check). |
 | **Open-Meteo** (open-meteo.com) | If you've turned Location on: your approximate position (rounded to about 1 km). Otherwise: just the adventure's city and country | To show the weather on your Home card. No account or name is sent. |
 | **Unsplash** (unsplash.com) | Your phone loads the adventure's country photo from Unsplash. Our server asks Unsplash for a photo of the country — never anything about you | Adventure banner pictures, with credit to the photographer. |
 | **GitHub** (github.com) | Your phone asks GitHub, at most once a day, for the latest Roamio version | To tell you when an update is ready. |
@@ -62,6 +63,7 @@ Like any website, these services see your phone's internet (IP) address when you
 ### How long we keep it
 - **While your account is open**, we keep your data so the app works.
 - **When you delete your account**, your profile, profile photos, budgets, settings, notification codes and sign-in are deleted straight away (and always within 30 days). Tabs you were part of — including photos you added to them — stay with your squad, with your name shown as "Deleted user", so everyone's balances stay right.
+- **Emails we send** (consent requests and account notices) are deleted from our outbox after **30 days**.
 - **Audit records** are deleted after **1 year**.
 - **Parental consent records** (if you are a parent) are kept for the life of the child's account plus **1 year**, as proof of consent.
 
@@ -126,7 +128,8 @@ Your child can also change their notification and camera choices, download their
 
 ### How long we keep it
 - While the account is open.
-- When the account is deleted (by them, by you withdrawing, or by a declined or expired request), their profile, photos, budgets and sign-in are deleted straight away (always within 30 days); tabs stay with the squad as "Deleted user".
+- When the account is deleted (by them, by you withdrawing, or by a declined or expired request), their profile, profile photos, budgets and sign-in are deleted straight away (always within 30 days); tabs, including photos they added to them, stay with the squad as "Deleted user".
+- Emails we sent about the request are deleted from our outbox after **30 days**.
 - **Your consent record** is kept for the life of the child's account plus **1 year**, as proof of consent.
 - Audit records are deleted after **1 year**.
 

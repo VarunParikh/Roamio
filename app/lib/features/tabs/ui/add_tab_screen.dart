@@ -14,7 +14,9 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
@@ -261,6 +263,23 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// The day of the latest exchange rates known for the tab's date, which
+  /// the tab keeps (spec §9.1). Offline it's whatever the phone has seen;
+  /// it never holds up saving for long.
+  Future<String?> _ratesDay() async {
+    final provider = fxRatesProvider(isoDate(_date));
+    final known = ref.read(provider);
+    if (known.hasValue) return known.value?.date;
+    try {
+      final rates = await ref
+          .read(provider.future)
+          .timeout(const Duration(seconds: 2), onTimeout: () => null);
+      return rates?.date;
+    } on Exception {
+      return null;
+    }
+  }
+
   Future<void> _save(List<Pal> pals, String myUid) async {
     setState(() => _tried = true);
     final problems = _problems(pals);
@@ -270,7 +289,10 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     }
     if (problems.isNotEmpty) return;
     setState(() => _busy = true);
+    final ratesDay = await _ratesDay();
+    if (!mounted) return;
     final tabs = ref.read(tabServiceProvider);
+    final old0 = _old;
     final tab = NewTab(
       description: _description.text,
       category: _category!,
@@ -291,6 +313,13 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       participants: _ticked(pals),
       location: _location,
       basedOn: _old?.updatedAt,
+      fxDate: fxDateFor(
+        date: _date,
+        ratesDay: ratesDay,
+        previous: old0 == null
+            ? null
+            : (date: old0.date, fxDate: old0.split.fxDate),
+      ),
     );
     final old = _old;
     final String id;
@@ -402,6 +431,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Look up the rates for the tab's day early, so saving has them.
+    ref.watch(fxRatesProvider(isoDate(_date)));
     final text = Theme.of(context).textTheme;
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final palsState = ref.watch(palsProvider(_a.id));

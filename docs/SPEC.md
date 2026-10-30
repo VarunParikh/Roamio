@@ -263,7 +263,7 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 | Consent per purpose, easy withdrawal (§6) | Separate toggles for location, camera/gallery, notifications; each revocable in one tap. |
 | Minimise data | No phone number or contacts. Pals are a nickname only. **EXIF (including GPS) is stripped from every uploaded photo.** |
 | Rights (§11–14) | Access/export, correction, erasure, nomination, grievance — all in the Privacy centre. Grievances acknowledged within 7 days. |
-| Erasure | Account deletion removes profile, photos, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct. |
+| Erasure | Account deletion removes profile, profile photos, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct, and photos added to tabs stay with the squad (owner decision 2026-10-30, review S8). |
 | Security safeguards (§8(5), Rule 6) | TLS in transit; Google-managed encryption at rest; least-privilege security rules; audit log of data access and changes kept **1 year**. |
 | Breach (§8(6), Rule 7) | `docs/BREACH_RESPONSE.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
 | Data location | All Firebase resources in asia-south1. |

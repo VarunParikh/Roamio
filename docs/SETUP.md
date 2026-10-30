@@ -131,6 +131,22 @@ Aliases live in `firebase/.firebaserc`; use `-P dev` / `-P prod`.
 `google-services.json` is **never committed**. Download it locally with
 `firebase apps:sdkconfig ANDROID <app-id> -P <alias>`; CI injects it from secrets.
 
+### App Check (set up, not enforced)
+
+The prod app starts Firebase App Check with Play Integrity
+(`usesAppCheck` in `app/lib/core/firebase/firebase_setup.dart`); the dev app and
+the emulators don't. Nothing is enforced yet, so a phone that fails the check
+still works. Sideloaded pilot APKs may fail Play Integrity, so don't enforce
+during the pilot. To enforce later (owner, after the app is on the Play Store):
+
+1. Play Console → Roamio → Release → App integrity → link the Google Cloud
+   project `roamio-prod-varun`.
+2. Firebase console → roamio-prod-varun → App Check → Apps → Roamio Android →
+   register with **Play Integrity** and the release key's SHA-256.
+3. Watch App Check → APIs → *Verified requests* for a week. When almost all
+   are verified, press **Enforce** for Cloud Firestore, Cloud Storage and
+   Cloud Functions, one at a time.
+
 ### Email (parental consent)
 
 Functions queue emails in the `mail` collection (Trigger Email extension format) instead of
