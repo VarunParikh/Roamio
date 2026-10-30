@@ -4,6 +4,7 @@ import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// What stops a tab being saved (spec UC-21).
 enum TabProblem {
@@ -150,7 +151,11 @@ class NewTab {
     this.location,
     this.basedOn,
     this._fxDate,
+    this.status = TabStatus.waiting,
   });
+
+  /// How a new tab starts (spec UC-21a); an edit keeps the tab's status.
+  final TabStatus status;
 
   final String description;
   final String category;

@@ -6,11 +6,16 @@ import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// Display names for everyone on an adventure's tabs and transfers: its
 /// members, its pals, and people who have left or deleted their account
@@ -123,6 +128,7 @@ class TabsSection extends ConsumerWidget {
                         category: categories[t.category],
                         myUid: myUid,
                         labels: labels,
+                        adventure: adventure,
                         onTap: () => context.push(
                           '/adventures/${adventure.id}/tabs/${t.id}',
                         ),
@@ -141,9 +147,11 @@ class _TabRow extends ConsumerWidget {
     required this.category,
     required this.myUid,
     required this.labels,
+    required this.adventure,
     required this.onTap,
   });
 
+  final Adventure adventure;
   final TabEntry tab;
   final Category? category;
   final String myUid;
@@ -160,6 +168,7 @@ class _TabRow extends ConsumerWidget {
         ? 'You paid'
         : '${labels[payers.single.payer] ?? 'Someone'} paid';
     final sharing = tab.split.participants.contains(myUid);
+    final total = formatWithSymbol(ref, tab.amount);
     final name = tab.description.isEmpty
         ? category?.name ?? 'Tab'
         : tab.description;
@@ -170,67 +179,165 @@ class _TabRow extends ConsumerWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: RoamioColors.hairline,
-                child: Text(
-                  category?.emoji ?? '🧾',
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: RoamioColors.hairline,
+                    child: Text(
+                      category?.emoji ?? '🧾',
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            name,
-                            style: text.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                name,
+                                style: text.titleMedium,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (tab.memories.isNotEmpty) const Text(' 📷'),
+                            if (tab.location != null) const Text(' 📍'),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$paidBy · Total $total',
+                          style: text.bodySmall?.copyWith(
+                            color: RoamioColors.slate,
                           ),
                         ),
-                        if (tab.memories.isNotEmpty) const Text(' 📷'),
-                        if (tab.location != null) const Text(' 📍'),
                       ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$paidBy · Total ${formatWithSymbol(ref, tab.amount)}',
-                      style: text.bodySmall?.copyWith(
-                        color: RoamioColors.slate,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    sharing
-                        ? formatWithSymbol(ref, tab.shareOf(myUid))
-                        : 'Not in it',
-                    style: text.titleMedium,
                   ),
-                  if (sharing)
-                    Text(
-                      'Your share',
-                      style: text.labelSmall?.copyWith(
-                        color: RoamioColors.slate,
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        sharing
+                            ? formatWithSymbol(ref, tab.shareOf(myUid))
+                            : 'Not in it',
+                        style: text.titleMedium,
                       ),
-                    ),
+                      if (sharing)
+                        Text(
+                          'Your share',
+                          style: text.labelSmall?.copyWith(
+                            color: RoamioColors.slate,
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
+              if (tab.status == TabStatus.waiting)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    waitingLabel,
+                    style: text.labelMedium?.copyWith(
+                      color: RoamioColors.coralText,
+                    ),
+                  ),
+                ),
+              if (canDecideTab(adventure, tab, myUid))
+                _DecideButtons(adventure: adventure, tab: tab),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Approve and Reject on a waiting tab's row (spec UC-21a). Plain buttons, so
+/// the page keeps its one primary button.
+class _DecideButtons extends ConsumerWidget {
+  const new({required this.adventure, required this.tab});
+
+  final Adventure adventure;
+  final TabEntry tab;
+
+  Future<void> _decide(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool approve,
+  }) async {
+    if (!approve) {
+      final sure = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Reject this tab?'),
+          content: const Text('It won’t count towards anyone’s balance.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Reject'),
+            ),
+          ],
+        ),
+      );
+      if (!(sure ?? false)) return;
+    }
+    try {
+      await ref
+          .read(tabServiceProvider)
+          .decideTab(adventure.id, tab.id, approve: approve);
+    } on TabAlreadyDecided {
+      if (context.mounted) showAuthMessage(context, alreadyDecidedMessage);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offline = ref.watch(isOfflineProvider);
+    const small = Size(0, 40);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(minimumSize: small),
+                  onPressed: offline
+                      ? null
+                      : () => _decide(context, ref, approve: true),
+                  child: const Text('Approve'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(minimumSize: small),
+                  onPressed: offline
+                      ? null
+                      : () => _decide(context, ref, approve: false),
+                  child: const Text('Reject'),
+                ),
+              ),
+            ],
+          ),
+          if (offline) const NeedsConnectionNote(),
+        ],
       ),
     );
   }

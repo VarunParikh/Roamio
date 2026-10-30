@@ -79,6 +79,7 @@ const tab = (createdBy: string, extra: Record<string, unknown> = {}) => ({
   memories: [],
   createdBy,
   deleted: false,
+  status: "waiting",
   ...extra,
 });
 
@@ -798,21 +799,124 @@ describe("tabs", () => {
     );
   });
 
-  it("a new tab may say it's approved, and no other status yet", async () => {
+  it("a new tab waits; it can't start approved, rejected or with no status", async () => {
+    await assertSucceeds(
+      setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), tab("bob")),
+    );
+    for (const status of ["approved", "rejected", "nonsense", 1, undefined]) {
+      const t: Record<string, unknown> = tab("bob", { status });
+      if (status === undefined) delete t.status;
+      await assertFails(setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), t));
+    }
+    // An admin with another admin to approve it waits too.
+    await assertFails(
+      setDoc(
+        doc(as("alice"), fresh("adventures/a1/tabs")),
+        tab("alice", { status: "approved" }),
+      ),
+    );
+  });
+
+  it("only the only admin's own tab can start approved", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "adventures/solo"), {
+        ...adventure,
+        coLeadUids: [],
+      });
+    });
     await assertSucceeds(
       setDoc(
-        doc(as("bob"), fresh("adventures/a1/tabs")),
+        doc(as("alice"), fresh("adventures/solo/tabs")),
+        tab("alice", { status: "approved" }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/solo/tabs")),
         tab("bob", { status: "approved" }),
       ),
     );
-    for (const status of ["waiting", "personal", "rejected", "nonsense", 1]) {
+  });
+
+  describe("deciding a waiting tab (spec UC-21a)", () => {
+    const decide = (who: string, status: string, tid = "t1", aid = "a1") =>
+      updateDoc(doc(as(who), `adventures/${aid}/tabs/${tid}`), {
+        status,
+        decidedBy: who,
+        decidedAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+    it("either admin approves or rejects someone else's tab", async () => {
+      await assertSucceeds(decide("alice", "approved"));
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/t2"), tab("bob"));
+      });
+      await assertSucceeds(decide("cara", "rejected", "t2"));
+    });
+
+    it("a member, or an outsider, can't decide", async () => {
+      await assertFails(decide("mia", "approved"));
+      await assertFails(decide("bob", "approved"));
+      await assertFails(decide("dan", "approved"));
+    });
+
+    it("nobody approves their own tab while another admin exists", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/mine"), tab("alice"));
+      });
+      await assertFails(decide("alice", "approved", "mine"));
+      await assertSucceeds(decide("cara", "approved", "mine"));
+    });
+
+    it("the only admin can approve their own", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore();
+        await setDoc(doc(db, "adventures/solo"), { ...adventure, coLeadUids: [] });
+        await setDoc(doc(db, "adventures/solo/tabs/mine"), tab("alice"));
+      });
+      await assertSucceeds(decide("alice", "approved", "mine", "solo"));
+    });
+
+    it("the first decision wins", async () => {
+      await assertSucceeds(decide("alice", "approved"));
+      await assertFails(decide("cara", "rejected"));
+      await assertFails(decide("cara", "approved"));
+    });
+
+    it("deciding must name who decided, and can't change anything else", async () => {
       await assertFails(
-        setDoc(
-          doc(as("bob"), fresh("adventures/a1/tabs")),
-          tab("bob", { status }),
-        ),
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "approved",
+          decidedBy: "cara",
+          decidedAt: new Date(),
+        }),
       );
-    }
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "approved",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+          amountMinor: 1,
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "personal",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+        }),
+      );
+    });
+
+    it("a creator's edit can't change the status", async () => {
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { status: "approved" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { description: "Noodles" }),
+      );
+    });
   });
 
   it("rejects tabs from outsiders, impersonation and bad shapes", async () => {

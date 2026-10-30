@@ -25,6 +25,7 @@ import 'package:roamio/features/tabs/data/receipt_parser.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/location_picker.dart';
 import 'package:roamio/features/tabs/ui/memories.dart';
@@ -294,6 +295,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final tabs = ref.read(tabServiceProvider);
     final old0 = _old;
     final tab = NewTab(
+      status: statusForNewTab(_a, myUid),
       description: _description.text,
       category: _category!,
       amountMinor: parseAmount(_amount.text, _currency)!,

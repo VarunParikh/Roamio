@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// In-memory [TabService]. [added] and [updates] record writes; tabs given
 /// to the constructor (adventure `bkk`) and added ones show in the lists.
@@ -28,6 +29,7 @@ class FakeTabService implements TabService {
     String? createdBy,
     List<String> memories = const [],
     bool deleted = false,
+    TabStatus? status,
   }) => TabEntry(
     id: id,
     description: t.description.trim(),
@@ -38,6 +40,7 @@ class FakeTabService implements TabService {
     location: t.location,
     memories: memories,
     deleted: deleted,
+    status: status ?? t.status,
   );
 
   List<TabEntry> _visible(String adventureId) => [
@@ -81,6 +84,40 @@ class FakeTabService implements TabService {
       tab,
       createdBy: old.createdBy,
       memories: old.memories,
+      status: old.status,
+    );
+    _changes.add(null);
+  }
+
+  /// Each decision as "t1 approved".
+  final List<String> decisions = [];
+
+  /// The next decision finds another admin got there first.
+  bool alreadyDecided = false;
+
+  @override
+  Future<void> decideTab(
+    String adventureId,
+    String tabId, {
+    required bool approve,
+  }) async {
+    if (alreadyDecided) throw TabAlreadyDecided();
+    final status = approve ? TabStatus.approved : TabStatus.rejected;
+    decisions.add('$tabId ${status.name}');
+    final list = _all(adventureId);
+    final i = list.indexWhere((t) => t.id == tabId);
+    final old = list[i];
+    list[i] = TabEntry(
+      id: old.id,
+      description: old.description,
+      category: old.category,
+      date: old.date,
+      createdBy: old.createdBy,
+      split: old.split,
+      location: old.location,
+      memories: old.memories,
+      deleted: old.deleted,
+      status: status,
     );
     _changes.add(null);
   }

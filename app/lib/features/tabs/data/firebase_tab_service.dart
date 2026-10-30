@@ -65,10 +65,30 @@ class FirebaseTabService implements TabService {
       'createdBy': _auth.currentUser!.uid,
       'createdAt': FieldValue.serverTimestamp(),
       'deleted': false,
-      // Task 48 makes new tabs wait for an admin.
-      'status': TabStatus.approved.name,
+      'status': tab.status.name,
     }).ignore();
     return doc.id;
+  }
+
+  // Awaited, unlike other writes: the first decision wins (spec UC-21a), so
+  // the person needs to hear if theirs didn't.
+  @override
+  Future<void> decideTab(
+    String adventureId,
+    String tabId, {
+    required bool approve,
+  }) async {
+    try {
+      await _tabs(adventureId).doc(tabId).update({
+        'status': (approve ? TabStatus.approved : TabStatus.rejected).name,
+        'decidedBy': _auth.currentUser!.uid,
+        'decidedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') throw TabAlreadyDecided();
+      rethrow;
+    }
   }
 
   @override

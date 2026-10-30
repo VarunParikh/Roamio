@@ -53,6 +53,9 @@ class TabEntry {
   );
 }
 
+/// Another admin decided first, or the signed-in person no longer can.
+class TabAlreadyDecided implements Exception;
+
 abstract interface class TabService {
   /// The adventure's tabs that aren't deleted, newest first.
   Stream<List<TabEntry>> tabs(String adventureId);
@@ -69,6 +72,14 @@ abstract interface class TabService {
 
   /// A lead hides a tab; it stays in history (spec UC-22).
   Future<void> deleteTab(String adventureId, String tabId);
+
+  /// An admin approves or rejects a waiting tab (spec UC-21a). Needs a
+  /// connection. Throws [TabAlreadyDecided] if it can no longer be decided.
+  Future<void> decideTab(
+    String adventureId,
+    String tabId, {
+    required bool approve,
+  });
 }
 
 /// Overridden in `main.dart` with the Firebase implementation.

@@ -203,8 +203,8 @@ service cloud.firestore {
           return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
                    'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
-                   'baseUpdatedAt', 'status'])
-            && t.get('status', 'approved') == 'approved'
+                   'baseUpdatedAt', 'status', 'decidedBy', 'decidedAt'])
+            && t.status in ['waiting', 'approved', 'rejected']
             && t.get('baseUpdatedAt', request.time) is timestamp
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))
@@ -219,17 +219,32 @@ service cloud.firestore {
             && (!('location' in t) || (isAdult() && isPoint(t.location)));
         }
 
+        // The one lead, with no co-lead: nobody else could approve their tab.
+        function isOnlyAdmin() {
+          return isLead(aid) && adventure(aid).coLeadUids.size() == 0;
+        }
+
         allow read: if isMember(aid);
         allow create: if isMember(aid)
           && validTab()
           && incoming().createdBy == me()
-          && incoming().deleted == false;
+          && incoming().deleted == false
+          && (incoming().status == 'waiting'
+              || (incoming().status == 'approved' && isOnlyAdmin()));
         allow update: if isMember(aid) && (
           // the creator edits their own tab, but deleting (and undoing a
           // delete) stays with leads, so it always shows in the activity
           (resource.data.createdBy == me() && validTab()
             && incoming().createdBy == resource.data.createdBy
-            && incoming().deleted == resource.data.deleted)
+            && incoming().deleted == resource.data.deleted
+            && incoming().status == resource.data.status)
+          // an admin decides a waiting tab, once, and never their own while
+          // another admin could (spec UC-21a)
+          || (isLead(aid) && resource.data.status == 'waiting'
+            && changed().hasOnly(['status', 'decidedBy', 'decidedAt', 'updatedAt'])
+            && incoming().status in ['approved', 'rejected']
+            && incoming().decidedBy == me()
+            && (resource.data.createdBy != me() || isOnlyAdmin()))
           // a lead soft-deletes any tab, saying who did it (shown in activity)
           || (isLead(aid) && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
             && incoming().deleted == true && incoming().get('deletedBy', '') == me())
