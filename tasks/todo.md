@@ -323,7 +323,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: shared picture + name widget; default character from a stable hash of the account ID; Home card "We picked this for you. Change it?"; deleted user grey icon; neutral circle while loading; TalkBack reads the name; adopted on Home greeting, squad and pals, join cards, Activity.
   - Verify: unit test that the default is stable and covers bad input; widget tests per state.
 
-- [ ] **Task 47: Tab status foundation** — M · Deps: 46 · UC-21a, §6
+- [x] **Task 47: Tab status foundation** — M · Deps: 46 · UC-21a, §6
   - Acceptance: tabs have `status`; balances, charts, export and `budget.ts` count only approved (and personal for the owner's own share). New tabs are still created approved, so nothing changes yet.
   - Verify: failing-first split engine, report and budget tests.
 
