@@ -1,5 +1,10 @@
 import { beforeAll, describe, expect, it } from "vitest";
-import { plainDecimal, ratesFromBody, refreshRates } from "../../functions/src/fx/rates";
+import {
+  plainDecimal,
+  ratesFromBody,
+  refreshRates,
+  runDailyFxRates,
+} from "../../functions/src/fx/rates";
 import { getApps, getFirestore, initializeApp } from "../support/admin";
 
 beforeAll(() => {
@@ -87,5 +92,12 @@ describe("refreshRates (scheduled daily, spec §9.1)", () => {
 
     expect((await db().doc("fx_rates/2026-10-25").get()).get("rates")).toEqual({ INR: "83.9" });
     expect((await db().doc("fx_rates/2026-10-26").get()).exists).toBe(false);
+  });
+});
+
+describe("dailyFxRates (follow-up C10)", () => {
+  it("reports a failed refresh, so the scheduler's 3 retries run", async () => {
+    await expect(runDailyFxRates(fakeFetch("", false))).rejects.toThrow(/not refreshed/);
+    await expect(runDailyFxRates(fakeFetch(body("2026-10-28")))).resolves.toBeUndefined();
   });
 });

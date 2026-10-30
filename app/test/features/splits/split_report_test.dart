@@ -36,6 +36,80 @@ FxRates _rates(String date) =>
 
 void main() {
   group('buildReport (spec §6, UC-25, UC-26)', () {
+    test('skips a broken tab instead of failing (follow-up C5)', () {
+      // A tab the server will reject (payments don't add up), still in the
+      // phone's offline cache for a moment.
+      final broken = ReportTab(
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        split: TabSplit(
+          amount: Money(300000, 'INR'),
+          payers: const [Payment('ari', 1)],
+          participants: const ['ari', 'ben'],
+          fxDate: '2026-10-27',
+        ),
+      );
+      final r = buildReport(
+        tabs: [_dinner, broken],
+        baseCurrency: 'INR',
+        viewerCurrency: 'INR',
+        viewer: 'ari',
+        ratesFor: _rates,
+      );
+      expect(r.balances, {'ari': 50000, 'ben': 25000, 'kiko': -75000});
+      expect(r.totalSpend, 300000);
+    });
+
+    group('settled in the trip’s currency (follow-up C7)', () {
+      // Settled on 29 Oct, when the baht moved: each item converts at its
+      // own day's rate, so the baht amounts no longer cancel exactly.
+      FxRates moved(String date) => date == '2026-10-29'
+          ? FxRates(date: date, usdRates: const {'INR': '84', 'THB': '36'})
+          : _rates(date);
+      ReportSettlement paid(String from, String to, int minor) =>
+          ReportSettlement(
+            from: from,
+            to: to,
+            amountMinor: minor,
+            date: '2026-10-29',
+          );
+
+      test('everyone square in rupees is square in every currency', () {
+        final r = buildReport(
+          tabs: [_dinner, _taxi],
+          baseCurrency: 'INR',
+          viewerCurrency: 'THB',
+          viewer: 'ari',
+          ratesFor: moved,
+          settlements: [paid('ari', 'ben', 94000), paid('kiko', 'ben', 75000)],
+        );
+        expect(r.baseBalances.values.every((b) => b == 0), isTrue);
+        expect(r.balances.values.every((b) => b == 0), isTrue);
+        expect(r.mine, 0);
+        expect(r.transfers, isEmpty);
+        expect(headline(r.mine, r.currency, '฿'), 'All square 🎉');
+      });
+
+      test('someone who is square shows square; the total stays zero', () {
+        final r = buildReport(
+          tabs: [_dinner, _taxi],
+          baseCurrency: 'INR',
+          viewerCurrency: 'THB',
+          viewer: 'kiko',
+          ratesFor: moved,
+          settlements: [paid('kiko', 'ben', 75000)],
+        );
+        expect(r.baseBalances['kiko'], 0);
+        expect(r.balances['kiko'], 0);
+        expect(r.mine, 0);
+        expect(r.balances.values.fold(0, (a, b) => a + b), 0);
+        expect(
+          r.transfers.where((t) => t.from == 'kiko' || t.to == 'kiko'),
+          isEmpty,
+        );
+      });
+    });
+
     test('the worked example: balances, headline and who pays whom', () {
       final r = buildReport(
         tabs: [_dinner],
@@ -193,9 +267,10 @@ void main() {
         ],
       );
       expect(r.balances.values.fold(0, (a, b) => a + b), 0);
-      // ₹500 = ฿208.33 at 84 and 35 per USD; Ari was owed ฿208.34.
-      expect(r.mine, 1);
+      // ₹500 = ฿208.33 at 84 and 35 per USD; Ari was owed ฿208.34. She is
+      // square in rupees, so she shows square in baht too (C7), not ฿0.01.
       expect(r.baseBalances['ari'], 0);
+      expect(r.mine, 0);
     });
 
     test('base transfers are in the trip currency, for recording', () {

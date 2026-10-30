@@ -50,4 +50,28 @@ void main() {
       expect(signedOut, 0);
     });
   });
+
+  group('MissingAccountCheck (follow-up C11)', () {
+    test('checks once while the record is missing, not on every event', () {
+      final check = MissingAccountCheck();
+      expect(check.shouldCheck('ari', exists: false), isTrue);
+      // reload() fires another user event, which re-reads the record.
+      expect(check.shouldCheck('ari', exists: false), isFalse);
+      expect(check.shouldCheck('ari', exists: false), isFalse);
+    });
+
+    test('checks again if the record comes back, then goes missing', () {
+      final check = MissingAccountCheck();
+      expect(check.shouldCheck('mia', exists: false), isTrue);
+      expect(check.shouldCheck('mia', exists: true), isFalse);
+      // The parent said no and the server deleted the account.
+      expect(check.shouldCheck('mia', exists: false), isTrue);
+    });
+
+    test('each person separately', () {
+      final check = MissingAccountCheck();
+      expect(check.shouldCheck('ari', exists: false), isTrue);
+      expect(check.shouldCheck('bob', exists: false), isTrue);
+    });
+  });
 }

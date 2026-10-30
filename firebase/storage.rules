@@ -47,9 +47,13 @@ service firebase.storage {
     }
 
     // Profile photos (spec UC-28): profiles are visible to active users.
+    // Uploading needs a finished sign-up (an account record) and a plain
+    // file name like the app's random ids.
     match /users/{uid}/avatar/{file} {
       allow read: if signedIn() && (me() == uid || isActive());
-      allow create: if signedIn() && me() == uid && isPhoto();
+      allow create: if signedIn() && me() == uid && isPhoto()
+        && file.matches('^[A-Za-z0-9_-]{1,40}[.]webp$')
+        && firestore.exists(doc('users/' + uid + '/private/account'));
     }
   }
 }

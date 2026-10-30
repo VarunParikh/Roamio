@@ -9,7 +9,7 @@
 - Secrets and config: what is committed, `.gitignore`, and the CI workflows (`ci.yml`, `e2e.yml`, `release.yml`).
 - Dependency audits (below).
 
-**Summary:** no critical findings. There were 5 high findings, all fixed here with tests. 9 medium and low findings are left as follow-ups and listed at the end.
+**Summary:** no critical findings. There were 5 high findings, all fixed here with tests. 9 medium and low findings were left as follow-ups; the follow-ups PR fixed S9, S10, S11 and S13 (see "Follow-ups fixed later").
 
 Severity means:
 - **High:** someone's private data leaks, or a promise in the privacy notice is broken.
@@ -28,11 +28,11 @@ Severity means:
 | S6 | Medium | The child's name went into consent emails unchecked (phishing) | `functions/src/consent/consent.ts` | **Fixed** |
 | S7 | Medium | A removed member can rejoin with the same invite link | `squad/roles.ts`, `invites/join.ts` | Follow-up |
 | S8 | Medium | Account deletion keeps photos the person added to tabs | `privacy/deleteAccount.ts` | Follow-up (owner decision) |
-| S9 | Low | Photo-link checks accept any Firebase bucket, and emulator addresses in production | `firestore.rules` (`isStoredPhoto`) | Follow-up |
-| S10 | Low | Profile photo uploads need no account record and have no cap | `storage.rules` (avatars) | Follow-up |
-| S11 | Low | Some adventure and tab fields have no type or length check | `firestore.rules` | Follow-up |
+| S9 | Low | Photo-link checks accept any Firebase bucket, and emulator addresses in production | `firestore.rules` (`isStoredPhoto`) | **Fixed** (bucket and folder; emulator addresses remain, see below) |
+| S10 | Low | Profile photo uploads need no account record and have no cap | `storage.rules` (avatars) | **Fixed** (record + file name; no count cap) |
+| S11 | Low | Some adventure and tab fields have no type or length check | `firestore.rules` | **Fixed** |
 | S12 | Low | Sent-mail records (parent emails) are never deleted | `functions/src/mail.ts` | Follow-up |
-| S13 | Low | A parent's download of a child's data includes other adults' tab locations | `privacy/exportData.ts` | Follow-up |
+| S13 | Low | A parent's download of a child's data includes other adults' tab locations | `privacy/exportData.ts` | **Fixed** |
 | S14 | Low | CI actions are pinned by tag, not commit; releases have no protected environment | `.github/workflows/*.yml` | Follow-up (CI change, needs owner OK) |
 | S15 | Info | No App Check, so anyone can call the functions and use up the 5-instance cap | `functions/src/index.ts` | Follow-up (cost) |
 | S16 | Info | Ages and parent identity are self-declared | spec §7.1 | Known; DigiLocker is planned before public launch |
@@ -117,6 +117,15 @@ Seeing a profile still needs only the person's id. Limiting it to squadmates wou
   - give `contents: write` only to the publish step.
 - **S15, Info (cost):** turn on App Check for the functions.
 - Also noted: `fcmTokens` aren't validated (someone could add another phone's id to their own list; low risk). The `decline` path of consent and the consent sweep are now safe to retry; see the code review (C2).
+
+## Follow-ups fixed later (follow-ups PR)
+Each has a test that failed first.
+- **S9:** photo links must be in one of our own buckets (`roamio-dev-varun` or `roamio-prod-varun`), inside the same adventure and the right folder: tab photos under `tabs/`, the banner under `banner/`. Links from another project, another adventure or a profile photo are refused. Emulator addresses are still accepted (pinned to the same adventure and folder). Taking them out of production needs a rules file per environment (a deploy-config change), so that part is still open.
+- **S10:** an avatar upload needs the person's account record and a plain file name like the app's own (`0123456789abcdef.webp`). Storage rules can't count files, so there is still no cap on how many.
+- **S11:** an adventure's `countryCode` must be 2 capital letters and `city` at most 80 characters; a tab's `category` must be one of the 10 in `app/assets/data/categories.json`.
+- **S13:** a data download keeps `location` only on tabs the person added themselves.
+
+Still open, waiting on the owner: S3b (data model), S7 (product), S8 (product), S12 (data model), S14 (CI change), S15 (cost).
 
 ## App privacy guards (checked, nothing to fix)
 - **No analytics or Crashlytics.** Neither package is installed (`app/pubspec.yaml`), so nothing can report about under-18s.

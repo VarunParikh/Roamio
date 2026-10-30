@@ -168,6 +168,15 @@ describe("profile photos", () => {
     );
   });
 
+  it("needs an account record and a plain file name (follow-up S10)", async () => {
+    // nora is signed in but never finished signing up.
+    await assertFails(put("nora", "users/nora/avatar/a1b2.webp"));
+    for (const name of ["../x.webp", "a b.webp", "x.png", `${"a".repeat(41)}.webp`]) {
+      await assertFails(put("bob", `users/bob/avatar/${name}`));
+    }
+    await assertSucceeds(put("bob", "users/bob/avatar/0123456789abcdef.webp"));
+  });
+
   it("nobody else can upload, and pending minors can't browse others", async () => {
     await assertFails(put("dan", "users/bob/avatar/new.webp"));
     await assertFails(

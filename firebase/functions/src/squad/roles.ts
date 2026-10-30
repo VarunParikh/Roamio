@@ -54,7 +54,8 @@ function clearJoinCards(tx: Transaction, squad: Squad, memberUid: string) {
 
 /** Whether a member pays for or shares in any tab, so must be kept as Left (spec UC-16). */
 async function hasTabHistory(tx: Transaction, squad: Squad, memberUid: string): Promise<boolean> {
-  if (squad.adventure.get("hasTabs") !== true) return false;
+  // Always look: hasTabs is set by a trigger a moment after the first tab,
+  // and someone leaving in that moment must still be kept.
   const tabs = await tx.get(
     squad.adventure.ref.collection("tabs").select("payers", "participants"),
   );

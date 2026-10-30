@@ -125,6 +125,64 @@ void main() {
   });
 
   group('buildXlsx', () {
+    test(
+      'the largest amounts come out exact, to the paisa (follow-up C13)',
+      () {
+        // Spreadsheet cells are always binary numbers; check the one
+        // conversion at the edge of the file loses nothing, even at the top.
+        final biggest = maxTabMinor('INR') - 1; // ₹99,99,999.99
+        final tab = TabEntry(
+          id: 'big',
+          description: 'Villa',
+          category: 'food_dining',
+          date: DateTime(2026, 10, 27),
+          createdBy: 'ari',
+          split: TabSplit(
+            amount: Money(biggest, 'INR'),
+            payers: [Payment('ari', biggest)],
+            participants: const ['ari', 'ben', 'kiko'],
+            fxDate: '2026-10-27',
+          ),
+        );
+        final report = buildReport(
+          tabs: [
+            ReportTab(category: tab.category, date: tab.date, split: tab.split),
+          ],
+          baseCurrency: 'INR',
+          viewerCurrency: 'INR',
+          viewer: 'ari',
+          ratesFor: (d) => FxRates(date: d, usdRates: const {}),
+        );
+        final excel = Excel.decodeBytes(
+          buildXlsx(
+            buildExportData(
+              adventure: _goa,
+              tabs: [tab],
+              report: report,
+              names: const {
+                'ari': 'Ari Chen',
+                'ben': 'Ben Roy',
+                'kiko': 'Kiko',
+              },
+              categories: const {'food_dining': 'Food & Dining'},
+              includeLocation: false,
+            ),
+          ),
+        );
+        final summary = _rows(excel, 'Summary');
+        expect(
+          _minor(summary.where((r) => r.first == 'Total spend').single[1]),
+          biggest,
+        );
+        expect(_minor(_rows(excel, 'Tabs')[1][3]), biggest);
+        // Ari paid it all and owes a third: 666666666 paise, exactly.
+        expect(
+          _minor(summary.where((r) => r.first == 'Ari Chen').single[1]),
+          666666666,
+        );
+      },
+    );
+
     test('opens with the right totals on each sheet', () {
       final excel = Excel.decodeBytes(buildXlsx(_data()));
       expect(

@@ -47,20 +47,30 @@ service cloud.firestore {
     // 10,000,000 in a 3-decimal currency (the app's maxTabMinor), so sums
     // stay exact in Dart and JavaScript.
     function isAmount(v) { return v is int && v > 0 && v <= 10000000000; }
-    // Only our own stored photo, never an outside link that could track
-    // members when it loads; local addresses are the dev emulator.
-    function isStoredPhoto(v) {
+    // Only a photo in one of our own buckets, inside [folder] of adventure
+    // [aid] (e.g. 'tabs'), never an outside link that could track members
+    // when it loads. Local addresses are the dev emulator.
+    function isStoredPhoto(v, aid, folder) {
+      let path = '/o/adventures%2F' + aid + '%2F' + folder + '%2F[^/?#]+([?].*)?$';
       return v is string && v.size() <= 1000 && (
-        v.matches('^https://firebasestorage[.]googleapis[.]com/.*')
-        || v.matches('^http://(10[.]0[.]2[.]2|127[.]0[.]0[.]1|localhost):9199/.*'));
+        v.matches('^https://firebasestorage[.]googleapis[.]com/v0/b/'
+          + 'roamio-(dev|prod)-varun[.](firebasestorage[.]app|appspot[.]com)' + path)
+        || v.matches('^http://(10[.]0[.]2[.]2|127[.]0[.]0[.]1|localhost):9199/v0/b/'
+          + '[a-z0-9.-]+' + path));
     }
     // Rules can't loop, so each of a tab's (at most 4) memories is checked in turn.
-    function isMemories(m) {
+    function isMemories(m, aid) {
       return m is list && m.size() <= 4
-        && (m.size() < 1 || isStoredPhoto(m[0]))
-        && (m.size() < 2 || isStoredPhoto(m[1]))
-        && (m.size() < 3 || isStoredPhoto(m[2]))
-        && (m.size() < 4 || isStoredPhoto(m[3]));
+        && (m.size() < 1 || isStoredPhoto(m[0], aid, 'tabs'))
+        && (m.size() < 2 || isStoredPhoto(m[1], aid, 'tabs'))
+        && (m.size() < 3 || isStoredPhoto(m[2], aid, 'tabs'))
+        && (m.size() < 4 || isStoredPhoto(m[3], aid, 'tabs'));
+    }
+    // The 10 tab categories in app/assets/data/categories.json.
+    function isCategory(v) {
+      return v in ['pre_trip_preparation', 'primary_transportation', 'accommodation',
+        'local_transportation', 'food_dining', 'activities_sightseeing',
+        'shopping_souvenirs', 'connectivity_technology', 'incidentals', 'miscellaneous'];
     }
 
     // ---------- users ----------
@@ -120,10 +130,12 @@ service cloud.firestore {
           && isDate(incoming().startDate) && isDate(incoming().endDate)
           && incoming().endDate >= incoming().startDate
           && isCurrency(incoming().baseCurrency)
-          && isBanner(incoming().get('bannerUrl', null));
+          && isBanner(incoming().get('bannerUrl', null))
+          && incoming().get('countryCode', 'XX').matches('^[A-Z]{2}$')
+          && isText(incoming().get('city', ''), 0, 80);
       }
 
-      function isBanner(v) { return v == null || isStoredPhoto(v); }
+      function isBanner(v) { return v == null || isStoredPhoto(v, aid, 'banner'); }
 
       // Checks the document itself, so "my adventures" queries
       // (memberUids array-contains me) are allowed too.
@@ -178,13 +190,14 @@ service cloud.firestore {
                    'baseUpdatedAt'])
             && t.get('baseUpdatedAt', request.time) is timestamp
             && isAmount(t.amountMinor)
+            && isCategory(t.get('category', ''))
             && isCurrency(t.currency)
             && isDate(t.date) && isDate(t.fxDate)
             && t.payers is list && t.payers.size() >= 1 && t.payers.size() <= 50
             && t.participants is list && t.participants.size() >= 1
             && t.participants.size() <= 50
             && (t.get('percentBp', null) == null || t.percentBp is map)
-            && isMemories(t.get('memories', []))
+            && isMemories(t.get('memories', []), aid)
             && isText(t.get('description', ''), 0, 200)
             && (!('location' in t) || (isAdult() && isPoint(t.location)));
         }
