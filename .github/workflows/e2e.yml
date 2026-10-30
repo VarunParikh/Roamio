@@ -10,9 +10,10 @@ on:
     - cron: "30 20 * * *" # 02:00 India time
   workflow_dispatch:
 
+# A manual run waits its turn: cancelling a nightly run would report a failure.
 concurrency:
   group: e2e
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -22,6 +23,8 @@ jobs:
     name: Journeys A–F on an Android emulator
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      exit_code: ${{ steps.journeys.outputs.exit_code }}
     env:
       AVD: e2e
       FLUTTER: flutter
@@ -81,11 +84,17 @@ jobs:
           "$ANDROID_HOME/emulator/emulator" -list-avds
 
       - name: Run the journeys
-        timeout-minutes: 40
+        id: journeys
+        # Room for a hang late in a run, then the script's one retry.
+        timeout-minutes: 50
         env:
           JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
           JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
-        run: tool/e2e.sh
+        run: |
+          code=0
+          tool/e2e.sh || code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit "$code"
 
       - name: Show emulator logs
         if: ${{ !success() }}
@@ -108,19 +117,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RESULT: ${{ needs.journeys.result }}
+          EXIT_CODE: ${{ needs.journeys.outputs.exit_code }}
         run: |
           run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           day=$(date -u +%Y-%m-%d)
+          # tool/e2e.sh exits 75 when the run hung twice.
+          note=""
+          if [ "$EXIT_CODE" = "75" ]; then
+            note=" The run hung twice with no output, which is usually the emulator locking up; a frozen app looks the same, so see where it stopped in the logs before retrying."
+          fi
           gh label create nightly-failure --color B60205 \
             --description "The nightly journey tests didn't pass" --force
           open=$(gh issue list --label nightly-failure --state open \
             --json number --jq '.[0].number // empty')
           if [ -n "$open" ]; then
-            gh issue comment "$open" --body "Didn't pass again on $day ($RESULT): $run"
+            gh issue comment "$open" --body "Didn't pass again on $day ($RESULT): $run$note"
           else
             gh issue create --label nightly-failure \
               --title "Nightly journey tests didn't pass ($day)" \
-              --body "The nightly end-to-end journey tests ended as **$RESULT** on $day.
+              --body "The nightly end-to-end journey tests ended as **$RESULT** on $day.$note
 
           Run and logs: $run
 
