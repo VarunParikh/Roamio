@@ -67,12 +67,18 @@ jobs:
 
       - name: Create the Android emulator
         run: |
+          # One folder for both avdmanager and the emulator: newer command-line
+          # tools save AVDs elsewhere than the emulator looks by default.
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
           image="system-images;android-34;google_apis;x86_64"
           sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$sdkmanager" --licenses >/dev/null
           "$sdkmanager" "emulator" "platform-tools" "$image" >/dev/null
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" \
             create avd -n "$AVD" -k "$image" -d pixel_6
+          "$ANDROID_HOME/emulator/emulator" -list-avds
 
       - name: Run the journeys
         timeout-minutes: 40
