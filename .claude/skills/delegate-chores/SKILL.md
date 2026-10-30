@@ -1,6 +1,6 @@
 ---
 name: delegate-chores
-description: Use on Roamio before pushing a branch, opening or merging a PR, updating a PR branch, pulling data or logs, running a test suite, building a test APK, searching widely, taking screenshots, syncing docs or making a mechanical edit across files. Hands these chores to a cheaper model in a separate session, with guardrails that prove the chore finished.
+description: Use on Roamio before pushing a branch, opening a PR, updating a PR branch, pulling data or logs, running a test suite, building a test APK, searching widely, taking screenshots, syncing docs or making a mechanical edit across files. Hands these chores to a cheaper model in a separate session, with guardrails that prove the chore finished.
 ---
 
 # Delegate chores to a cheaper session
@@ -11,7 +11,6 @@ The main session keeps the thinking; chores go to a cheaper model in their own s
 
 **Haiku** (`claude-haiku-5-5`, medium effort): mechanical, with a clear pass or fail.
 - Push a committed branch; open a PR from a written title and body.
-- Merge a PR the owner named by number.
 - `gh pr update-branch`, then report the new CI result.
 - Pull logs, run lists or data into a file, with a summary.
 - Run format, analyze, app tests, backend lint or backend tests.
@@ -32,6 +31,7 @@ The main session keeps the thinking; chores go to a cheaper model in their own s
 - Code and commit contents, including the failing tests and fixes for split math, FX, security rules and consent.
 - Security and privacy reviews, and working out why something failed.
 - Resolving merge conflicts.
+- Merging a PR the owner named by number: the permission check only accepts a merge in the session where the owner said it, so a delegated merge is refused (found on #67).
 - Comparing design references with the app.
 - A quick read needed for the very next decision (one `gh` or `git` command costs less here than a new session).
 
@@ -86,8 +86,9 @@ The main session reads that session's whole diff, and brings it into its own bra
 - Run: `gh pr create --repo VarunParikh/Roamio --base main --head <branch> --title "<title>" --body-file <file>`
 - Proof: the PR URL, and `gh pr view <url> --json headRefOid` shows the SHA.
 
-**Merge** (only with the owner's words quoted in the brief, e.g. `Owner said: "merge #67"`; one PR per session turn)
+**Merge** (main session only, in the same session the owner named the number; one PR per request)
 - Check: `gh pr view N --repo VarunParikh/Roamio --json state,mergeable,headRefOid,statusCheckRollup`. It must be open and mergeable, with the expected SHA and every check successful.
+- If another PR is stacked on it, retarget that PR to `main` first.
 - Run: `gh pr merge N --repo VarunParikh/Roamio --squash --match-head-commit <sha>`
 - Proof: `gh pr view N --repo VarunParikh/Roamio --json state,mergeCommit` shows `MERGED`.
 - If anything is red, pending or conflicted: don't merge. Report it.
