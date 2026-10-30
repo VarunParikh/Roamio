@@ -108,6 +108,26 @@ describe("collectData (spec UC-29: download my data)", () => {
     expect(JSON.stringify(data)).not.toContain("70000");
   });
 
+  it("keeps the location only on tabs the person added (follow-up S13)", async () => {
+    const ari = await person("Ari");
+    const bob = await person("Bob");
+    const id = await adventure(ari, { memberUids: [ari.uid, bob.uid] });
+    const both = { participants: [ari.uid, bob.uid] };
+    await db()
+      .doc(`adventures/${id}/tabs/hers`)
+      .set(tab(ari.uid, { ...both, location: { lat: 13.75, lng: 100.5 } }));
+    await db()
+      .doc(`adventures/${id}/tabs/his`)
+      .set(tab(bob.uid, { ...both, location: { lat: 18.79, lng: 98.98 } }));
+
+    const [adv] = (await collectData(bob.uid)).adventures;
+    const byId = Object.fromEntries(adv.tabs.map((t) => [t.id, t]));
+    expect(byId.his.location).toEqual({ lat: 18.79, lng: 98.98 });
+    expect(byId.hers).toBeDefined();
+    expect(byId.hers.location).toBeUndefined();
+    expect(JSON.stringify(adv)).not.toContain("13.75");
+  });
+
   it("includes adventures the person has left, with their tabs (UC-16, UC-29)", async () => {
     const ari = await person("Ari");
     const bob = await person("Bob");

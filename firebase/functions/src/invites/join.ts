@@ -1,7 +1,7 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/https";
 import { sendPush } from "../notify/push";
-import { uidOf, usableInvite } from "./invites";
+import { checkUsable, uidOf, usableInvite } from "./invites";
 
 const db = () => getFirestore();
 
@@ -32,6 +32,8 @@ export const joinAdventure = onCall(async (request) => {
 
   const joined = await db().runTransaction(async (tx) => {
     const adventure = await tx.get(adventureRef);
+    // Again inside the transaction: the link may have been revoked meanwhile.
+    checkUsable(await tx.get(invite.ref));
     if (!adventure.exists) throw new HttpsError("not-found", "This adventure no longer exists.");
     const memberUids: string[] = adventure.get("memberUids") ?? [];
     if (memberUids.includes(uid)) {
