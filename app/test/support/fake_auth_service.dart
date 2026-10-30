@@ -33,6 +33,7 @@ import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
+import 'package:roamio/features/tabs/data/tab_notice_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/updates/update_checker.dart';
 import 'package:roamio/main.dart';
@@ -54,6 +55,7 @@ import 'fake_settlement_service.dart';
 import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
 import 'fake_sync.dart';
+import 'fake_tab_notice_service.dart';
 import 'fake_tab_service.dart';
 import 'fake_update_store.dart';
 
@@ -187,6 +189,7 @@ Future<void> pumpRoamio(
   FakeConnectivity? connectivity,
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
+  FakeTabNoticeService? tabNotices,
   FakePrivacyService? privacy,
   FakeActivityService? activity,
   FetchJson? weatherFetch,
@@ -227,6 +230,9 @@ Future<void> pumpRoamio(
         ),
         exportEnabledProvider.overrideWithValue(exportEnabled),
         budgetServiceProvider.overrideWithValue(budgets ?? FakeBudgetService()),
+        tabNoticeServiceProvider.overrideWithValue(
+          tabNotices ?? FakeTabNoticeService(),
+        ),
         profileServiceProvider.overrideWithValue(
           profile ?? FakeProfileService(currency: profileCurrency),
         ),
