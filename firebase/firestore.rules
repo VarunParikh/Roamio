@@ -66,6 +66,8 @@ service cloud.firestore {
         && (m.size() < 3 || isStoredPhoto(m[2], aid, 'tabs'))
         && (m.size() < 4 || isStoredPhoto(m[3], aid, 'tabs'));
     }
+    // A display picture's id; the app shows a default for one it doesn't know.
+    function isCharacterId(v) { return v is string && v.matches('^[a-z0-9_]{1,30}$'); }
     // The 10 tab categories in app/assets/data/categories.json.
     function isCategory(v) {
       return v in ['pre_trip_preparation', 'primary_transportation', 'accommodation',
@@ -80,8 +82,7 @@ service cloud.firestore {
           && isText(incoming().name, 1, 60)
           && (incoming().get('photoUrl', null) == null || incoming().photoUrl is string)
           && (incoming().get('characterId', null) == null
-              || (incoming().characterId is string
-                  && incoming().characterId.matches('^[a-z0-9_]{1,30}$')))
+              || isCharacterId(incoming().characterId))
           && isText(incoming().get('bio', ''), 0, 200);
       }
       // Someone who shares, or shared, a squad (profileReaders, kept by the
@@ -185,13 +186,16 @@ service cloud.firestore {
       match /pals/{pid} {
         allow read: if isMember(aid);
         allow create: if isLead(aid)
-          && incoming().keys().hasOnly(['nickname', 'addedBy', 'status', 'createdAt'])
+          && incoming().keys().hasOnly(['nickname', 'characterId', 'addedBy', 'status', 'createdAt'])
           && isText(incoming().nickname, 1, 30)
+          && isCharacterId(incoming().characterId)
           && incoming().addedBy == me()
           && incoming().status == 'active';
         allow update: if isLead(aid)
-          && changed().hasOnly(['nickname', 'status'])
+          && changed().hasOnly(['nickname', 'characterId', 'status'])
           && isText(incoming().nickname, 1, 30)
+          // Older pals have none, and can still be edited and removed.
+          && (!('characterId' in changed()) || isCharacterId(incoming().characterId))
           && incoming().status in ['active', 'left'];
       }
 

@@ -83,6 +83,7 @@ Since the previous handover:
 - UX: TalkBack reading order and wording; the pulse's feel.
 - Remote Config: set the keys in the console and see the flags change.
 - Releases: the release workflow on the first tag; the update popup on the previous version.
+- **Added 2026-10-31, pals (Task 53):** a lead adds a pal from the squad and from Add tab, on one screen; Add is disabled with the reason until there's a nickname and a character; the picker's title has the nickname, and closing it keeps what was typed; characters already used look dimmed but can be chosen, and the dimming is easy to see on a real screen; Edit changes both; a member sees the "Ask a squad lead" hint on Add tab; a pal added in airplane mode appears at once and reaches a second phone after Sync; a removed pal keeps their name on old tabs (their picture shows there once Task 54 adds pictures to rows); TalkBack reads "already used" on dimmed characters.
 - **Added 2026-10-31, characters:** a new account shows its default character and the Home card offers a change; pick one on You; pictures look sharp and on white on a real screen; a squadmate sees yours in the squad list and Activity; a deleted account shows the grey icon; Google sign-up doesn't bring your Google photo.
 - **Added 2026-10-30:**
   - Exchange-rate day: a foreign-currency tab added before 06:00 India time keeps its total after that day's rates arrive. The tab screen shows *Converted at exchange rates from …*.

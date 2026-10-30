@@ -30,12 +30,6 @@ void journeyC() {
     final ari = await createPerson('Ari Payer', profileCurrency: 'EUR');
     final bob = await createPerson('Bob Member');
     final aid = await seedAdventure(ari, name: 'Kerala trip', members: [bob]);
-    await setDoc('adventures/$aid/pals/kiko', {
-      'nickname': 'Kiko',
-      'addedBy': ari.uid,
-      'status': 'active',
-      'createdAt': DateTime.now().toUtc(),
-    });
     final today = DateTime.now();
     await seedFxRates(today, {'INR': '90', 'EUR': '0.9'});
 
@@ -43,7 +37,7 @@ void journeyC() {
     await signInWithEmail(tester, ari.email, password);
     await waitFor(tester, find.text('Hey Ari 👋'));
     await openAdventure(tester, 'Kerala trip');
-    await waitFor(tester, find.text('Squad (3)'));
+    await waitFor(tester, find.text('Squad (2)'));
 
     // ₹3,000 dinner: two payers, custom % including the pal.
     await scrollTo(tester, find.text('Add tab'));
@@ -56,10 +50,23 @@ void journeyC() {
     await typeIntoKey(tester, 'pay-${ari.uid}', '2000');
     await typeIntoKey(tester, 'pay-${bob.uid}', '1000');
     await waitFor(tester, find.text('₹3,000.00 of ₹3,000.00 assigned'));
+    // Kiko has no app: Ari adds them from here, with a character.
+    await scrollTo(tester, find.text('Add pal'));
+    await tapText(tester, 'Add pal');
+    await addPal(tester, nickname: 'Kiko', character: 'Traveller 3');
+    await waitFor(tester, find.widgetWithText(CheckboxListTile, 'Kiko'));
+    late final String kiko;
+    await eventually('Kiko is saved', () async {
+      final pals = await listDocs('adventures/$aid/pals', as: bob);
+      if (pals.isEmpty) return false;
+      expect(pals.single['characterId'], 'traveller_03');
+      kiko = pals.single['id']! as String;
+      return true;
+    });
     await tapText(tester, 'Custom %');
     await typeIntoKey(tester, 'pct-${ari.uid}', '50');
     await typeIntoKey(tester, 'pct-${bob.uid}', '30');
-    await typeIntoKey(tester, 'pct-kiko', '20');
+    await typeIntoKey(tester, 'pct-$kiko', '20');
     await waitFor(tester, find.text('100% of 100% assigned'));
     await saveTab(tester);
 
@@ -83,7 +90,7 @@ void journeyC() {
     final dinner = tabs.singleWhere((t) => t['description'] == 'Dinner');
     expect(dinner['amountMinor'], 300000);
     expect(dinner['currency'], 'INR');
-    expect(dinner['percentBp'], {ari.uid: 5000, bob.uid: 3000, 'kiko': 2000});
+    expect(dinner['percentBp'], {ari.uid: 5000, bob.uid: 3000, kiko: 2000});
     expect(dinner['payers'], [
       {'id': ari.uid, 'amountMinor': 200000},
       {'id': bob.uid, 'amountMinor': 100000},
@@ -122,8 +129,20 @@ void journeyC() {
     final paid = await listDocs('adventures/$aid/settlements', as: bob);
     expect(
       {for (final p in paid) p['from']: (p['amountMinor'], p['currency'])},
-      {'kiko': (360000, 'INR'), bob.uid: (290000, 'INR')},
+      {kiko: (360000, 'INR'), bob.uid: (290000, 'INR')},
     );
+
+    // A lead removes Kiko elsewhere: their history still has their name.
+    await setDoc('adventures/$aid/pals/$kiko', {
+      'nickname': 'Kiko',
+      'characterId': 'traveller_03',
+      'addedBy': ari.uid,
+      'status': 'left',
+      'createdAt': DateTime.now().toUtc(),
+    });
+    await settle(tester, const Duration(seconds: 2));
+    expect(find.textContaining('Kiko'), findsWidgets);
+    expect(find.text('Deleted user'), findsNothing);
 
     // Bob, on his own phone, is all square too.
     await signOut(tester);

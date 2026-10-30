@@ -696,7 +696,43 @@ describe("members and activity (server-written)", () => {
 });
 
 describe("pals", () => {
-  const pal = { nickname: "Lu", addedBy: "cara", status: "active" };
+  const pal = { nickname: "Lu", characterId: "robot", addedBy: "cara", status: "active" };
+
+  it("a new pal needs a valid character (spec UC-18)", async () => {
+    const { characterId: _none, ...noCharacter } = pal;
+    const lu = () => doc(as("cara"), "adventures/a1/pals/lu");
+    await assertFails(setDoc(lu(), noCharacter));
+    for (const bad of [null, "", "Robot", "../robot", "x".repeat(31), 7]) {
+      await assertFails(setDoc(lu(), { ...pal, characterId: bad }));
+    }
+    await assertSucceeds(setDoc(lu(), pal));
+  });
+
+  it("only leads change a pal's character, to a valid one", async () => {
+    const kiko = (who: string) => doc(as(who), "adventures/a1/pals/kiko");
+    await assertSucceeds(updateDoc(kiko("alice"), { characterId: "owl" }));
+    await assertSucceeds(updateDoc(kiko("cara"), { nickname: "Kiks", characterId: "fox" }));
+    for (const who of ["bob", "mia", "dan", "pete"]) {
+      await assertFails(updateDoc(kiko(who), { characterId: "panda" }));
+    }
+    for (const bad of [null, "", "Not Valid", 7]) {
+      await assertFails(updateDoc(kiko("alice"), { characterId: bad }));
+    }
+    await assertFails(updateDoc(kiko("alice"), { characterId: deleteField() }));
+  });
+
+  it("a pal from before characters can still be renamed and removed", async () => {
+    const kiko = doc(as("alice"), "adventures/a1/pals/kiko");
+    await assertSucceeds(updateDoc(kiko, { nickname: "Kiks" }));
+    await assertSucceeds(updateDoc(kiko, { status: "left" }));
+  });
+
+  it("members can list removed pals, for old tabs; outsiders cannot", async () => {
+    const left = (who: string) =>
+      query(collection(as(who), "adventures/a1/pals"), where("status", "==", "left"));
+    await assertSucceeds(getDocs(left("bob")));
+    await assertFails(getDocs(left("dan")));
+  });
 
   it("leads add and rename pals; members cannot", async () => {
     await assertSucceeds(setDoc(doc(as("cara"), "adventures/a1/pals/lu"), pal));

@@ -212,16 +212,9 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     _resetToEqual = true;
   }
 
-  Future<void> _addPal(List<Pal> pals) async {
-    final name = await askPalNickname(
-      context,
-      title: 'Add a pal',
-      action: 'Add',
-      taken: [for (final p in pals) p.nickname],
-    );
-    if (name == null) return;
-    await ref.read(squadServiceProvider).addPal(_a.id, name);
-    if (mounted) setState(_peopleChanged);
+  Future<void> _addPal() async {
+    final added = await showPalForm(context, adventure: _a);
+    if (added && mounted) setState(_peopleChanged);
   }
 
   List<String> _everyone(List<Pal> pals) => [
@@ -680,9 +673,17 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: () => _addPal(pals),
+                onPressed: _addPal,
                 icon: const Icon(Icons.person_add_alt),
                 label: const Text('Add pal'),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Need someone without the app? Ask a squad lead to add them.',
+                style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
               ),
             ),
           if (_percentFields case final fields?) ...[

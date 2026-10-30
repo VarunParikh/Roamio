@@ -13,7 +13,8 @@ import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 
 /// Display names for everyone on an adventure's tabs and transfers: its
-/// members, its pals, and people who have left or deleted their account
+/// members, its pals (removed ones too), and people who have left or deleted
+/// their account
 /// ("Deleted user").
 Map<String, String> squadLabels(WidgetRef ref, Adventure adventure) => {
   for (final MapEntry(:key, :value) in squadPeople(ref, adventure).entries)
@@ -27,7 +28,13 @@ Map<String, SquadPerson> squadPeople(WidgetRef ref, Adventure adventure) {
       ref.watch(squadPeopleProvider(adventure.memberUids.join(','))).value ??
       const <String, SquadPerson>{};
   final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
-  final known = {...adventure.memberUids, for (final p in pals) p.id};
+  // Removed pals stay on their old tabs, with their nickname and picture.
+  final removed =
+      ref.watch(removedPalsProvider(adventure.id)).value ?? const <Pal>[];
+  final known = {
+    ...adventure.memberUids,
+    for (final p in [...pals, ...removed]) p.id,
+  };
   final tabs = ref.watch(tabsProvider(adventure.id)).value ?? const [];
   final transfers =
       ref.watch(settlementsProvider(adventure.id)).value ?? const [];
@@ -46,7 +53,8 @@ Map<String, SquadPerson> squadPeople(WidgetRef ref, Adventure adventure) {
   return {
     ...otherPeople,
     ...members,
-    for (final p in pals) p.id: SquadPerson(name: p.nickname),
+    for (final p in [...removed, ...pals])
+      p.id: SquadPerson(name: p.nickname, characterId: p.characterId),
   };
 }
 

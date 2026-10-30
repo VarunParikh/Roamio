@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/ui/primary_button.dart';
@@ -158,10 +160,14 @@ void main() {
       final h = await _open(tester);
       await _tap(tester, find.text('Add pal'));
       await tester.enterText(find.widgetWithText(TextField, 'Nickname'), 'Lu');
+      await tester.pump();
+      await _tap(tester, find.text('Choose a character'));
+      expect(find.text('Choose a character for Lu'), findsOneWidget);
+      await _tap(tester, find.bySemanticsLabel('Traveller 2'));
       await tester.tap(find.widgetWithText(FilledButton, 'Add'));
       await tester.pumpAndSettle();
 
-      expect(h.squad.calls, ['addPal:bkk/Lu']);
+      expect(h.squad.calls, ['addPal:bkk/Lu/traveller_02']);
       final lu = find.widgetWithText(CheckboxListTile, 'Lu');
       expect(tester.widget<CheckboxListTile>(lu).value, isTrue);
       await _tap(tester, find.text('Save tab'));
@@ -173,9 +179,50 @@ void main() {
       ]);
     });
 
-    testWidgets('members who aren’t leads don’t see it', (tester) async {
+    testWidgets('members see a hint instead, and leads don’t', (tester) async {
+      const hint =
+          'Need someone without the app? Ask a squad lead to add them.';
       await _open(tester, as: 'bob');
       expect(find.text('Add pal'), findsNothing);
+      await tester.scrollUntilVisible(
+        find.text(hint),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text(hint), findsOneWidget);
+    });
+
+    testWidgets('leads don’t get the member hint', (tester) async {
+      await _open(tester);
+      expect(find.textContaining('Ask a squad lead'), findsNothing);
+    });
+
+    testWidgets('closing the form without adding changes nothing', (
+      tester,
+    ) async {
+      final h = await _open(tester);
+      await _tap(tester, find.text('Add pal'));
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(h.squad.calls, isEmpty);
+      expect(find.text('Save tab'), findsOneWidget);
+    });
+
+    testWidgets('adding offline comes straight back to the tab', (
+      tester,
+    ) async {
+      final h = await _open(tester);
+      h.squad.palWrite = Completer<void>();
+      await _tap(tester, find.text('Add pal'));
+      await tester.enterText(find.widgetWithText(TextField, 'Nickname'), 'Lu');
+      await tester.pump();
+      await _tap(tester, find.text('Choose a character'));
+      await _tap(tester, find.bySemanticsLabel('Traveller 2'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Add'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save tab'), findsOneWidget);
+      expect(find.widgetWithText(CheckboxListTile, 'Lu'), findsOneWidget);
     });
   });
 }
