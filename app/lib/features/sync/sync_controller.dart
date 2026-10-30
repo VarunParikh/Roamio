@@ -97,7 +97,19 @@ class SyncController extends Notifier<SyncState> {
   }
 
   Future<void> _onStart(bool online) async {
-    if (!online) await _goOffline();
+    if (!online) {
+      await _goOffline();
+      return;
+    }
+    // Firestore's on/off switch outlives a Flutter restart (Back out while
+    // offline, reopen when online), so an earlier run may have left it off
+    // and this run would never notice. Switching it on is harmless when it
+    // already is, and sends anything that was waiting.
+    try {
+      await ref.read(networkSwitchProvider).enable();
+    } on Object {
+      // Never block the app from starting; the Sync button can try again.
+    }
   }
 
   Future<void> _onConnectivity(bool online) async {
