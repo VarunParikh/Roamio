@@ -242,6 +242,16 @@ class _TabRow extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (tab.status == TabStatus.personal)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    personalLabel,
+                    style: text.labelMedium?.copyWith(
+                      color: RoamioColors.slate,
+                    ),
+                  ),
+                ),
               if (tab.status == TabStatus.waiting)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),

@@ -6,6 +6,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
+  Timestamp,
   collection,
   deleteDoc,
   deleteField,
@@ -17,10 +18,9 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  Timestamp,
+  type Firestore,
   updateDoc,
   where,
-  type Firestore,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { RULES_PROJECT } from "../support/rules-project";
@@ -838,6 +838,149 @@ describe("tabs", () => {
     );
   });
 
+  describe("personal tabs (spec UC-21a)", () => {
+    const personal = (by: string, extra: Record<string, unknown> = {}) =>
+      tab(by, {
+        status: "personal",
+        payers: [{ id: by, amountMinor: 45000 }],
+        participants: [by],
+        ...extra,
+      });
+    const seed = async () =>
+      env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/mine"), personal("bob"));
+      });
+
+    it("you can add one: you paid and only you share", async () => {
+      await assertSucceeds(
+        setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), personal("bob")),
+      );
+    });
+
+    it("it can't include or be paid by anyone else", async () => {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { participants: ["bob", "mia"] }),
+        ),
+      );
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { payers: [{ id: "mia", amountMinor: 45000 }] }),
+        ),
+      );
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { participants: ["mia"] }),
+        ),
+      );
+    });
+
+    it("only its creator can read it, not even an admin", async () => {
+      await seed();
+      await assertSucceeds(getDoc(doc(as("bob"), "adventures/a1/tabs/mine")));
+      await assertFails(getDoc(doc(as("alice"), "adventures/a1/tabs/mine")));
+      await assertFails(getDoc(doc(as("mia"), "adventures/a1/tabs/mine")));
+    });
+
+    it("listing: shared tabs for the squad, personal only your own", async () => {
+      await seed();
+      const tabs = (who: string) => collection(as(who), "adventures/a1/tabs");
+      await assertSucceeds(
+        getDocs(
+          query(
+            tabs("mia"),
+            where("deleted", "==", false),
+            where("status", "in", ["waiting", "approved", "rejected"]),
+          ),
+        ),
+      );
+      await assertSucceeds(
+        getDocs(
+          query(
+            tabs("bob"),
+            where("deleted", "==", false),
+            where("status", "==", "personal"),
+            where("createdBy", "==", "bob"),
+          ),
+        ),
+      );
+      await assertFails(getDocs(query(tabs("mia"), where("deleted", "==", false))));
+      await assertFails(
+        getDocs(query(tabs("alice"), where("status", "==", "personal"))),
+      );
+    });
+
+    it("its creator can delete it; an admin can't touch it", async () => {
+      await seed();
+      const del = (who: string) =>
+        updateDoc(doc(as(who), "adventures/a1/tabs/mine"), {
+          deleted: true,
+          deletedBy: who,
+          updatedAt: new Date(),
+        });
+      await assertFails(del("alice"));
+      await assertSucceeds(del("bob"));
+    });
+
+    it("a creator still can't delete a shared tab", async () => {
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+          deleted: true,
+          deletedBy: "bob",
+        }),
+      );
+    });
+
+    it("nobody can decide one", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/mine"), {
+          status: "approved",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+        }),
+      );
+    });
+
+    it("adding someone turns it into a waiting tab", async () => {
+      await seed();
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          status: "waiting",
+          participants: ["bob", "mia"],
+        }),
+      );
+    });
+
+    it("adding someone can't keep it personal, or approve it", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          participants: ["bob", "mia"],
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          status: "approved",
+          participants: ["bob", "mia"],
+        }),
+      );
+    });
+
+    it("a shared tab left with only you becomes personal", async () => {
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+          status: "personal",
+          participants: ["bob"],
+          payers: [{ id: "bob", amountMinor: 45000 }],
+        }),
+      );
+    });
+  });
+
   describe("deciding a waiting tab (spec UC-21a)", () => {
     const decide = (who: string, status: string, tid = "t1", aid = "a1") =>
       updateDoc(doc(as(who), `adventures/${aid}/tabs/${tid}`), {
@@ -1255,8 +1398,14 @@ describe("tabs", () => {
   });
 
   it("only members read tabs", async () => {
-    await assertSucceeds(getDocs(collection(as("mia"), "adventures/a1/tabs")));
-    await assertFails(getDocs(collection(as("dan"), "adventures/a1/tabs")));
+    // Shared tabs only: a list that could include personal tabs is refused.
+    const shared = (who: string) =>
+      query(
+        collection(as(who), "adventures/a1/tabs"),
+        where("status", "in", ["waiting", "approved", "rejected"]),
+      );
+    await assertSucceeds(getDocs(shared("mia")));
+    await assertFails(getDocs(shared("dan")));
   });
 });
 

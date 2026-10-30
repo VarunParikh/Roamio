@@ -94,11 +94,14 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   if (!after || !tab) return;
   const adventureRef = db().doc(`adventures/${event.params.aid}`);
   const adventure = await adventureRef.get();
-  if (adventure.get("hasTabs") !== true) await adventureRef.update({ hasTabs: true });
+  // Only its creator can see a personal tab, so it stays out of what the squad
+  // sees: it doesn't lock the currency or appear in the activity (spec UC-21a).
+  const personal = tab.status === "personal";
+  if (!personal && adventure.get("hasTabs") !== true) await adventureRef.update({ hasTabs: true });
   if (tab.deleted === true) {
     // A lead just deleted it: say so in the activity (spec UC-22).
     const before = event.data?.before?.data();
-    if (before && before.deleted !== true && tab.deletedBy) {
+    if (!personal && before && before.deleted !== true && tab.deletedBy) {
       await adventureRef.collection("activity").add({
         type: "tab_deleted",
         actorUid: tab.deletedBy,
@@ -114,7 +117,7 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const active = new Set([...members, ...pals.docs.map((p) => p.id)]);
   const problem = tabProblem(tab, active, (id) => members.includes(id), event.data?.before?.data());
   if (!problem) {
-    if (replacedEdit(event.data?.before?.data(), tab)) {
+    if (!personal && replacedEdit(event.data?.before?.data(), tab)) {
       await adventureRef.collection("activity").add({
         type: "tab_edit_replaced",
         actorUid: tab.createdBy,

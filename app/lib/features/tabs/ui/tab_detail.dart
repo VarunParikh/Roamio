@@ -15,6 +15,7 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// One tab (spec UC-23): who paid, everyone's share, photos and where.
@@ -53,7 +54,7 @@ class TabDetailScreen extends ConsumerWidget {
               onPressed: () =>
                   context.push('/adventures/$adventureId/tabs/$tabId/edit'),
             ),
-          if (live && adventure.isLead(myUid))
+          if (live && canDeleteTab(adventure, entry, myUid))
             IconButton(
               tooltip: 'Delete tab',
               icon: const Icon(Icons.delete_outline),

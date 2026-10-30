@@ -4,6 +4,7 @@ import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/data/merged_tabs.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 import 'package:roamio/features/tabs/domain/tab_status.dart';
@@ -18,15 +19,29 @@ class FirebaseTabService implements TabService {
       _db.collection('adventures/$adventureId/tabs');
 
   @override
-  Stream<List<TabEntry>> tabs(String adventureId) =>
-      _tabs(adventureId)
-          .where('deleted', isEqualTo: false)
+  Stream<List<TabEntry>> tabs(String adventureId) {
+    List<TabEntry> entries(QuerySnapshot<Map<String, dynamic>> q) =>
+        q.docs.map(_fromDoc).toList();
+    final live = _tabs(adventureId).where('deleted', isEqualTo: false);
+    return mergedTabs(
+      live
+          .where(
+            'status',
+            whereIn: [
+              TabStatus.waiting.name,
+              TabStatus.approved.name,
+              TabStatus.rejected.name,
+            ],
+          )
           .snapshots()
-          .map((q) {
-            final entries = q.docs.map(_fromDoc).toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-            return entries;
-          });
+          .map(entries),
+      live
+          .where('status', isEqualTo: TabStatus.personal.name)
+          .where('createdBy', isEqualTo: _auth.currentUser?.uid)
+          .snapshots()
+          .map(entries),
+    );
+  }
 
   /// The fields a tab's creator writes (DATA_MODEL.md). On an edit, a
   /// removed location is deleted; on a new tab it's simply left out.
@@ -46,6 +61,7 @@ class FirebaseTabService implements TabService {
       'location': {'lat': p.lat, 'lng': p.lng}
     else if (!isNew)
       'location': FieldValue.delete(),
+    'status': tab.status.name,
     'updatedAt': FieldValue.serverTimestamp(),
     // Only an edit has a base; with none known, a stale one must not stay.
     if (!isNew)
@@ -65,7 +81,6 @@ class FirebaseTabService implements TabService {
       'createdBy': _auth.currentUser!.uid,
       'createdAt': FieldValue.serverTimestamp(),
       'deleted': false,
-      'status': tab.status.name,
     }).ignore();
     return doc.id;
   }

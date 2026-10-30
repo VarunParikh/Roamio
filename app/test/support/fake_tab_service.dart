@@ -84,7 +84,6 @@ class FakeTabService implements TabService {
       tab,
       createdBy: old.createdBy,
       memories: old.memories,
-      status: old.status,
     );
     _changes.add(null);
   }

@@ -294,25 +294,29 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     if (!mounted) return;
     final tabs = ref.read(tabServiceProvider);
     final old0 = _old;
+    final payers = _payerFields == null
+        ? [
+            Payment(
+              _old?.createdBy ?? myUid,
+              parseAmount(_amount.text, _currency)!,
+            ),
+          ]
+        : payersFrom(_texts(_payerFields)!, _currency);
+    final sharing = _ticked(pals);
     final tab = NewTab(
-      status: statusForNewTab(_a, myUid),
+      status: old0 == null
+          ? statusForNewTab(_a, myUid, payers, sharing)
+          : statusForEditedTab(_a, myUid, old0.status, payers, sharing),
       description: _description.text,
       category: _category!,
       amountMinor: parseAmount(_amount.text, _currency)!,
       currency: _currency,
       date: _date,
-      payers: _payerFields == null
-          ? [
-              Payment(
-                _old?.createdBy ?? myUid,
-                parseAmount(_amount.text, _currency)!,
-              ),
-            ]
-          : payersFrom(_texts(_payerFields)!, _currency),
+      payers: payers,
       percentBp: _percentFields == null
           ? null
           : percentsFrom(_texts(_percentFields)!),
-      participants: _ticked(pals),
+      participants: sharing,
       location: _location,
       basedOn: _old?.updatedAt,
       fxDate: fxDateFor(
@@ -670,6 +674,13 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
                   _peopleChanged();
                 });
               },
+            ),
+          if (_ticked(pals).length == 1 &&
+              _ticked(pals).single == myUid &&
+              _payerFields == null)
+            Text(
+              'Personal tab: only you can see it, and it needs no approval.',
+              style: text.bodySmall?.copyWith(color: RoamioColors.slate),
             ),
           if (problems.contains(TabProblem.nobodySharing))
             Text(

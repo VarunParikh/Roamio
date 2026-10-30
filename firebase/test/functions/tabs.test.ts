@@ -126,6 +126,27 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
   });
 });
 
+describe("personal tabs stay out of what the squad sees (spec UC-21a)", () => {
+  it("don't lock the trip's currency", async () => {
+    const { ari, id } = await squad();
+    await db()
+      .collection(`adventures/${id}/tabs`)
+      .add(tab(ari.uid, { status: "personal", participants: [ari.uid] }));
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).not.toBe(true);
+  });
+
+  it("deleting one logs nothing in the activity", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { status: "personal", participants: [ari.uid] }));
+    await ref.update({ deleted: true, deletedBy: ari.uid });
+    await new Promise((r) => setTimeout(r, 1500));
+    const activity = await db().collection(`adventures/${id}/activity`).get();
+    expect(activity.docs.filter((d) => d.get("subject") === ref.id)).toEqual([]);
+  });
+});
+
 describe("deleting a tab", () => {
   it("logs who deleted it in the activity (spec UC-22)", async () => {
     const { ari, id } = await squad();

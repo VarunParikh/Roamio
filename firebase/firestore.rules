@@ -204,7 +204,8 @@ service cloud.firestore {
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
                    'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
                    'baseUpdatedAt', 'status', 'decidedBy', 'decidedAt'])
-            && t.status in ['waiting', 'approved', 'rejected']
+            && t.status in ['waiting', 'approved', 'rejected', 'personal']
+            && (t.status != 'personal' || isOwnShape(t))
             && t.get('baseUpdatedAt', request.time) is timestamp
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))
@@ -219,17 +220,24 @@ service cloud.firestore {
             && (!('location' in t) || (isAdult() && isPoint(t.location)));
         }
 
+        // You paid and only you share: a personal tab's shape (spec UC-21a).
+        function isOwnShape(t) {
+          return t.participants == [t.createdBy] && t.payers.size() == 1
+            && t.payers[0].id == t.createdBy;
+        }
         // The one lead, with no co-lead: nobody else could approve their tab.
         function isOnlyAdmin() {
           return isLead(aid) && adventure(aid).coLeadUids.size() == 0;
         }
 
-        allow read: if isMember(aid);
+        // A personal tab is only for its creator, not even for admins.
+        allow read: if isMember(aid)
+          && (resource.data.status != 'personal' || resource.data.createdBy == me());
         allow create: if isMember(aid)
           && validTab()
           && incoming().createdBy == me()
           && incoming().deleted == false
-          && (incoming().status == 'waiting'
+          && (incoming().status in ['waiting', 'personal']
               || (incoming().status == 'approved' && isOnlyAdmin()));
         allow update: if isMember(aid) && (
           // the creator edits their own tab, but deleting (and undoing a
@@ -237,7 +245,17 @@ service cloud.firestore {
           (resource.data.createdBy == me() && validTab()
             && incoming().createdBy == resource.data.createdBy
             && incoming().deleted == resource.data.deleted
-            && incoming().status == resource.data.status)
+            && (incoming().status == resource.data.status
+              // left with only you, it's personal; add someone and it needs
+              // approving like any new tab
+              || incoming().status == 'personal'
+              || (resource.data.status == 'personal'
+                && (incoming().status == 'waiting'
+                  || (incoming().status == 'approved' && isOnlyAdmin())))))
+          // its creator deletes a personal tab, since admins can't see it
+          || (resource.data.createdBy == me() && resource.data.status == 'personal'
+            && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
+            && incoming().deleted == true && incoming().get('deletedBy', '') == me())
           // an admin decides a waiting tab, once, and never their own while
           // another admin could (spec UC-21a)
           || (isLead(aid) && resource.data.status == 'waiting'
@@ -246,7 +264,8 @@ service cloud.firestore {
             && incoming().decidedBy == me()
             && (resource.data.createdBy != me() || isOnlyAdmin()))
           // a lead soft-deletes any tab, saying who did it (shown in activity)
-          || (isLead(aid) && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
+          || (isLead(aid) && resource.data.status != 'personal'
+            && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
             && incoming().deleted == true && incoming().get('deletedBy', '') == me())
         );
       }

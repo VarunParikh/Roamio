@@ -91,6 +91,9 @@ Future<FakeTabService> _open(
   return service;
 }
 
+TabStatus _start(Adventure a, String uid) =>
+    statusForNewTab(a, uid, [Payment(uid, 1)], [uid, 'someone']);
+
 Finder _button(String label) => find.widgetWithText(OutlinedButton, label);
 
 Future<void> _tap(WidgetTester tester, Finder finder) async {
@@ -103,17 +106,17 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 void main() {
   group('who starts how (spec UC-21a)', () {
     test('a member’s tab waits', () {
-      expect(statusForNewTab(_team, 'bob'), TabStatus.waiting);
-      expect(statusForNewTab(_solo, 'bob'), TabStatus.waiting);
+      expect(_start(_team, 'bob'), TabStatus.waiting);
+      expect(_start(_solo, 'bob'), TabStatus.waiting);
     });
 
     test('an admin’s tab waits for the other admin', () {
-      expect(statusForNewTab(_team, 'ari'), TabStatus.waiting);
-      expect(statusForNewTab(_team, 'cara'), TabStatus.waiting);
+      expect(_start(_team, 'ari'), TabStatus.waiting);
+      expect(_start(_team, 'cara'), TabStatus.waiting);
     });
 
     test('the only admin’s own tab is approved', () {
-      expect(statusForNewTab(_solo, 'ari'), TabStatus.approved);
+      expect(_start(_solo, 'ari'), TabStatus.approved);
     });
   });
 
