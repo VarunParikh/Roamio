@@ -44,6 +44,8 @@ Check both copies open before you go on.
 
 GitHub needs the key, its password and the prod Firebase file to build a release.
 They are stored as encrypted secrets; nobody can read them back, including you.
+They go in the **`release` environment**, so only a release run you have
+approved can read them (step 5).
 
 | Secret name | What to paste |
 |---|---|
@@ -55,19 +57,19 @@ Quickest way: run these in Terminal from the Roamio folder. The second one
 asks you to paste the password.
 
 ```bash
-base64 -i ~/roamio-upload.jks | gh secret set ANDROID_KEYSTORE_BASE64 --repo VarunParikh/Roamio
+base64 -i ~/roamio-upload.jks | gh secret set ANDROID_KEYSTORE_BASE64 --env release --repo VarunParikh/Roamio
 ```
 
 ```bash
-gh secret set ANDROID_KEYSTORE_PASSWORD --repo VarunParikh/Roamio
+gh secret set ANDROID_KEYSTORE_PASSWORD --env release --repo VarunParikh/Roamio
 ```
 
 ```bash
-gh secret set GOOGLE_SERVICES_JSON_PROD --repo VarunParikh/Roamio < app/android/app/src/prod/google-services.json
+gh secret set GOOGLE_SERVICES_JSON_PROD --env release --repo VarunParikh/Roamio < app/android/app/src/prod/google-services.json
 ```
 
-Or on the website: **github.com/VarunParikh/Roamio → Settings → Secrets and
-variables → Actions → New repository secret**, once per row of the table.
+Or on the website: **github.com/VarunParikh/Roamio → Settings → Environments →
+release → Add environment secret**, once per row of the table.
 For the first one, run `base64 -i ~/roamio-upload.jks | pbcopy` and paste.
 
 ### 4. Let Google sign-in trust the key
@@ -155,14 +157,17 @@ To try a release first without offering it to anyone, use a test tag such as
 
 ### 5. Check the release
 
-1. **github.com/VarunParikh/Roamio/actions** → "Release" → the run for your tag
-   should be green (about 10–15 minutes). If it is red, open it: the failing
+1. **Approve the build.** github.com/VarunParikh/Roamio/actions → "Release" →
+   the run for your tag says *Waiting for review*. Tap **Review deployments →
+   release → Approve and deploy**. (GitHub also emails you.) Only then can it
+   read the signing key; nobody else can approve it.
+2. The run should then go green (about 10–15 minutes). If it is red, open it: the failing
    step says what is wrong (for example a missing secret or a version mismatch).
-2. **github.com/VarunParikh/Roamio/releases** → the new release has
+3. **github.com/VarunParikh/Roamio/releases** → the new release has
    `Roamio-v0.1.1.apk` and your notes.
-3. Download the APK on an Android phone and install it over the old version.
+4. Download the APK on an Android phone and install it over the old version.
    It should update without asking you to uninstall first.
-4. On a phone with the older version, open Roamio: the update popup appears
+5. On a phone with the older version, open Roamio: the update popup appears
    (it checks at most once a day, so it may take until the next day).
 
 ### If a release went wrong
