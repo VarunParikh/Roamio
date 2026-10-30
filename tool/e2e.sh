@@ -15,6 +15,7 @@
 #   AVD           Android emulator to boot (Roamio_Pixel_API36)
 #   ANDROID_HOME  Android SDK              ($HOME/Library/Android/sdk)
 #   EMULATOR_FLAGS extra flags for booting the emulator (CI: -gpu swiftshader_indirect)
+#   BOOT_TIMEOUT  seconds to wait for the emulator to boot (600)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -103,11 +104,22 @@ else
   "$ANDROID_HOME/emulator/emulator" -avd "$AVD" -no-window -no-audio \
     -no-boot-anim -no-snapshot-save ${EMULATOR_FLAGS:-} >"$LOGS/android.log" 2>&1 &
   started_android=$!
-  "$ADB" wait-for-device
-  DEVICE="$("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1; exit }')"
-  until [[ "$("$ADB" -s "$DEVICE" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; do
-    sleep 2
+  # Wait at most BOOT_TIMEOUT seconds, and stop early if the emulator dies,
+  # showing its log either way (a hung boot otherwise waits for ever).
+  boot_failed() {
+    echo "$1; the emulator's log:" >&2
+    tail -n 80 "$LOGS/android.log" >&2
+    exit 1
+  }
+  deadline=$(( $(date +%s) + ${BOOT_TIMEOUT:-600} ))
+  DEVICE=""
+  until [[ -n "$DEVICE" && "$("$ADB" -s "$DEVICE" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; do
+    kill -0 "$started_android" 2>/dev/null || boot_failed "The Android emulator stopped"
+    (( $(date +%s) < deadline )) || boot_failed "The Android emulator didn't boot in ${BOOT_TIMEOUT:-600} s"
+    sleep 5
+    DEVICE="$("$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1; exit }')"
   done
+  echo "Booted $DEVICE in $(( $(date +%s) - deadline + ${BOOT_TIMEOUT:-600} )) s."
 fi
 
 # 3. The tests.

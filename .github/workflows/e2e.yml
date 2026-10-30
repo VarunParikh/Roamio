@@ -75,11 +75,12 @@ jobs:
             create avd -n "$AVD" -k "$image" -d pixel_6
 
       - name: Run the journeys
+        timeout-minutes: 40
         env:
           JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
           JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
         run: tool/e2e.sh
 
       - name: Show emulator logs
-        if: failure()
+        if: ${{ !success() }}
         run: tail -n 200 app/build/e2e/*.log || true
