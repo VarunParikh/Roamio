@@ -48,6 +48,13 @@ function involves(uid: string, tab: Plain): boolean {
   return tab.createdBy === uid || participants.includes(uid) || payers.some((p) => p.id === uid);
 }
 
+/** Where someone else was when they added a tab isn't the person's data. */
+function withoutLocation<T extends Plain>(tab: T): T {
+  const rest = { ...tab };
+  delete rest.location;
+  return rest;
+}
+
 function roleIn(uid: string, adventure: DocumentSnapshot): string {
   if (!(adventure.get("memberUids") ?? []).includes(uid)) return "left";
   if (adventure.get("leaderUid") === uid) return "leader";
@@ -94,7 +101,10 @@ export async function collectData(uid: string) {
         endDate: adventure.get("endDate"),
         baseCurrency: adventure.get("baseCurrency"),
         role: roleIn(uid, adventure),
-        tabs: tabs.docs.map(withId).filter((t) => involves(uid, t)),
+        tabs: tabs.docs
+          .map(withId)
+          .filter((t) => involves(uid, t))
+          .map((t) => (t.createdBy === uid ? t : withoutLocation(t))),
         settlements: settlements.docs
           .map(withId)
           .filter((s) => s.from === uid || s.to === uid || s.recordedBy === uid),

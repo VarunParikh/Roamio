@@ -114,7 +114,11 @@ export async function usableInvite(input: unknown): Promise<DocumentSnapshot> {
   const code = normaliseCode(String(input ?? ""));
   if (!code)
     throw new HttpsError("invalid-argument", "That doesn't look like a Roamio invite code.");
-  const invite = await db().doc(`invites/${code}`).get();
+  return checkUsable(await db().doc(`invites/${code}`).get());
+}
+
+/** Throws the reason an invite can't be used, or returns it. */
+export function checkUsable(invite: DocumentSnapshot): DocumentSnapshot {
   if (!invite.exists)
     throw new HttpsError("not-found", "We couldn't find that invite. Check the code.");
   if (invite.get("revoked") === true) {

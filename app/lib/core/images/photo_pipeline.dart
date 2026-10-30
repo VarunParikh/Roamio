@@ -163,8 +163,13 @@ class FirebaseUploader implements Uploader {
     final file = File(job.localPath);
     if (!file.existsSync()) throw const UploadFileMissing();
     final ref = _storage.ref(job.storagePath);
-    await ref.putFile(file, SettableMetadata(contentType: 'image/webp'));
-    return await ref.getDownloadURL();
+    try {
+      await ref.putFile(file, SettableMetadata(contentType: 'image/webp'));
+      return await ref.getDownloadURL();
+    } on FirebaseException catch (e) {
+      if (e.code == 'unauthorized') throw const UploadRefused();
+      rethrow;
+    }
   }
 }
 
@@ -174,13 +179,22 @@ class FirestoreUploadTarget implements UploadTarget {
   final FirebaseFirestore _db;
 
   @override
-  Future<void> attach(UploadJob job, String url) =>
-      _db.doc(job.docPath).update({
+  Future<void> attach(UploadJob job, String url) async {
+    try {
+      await _db.doc(job.docPath).update({
         job.field: switch (job.mode) {
           UploadMode.append => FieldValue.arrayUnion([url]),
           UploadMode.replace => url,
         },
       });
+    } on FirebaseException catch (e) {
+      // No permission, or the tab or adventure is gone: never going to work.
+      if (e.code == 'permission-denied' || e.code == 'not-found') {
+        throw const UploadRefused();
+      }
+      rethrow;
+    }
+  }
 
   @override
   Future<void> discardLocal(UploadJob job) async {
@@ -192,8 +206,13 @@ class FirestoreUploadTarget implements UploadTarget {
 /// Builds the real pipeline and keeps the queue moving: now, every 30
 /// seconds while the app is open, and whenever it comes back to the front.
 /// `flush` tries every waiting photo now, backoff or not (the Sync button).
+/// [users] is the signed-in uid over time; signing out clears the queue.
 Future<({PhotoPipeline pipeline, Future<void> Function() flush})>
-startPhotoPipeline(FirebaseFirestore db, FirebaseStorage storage) async {
+startPhotoPipeline(
+  FirebaseFirestore db,
+  FirebaseStorage storage,
+  Stream<String?> users,
+) async {
   final dir = await getApplicationSupportDirectory();
   final queue = UploadQueue(
     store: FileUploadStore(File('${dir.path}/upload_queue.json')),
@@ -204,6 +223,7 @@ startPhotoPipeline(FirebaseFirestore db, FirebaseStorage storage) async {
   run();
   Timer.periodic(const Duration(seconds: 30), (_) => run());
   AppLifecycleListener(onResume: run);
+  clearOnSignOut(users, queue.clear);
   return (
     pipeline: DevicePhotoPipeline(
       queue,

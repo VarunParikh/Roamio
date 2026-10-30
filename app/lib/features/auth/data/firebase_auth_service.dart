@@ -29,12 +29,29 @@ Future<bool> signOutIfDeleted({
   }
 }
 
+/// Decides when a missing account record is worth checking: once each
+/// time it goes missing. Checking reloads the user, which fires another
+/// user event and re-reads the record, so without this a new sign-up with
+/// no record yet would reload in a loop.
+class MissingAccountCheck {
+  final _checked = <String>{};
+
+  bool shouldCheck(String uid, {required bool exists}) {
+    if (exists) {
+      _checked.remove(uid);
+      return false;
+    }
+    return _checked.add(uid);
+  }
+}
+
 class FirebaseAuthService implements AuthService {
   new(this._auth, this._db, this._google);
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _db;
   final GoogleSignIn _google;
+  final _missing = MissingAccountCheck();
   bool _googleReady = false;
 
   DocumentReference<Map<String, dynamic>> _account(String uid) =>
@@ -72,7 +89,7 @@ class FirebaseAuthService implements AuthService {
       out.add(facts());
       account = _account(user.uid).snapshots().listen((snap) {
         out.add(facts(loaded: true, snap: snap));
-        if (!snap.exists) {
+        if (_missing.shouldCheck(user.uid, exists: snap.exists)) {
           unawaited(signOutIfDeleted(reload: user.reload, signOut: signOut));
         }
       }, onError: (Object _) => out.add(facts(loaded: true)));

@@ -93,6 +93,20 @@ describe("leaveAdventure (spec UC-16, UC-17)", () => {
     expect(after?.leftUids).toEqual([bob.uid]);
   });
 
+  it("someone on the very first tab is kept as Left, before hasTabs is set (follow-up C9)", async () => {
+    const { bob, id } = await squad();
+    // hasTabs is set by a trigger a moment after the first tab; leaving in
+    // that moment must still keep Bob as Left.
+    await db()
+      .doc(`adventures/${id}/tabs/first`)
+      .set({ payers: [{ id: bob.uid, amountMinor: 500 }], participants: [bob.uid] });
+
+    expect((await call("leaveAdventure", { adventureId: id }, bob)).error).toBeUndefined();
+
+    expect((await member(id, bob.uid))?.status).toBe("left");
+    expect((await adv(id))?.leftUids).toEqual([bob.uid]);
+  });
+
   it("the leader must hand over first while others remain", async () => {
     const { ari, id } = await squad();
     const r = await call("leaveAdventure", { adventureId: id }, ari);

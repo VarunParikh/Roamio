@@ -74,10 +74,13 @@ export async function refreshRates(fetchImpl: typeof fetch = fetch): Promise<boo
   }
 }
 
+/** The scheduled run: throws on failure so the scheduler retries it. */
+export async function runDailyFxRates(fetchImpl: typeof fetch = fetch): Promise<void> {
+  if (!(await refreshRates(fetchImpl))) throw new Error("FX rates not refreshed");
+}
+
 /** Shortly after the provider's daily update (00:00 UTC). */
 export const dailyFxRates = onSchedule(
   { schedule: "every day 00:30", timeZone: "UTC", retryCount: 3 },
-  async () => {
-    await refreshRates();
-  },
+  () => runDailyFxRates(),
 );

@@ -84,7 +84,16 @@ SplitReport buildReport({
   required FxRates Function(String date) ratesFor,
   List<ReportSettlement> settlements = const [],
 }) {
-  final splits = [for (final t in tabs) t.split];
+  // A tab the server will reject (checkTab soft-deletes it) can sit in the
+  // offline cache for a moment; it's left out rather than breaking the
+  // whole split (follow-up C5).
+  final usable = [
+    for (final t in tabs)
+      if (problemsWith(t.split).isEmpty &&
+          t.split.amount.minor <= maxTabMinor(t.split.amount.currency))
+        t,
+  ];
+  final splits = [for (final t in usable) t.split];
 
   // Tabs convert inside the engine; settlements are added here, each at
   // its own day. Adding +s and −s keeps the zero sum (spec §6).
@@ -112,7 +121,7 @@ SplitReport buildReport({
   final base = balancesIn(baseCurrency);
   final viewers = viewerCurrency == baseCurrency
       ? base
-      : balancesIn(viewerCurrency);
+      : _squareLikeBase(balancesIn(viewerCurrency), base);
   final currency = viewers != null ? viewerCurrency : baseCurrency;
   final balances = viewers ?? base;
   if (balances == null) {
@@ -134,7 +143,7 @@ SplitReport buildReport({
   final byCategory = <String, int>{};
   final byDay = <DateTime, int>{};
   var myShare = 0;
-  for (final t in tabs) {
+  for (final t in usable) {
     final amount = ratesFor(t.split.fxDate)
         .convert(t.split.amount, currency)
         .minor;
@@ -159,6 +168,31 @@ SplitReport buildReport({
     totalSpend: byCategory.values.fold(0, (a, b) => a + b),
     missingRates: currency != viewerCurrency,
   );
+}
+
+/// Settlements are recorded in the trip's currency, so converting each item
+/// at its own day can leave someone who is square there a few cents off in
+/// [viewer]'s currency. They show as square; the leftover goes to whoever
+/// has the largest balance, so the total stays exactly zero (spec §6).
+Map<ParticipantId, int>? _squareLikeBase(
+  Map<ParticipantId, int>? viewer,
+  Map<ParticipantId, int>? base,
+) {
+  if (viewer == null || base == null) return viewer;
+  final out = Map.of(viewer);
+  var leftover = 0;
+  for (final id in out.keys.toList()) {
+    if ((base[id] ?? 0) != 0) continue;
+    leftover += out[id]!;
+    out[id] = 0;
+  }
+  if (leftover != 0) {
+    final largest = out.keys.reduce(
+      (a, b) => (base[b] ?? 0).abs() > (base[a] ?? 0).abs() ? b : a,
+    );
+    out[largest] = out[largest]! + leftover;
+  }
+  return out;
 }
 
 /// [viewer]'s share of [tab] once its whole amount is [converted] minor

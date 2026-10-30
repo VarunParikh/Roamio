@@ -68,7 +68,7 @@ const adventure = {
 
 const tab = (createdBy: string, extra: Record<string, unknown> = {}) => ({
   description: "Street food",
-  category: "food",
+  category: "food_dining",
   amountMinor: 45000,
   currency: "THB",
   date: "2026-12-02",
@@ -406,6 +406,15 @@ describe("adventures", () => {
     await assertFails(
       setDoc(doc(as("dan"), "adventures/n"), { ...draft, hasTabs: false }),
     );
+    // Country is a 2-letter code; city is short text (follow-up S11).
+    for (const countryCode of ["Thailand", "th", "T", 7]) {
+      await assertFails(
+        setDoc(doc(as("dan"), "adventures/n"), { ...draft, countryCode }),
+      );
+    }
+    for (const city of ["x".repeat(81), 42]) {
+      await assertFails(setDoc(doc(as("dan"), "adventures/n"), { ...draft, city }));
+    }
     await assertFails(
       setDoc(doc(as("pete"), "adventures/n"), {
         ...draft,
@@ -789,6 +798,63 @@ describe("tabs", () => {
         }),
       );
     }
+  });
+
+  it("photo links point at this adventure's files in our own buckets", async () => {
+    const link = (bucket: string, path: string) =>
+      `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
+    for (const bucket of [
+      "roamio-dev-varun.firebasestorage.app",
+      "roamio-prod-varun.firebasestorage.app",
+    ]) {
+      await assertSucceeds(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          tab("bob", { memories: [link(bucket, "adventures%2Fa1%2Ftabs%2Ft9%2Fm.webp")] }),
+        ),
+      );
+    }
+    for (const bad of [
+      // someone else's Firebase project
+      link("evil-project.appspot.com", "adventures%2Fa1%2Ftabs%2Ft1%2Fm.webp"),
+      // another adventure's photo
+      link("roamio-dev-varun.firebasestorage.app", "adventures%2Fa2%2Ftabs%2Ft1%2Fm.webp"),
+      // a profile photo, or the banner folder, passed off as a memory
+      link("roamio-dev-varun.firebasestorage.app", "users%2Fbob%2Favatar%2Fa.webp"),
+      link("roamio-dev-varun.firebasestorage.app", "adventures%2Fa1%2Fbanner%2Fb.webp"),
+      // the emulator, but outside this adventure
+      "http://10.0.2.2:9199/v0/b/demo-roamio.appspot.com/o/adventures%2Fa2%2Ftabs%2Ft1%2Fm.webp",
+    ]) {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          tab("bob", { memories: [bad] }),
+        ),
+      );
+    }
+    await assertFails(
+      updateDoc(doc(as("alice"), "adventures/a1"), {
+        bannerUrl: link(
+          "roamio-dev-varun.firebasestorage.app",
+          "adventures%2Fa1%2Ftabs%2Ft1%2Fm.webp",
+        ),
+      }),
+    );
+  });
+
+  it("a tab's category is one of the 10 known ones", async () => {
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { category: "<script>" }),
+      ),
+    );
+    const id = fresh("adventures/a1/tabs");
+    await assertSucceeds(setDoc(doc(as("bob"), id), tab("bob")));
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), id), { category: "accommodation" }),
+    );
+    await assertFails(updateDoc(doc(as("bob"), id), { category: "food" }));
   });
 
   it("location is allowed for adults and refused for minors (spec §7.2)", async () => {

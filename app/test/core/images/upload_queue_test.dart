@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/images/upload_queue.dart';
 
@@ -22,11 +24,13 @@ class MemoryStore implements UploadStore {
 class FakeUploader implements Uploader {
   final List<String> uploaded = [];
   final Set<String> missing = {};
+  final Set<String> refused = {};
   int failuresLeft = 0;
 
   @override
   Future<String> upload(UploadJob job) async {
     if (missing.contains(job.localPath)) throw const UploadFileMissing();
+    if (refused.contains(job.localPath)) throw const UploadRefused();
     if (failuresLeft > 0) {
       failuresLeft--;
       throw Exception('offline');
@@ -39,10 +43,18 @@ class FakeUploader implements Uploader {
 class FakeDocs implements UploadTarget {
   final List<String> writes = [];
   final List<String> cleaned = [];
+  int failuresLeft = 0;
+  bool refuse = false;
 
   @override
-  Future<void> attach(UploadJob job, String url) async =>
-      writes.add('${job.mode.name} ${job.docPath}.${job.field} = $url');
+  Future<void> attach(UploadJob job, String url) async {
+    if (refuse) throw const UploadRefused();
+    if (failuresLeft > 0) {
+      failuresLeft--;
+      throw Exception('offline');
+    }
+    writes.add('${job.mode.name} ${job.docPath}.${job.field} = $url');
+  }
 
   @override
   Future<void> discardLocal(UploadJob job) async => cleaned.add(job.localPath);
@@ -78,6 +90,77 @@ void main() {
   });
 
   group('UploadQueue (spec §10: queue offline, retry with backoff)', () {
+    group('follow-up C8', () {
+      test(
+        'a retry re-attaches the uploaded link, never uploads twice',
+        () async {
+          // Storage refuses overwriting a file, so uploading again would fail.
+          final q = queue();
+          await q.enqueue(_job('m1'));
+          docs.failuresLeft = 1;
+          await q.runDue();
+          expect(uploader.uploaded, hasLength(1));
+          expect(docs.writes, isEmpty);
+          expect(store.saved.single.uploadedUrl, isNotNull);
+
+          await q.runDue(ignoreBackoff: true);
+          expect(uploader.uploaded, hasLength(1));
+          expect(docs.writes, hasLength(1));
+          expect(store.saved, isEmpty);
+        },
+      );
+
+      test('the uploaded link survives an app restart', () {
+        final job = _job('m1').copyWith(uploadedUrl: 'https://x/m1');
+        expect(UploadJob.fromJson(job.toJson()).uploadedUrl, 'https://x/m1');
+      });
+
+      test(
+        'a refused upload or link is dropped, not retried forever',
+        () async {
+          final q = queue();
+          await q.enqueue(_job('m1'));
+          uploader.refused.add('/pending/m1.webp');
+          await q.runDue();
+          expect(store.saved, isEmpty);
+          expect(docs.cleaned, ['/pending/m1.webp']);
+
+          await q.enqueue(_job('m2'));
+          docs.refuse = true;
+          await q.runDue();
+          expect(store.saved, isEmpty);
+          expect(docs.cleaned, ['/pending/m1.webp', '/pending/m2.webp']);
+        },
+      );
+
+      test('clears when someone signs out, not at start-up', () async {
+        final users = StreamController<String?>();
+        var cleared = 0;
+        final sub = clearOnSignOut(users.stream, () async => cleared++);
+        users
+          ..add(null) // starting signed out
+          ..add('ari')
+          ..add('ari') // a token refresh
+          ..add(null) // Ari signs out
+          ..add('bob')
+          ..add(null); // Bob signs out
+        await pumpEventQueue();
+        expect(cleared, 2);
+        await sub.cancel();
+      });
+
+      test('clear() forgets every waiting photo (signing out)', () async {
+        final q = queue();
+        await q.enqueue(_job('m1'));
+        await q.enqueue(_job('m2'));
+        await q.clear();
+        expect(store.saved, isEmpty);
+        expect(docs.cleaned, ['/pending/m1.webp', '/pending/m2.webp']);
+        await q.runDue();
+        expect(uploader.uploaded, isEmpty);
+      });
+    });
+
     test('uploads, attaches the link, then forgets the job', () async {
       final q = queue();
       await q.enqueue(_job('m1'));

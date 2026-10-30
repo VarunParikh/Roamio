@@ -156,6 +156,7 @@ Future<_Started> _start() async {
   return await startPhotoPipeline(
     FirebaseFirestore.instance,
     FirebaseStorage.instance,
+    FirebaseAuth.instance.authStateChanges().map((user) => user?.uid),
   );
 }
 

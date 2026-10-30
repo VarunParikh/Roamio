@@ -17,15 +17,15 @@
 | C2 | High | The consent sweep never retried a deletion that failed | `consent/sweep.ts`, `consent/consent.ts` | **Fixed** |
 | C3 | High | A tab's creator could delete their own tab, or undo a lead's delete, without it showing anywhere | `firestore.rules` (tabs update) | **Fixed** |
 | C4 | Medium (reviewer said High) | A tab's exchange rate can change once a missing day's rates arrive | `app/lib/features/tabs/domain/new_tab.dart`, `splits/data/fx_repository.dart` | Follow-up |
-| C5 | Medium | No upper limit on amounts in the rules | `firestore.rules` | **Fixed** (rules); app part is a follow-up |
+| C5 | Medium | No upper limit on amounts in the rules | `firestore.rules` | **Fixed** (rules, then app in the follow-ups PR) |
 | C6 | Medium | Account deletion checked "leader must hand over" outside the transaction | `privacy/deleteAccount.ts` | **Fixed** |
-| C7 | Medium | After settling exactly, people who view in another currency may still see a few cents owed | `app/lib/features/splits/domain/split_report.dart` | Follow-up |
-| C8 | Medium | Photo uploads that fail for good are retried forever; the queue outlives sign-out | `app/lib/core/images/upload_queue.dart` | Follow-up |
-| C9 | Medium | Leaving right after the first tab can drop the "Left" record | `squad/roles.ts` (`hasTabHistory`) | Follow-up |
-| C10 | Low | `dailyFxRates` swallows errors, so its 3 retries never run | `fx/rates.ts` | Follow-up |
-| C11 | Low | `signOutIfDeleted` might reload in a loop for a brand-new sign-up (unconfirmed) | `app/lib/features/auth/data/firebase_auth_service.dart` | Follow-up (check on device) |
-| C12 | Low | An invite revoked during a join still lets that join through | `invites/join.ts` | Follow-up |
-| C13 | Low | The spreadsheet export turns money text into a `double` | `app/lib/features/splits/data/export_service.dart` | Follow-up |
+| C7 | Medium | After settling exactly, people who view in another currency may still see a few cents owed | `app/lib/features/splits/domain/split_report.dart` | **Fixed** (follow-ups PR) |
+| C8 | Medium | Photo uploads that fail for good are retried forever; the queue outlives sign-out | `app/lib/core/images/upload_queue.dart` | **Fixed** (follow-ups PR) |
+| C9 | Medium | Leaving right after the first tab can drop the "Left" record | `squad/roles.ts` (`hasTabHistory`) | **Fixed** (follow-ups PR) |
+| C10 | Low | `dailyFxRates` swallows errors, so its 3 retries never run | `fx/rates.ts` | **Fixed** (follow-ups PR) |
+| C11 | Low | `signOutIfDeleted` might reload in a loop for a brand-new sign-up (unconfirmed) | `app/lib/features/auth/data/firebase_auth_service.dart` | **Fixed** (follow-ups PR) |
+| C12 | Low | An invite revoked during a join still lets that join through | `invites/join.ts` | **Fixed** (follow-ups PR) |
+| C13 | Low | The spreadsheet export turns money text into a `double` | `app/lib/features/splits/data/export_service.dart` | Checked: exact up to the largest tab; test added |
 | C14 | Low | The app sets `fxDate` and the server doesn't check it, so a member could backdate a rate | `firestore.rules`, `checkTab.ts` | Follow-up |
 
 ### C2 — The consent sweep could lose a deletion (High, fixed)
@@ -83,6 +83,19 @@
 - **C12:** check the invite inside the join transaction.
 - **C13:** build spreadsheet numbers from the whole-number amount and a number format, not `double.parse`.
 - **C14:** require `fxDate == date` in the rules, or set it on the server (this ties in with C4).
+
+## Follow-ups fixed later (follow-ups PR)
+Each has a test that failed first, except C12 (a race; the existing join tests cover it).
+- **C5 (app):** the split report leaves out a tab the server will reject (amounts that don't add up, or over the limit) instead of failing, so one bad tab in the offline cache can't break the split screen.
+- **C7:** anyone square in the trip's currency shows square in every currency. The few cents left over by converting each item at its own day go to whoever has the largest balance, so the total stays exactly zero. One older test expected the old behaviour (₹0 shown as ฿0.01 owed) and now expects square.
+- **C8:** the queue remembers a photo's link once it's uploaded, so a retry only writes the link (Storage refuses an upload over an existing file, so before this such a photo was stuck for good). A refused upload or link is dropped. The queue is cleared when someone signs out. There is deliberately no cap on attempts: a long offline trip must not lose its photos, and the jobs that can never work are now the refused ones.
+- **C9:** leaving always checks the tabs, so someone on the very first tab is kept as Left even before `hasTabs` is set.
+- **C10:** the scheduled `dailyFxRates` throws when the refresh fails, so its 3 retries run.
+- **C11:** a missing account record is checked once each time it goes missing, so a new sign-up with no record yet can't reload in a loop.
+- **C12:** `joinAdventure` checks the invite again inside its transaction.
+- **C13:** spreadsheet cells are binary numbers by nature. A test shows the largest allowed tab, and a third share of it, come out exact to the paisa, so the one conversion at the file's edge loses nothing.
+
+Still open, waiting on the owner: C4 (exchange-rate day) and C14, which goes with C4.
 
 ## What's done well
 - **Exact exchange rates end to end.** The rates response is read as text and never becomes a floating-point number. BigInt is used on the server and in Dart, and rounding matches on both sides.

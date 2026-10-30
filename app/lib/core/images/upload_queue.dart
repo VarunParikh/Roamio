@@ -20,6 +20,7 @@ class UploadJob {
     required this.mode,
     this.attempts = 0,
     this.nextTryAt,
+    this.uploadedUrl,
   });
 
   factory fromJson(Map<String, dynamic> json) => UploadJob(
@@ -34,6 +35,7 @@ class UploadJob {
       final int ms => DateTime.fromMillisecondsSinceEpoch(ms),
       _ => null,
     },
+    uploadedUrl: json['uploadedUrl'] as String?,
   );
 
   final String id;
@@ -49,7 +51,15 @@ class UploadJob {
   final int attempts;
   final DateTime? nextTryAt;
 
-  UploadJob copyWith({int? attempts, DateTime? nextTryAt}) => UploadJob(
+  /// Set once the file is up, so a retry only writes the link: Storage
+  /// never lets a file be uploaded over.
+  final String? uploadedUrl;
+
+  UploadJob copyWith({
+    int? attempts,
+    DateTime? nextTryAt,
+    String? uploadedUrl,
+  }) => UploadJob(
     id: id,
     localPath: localPath,
     storagePath: storagePath,
@@ -58,6 +68,7 @@ class UploadJob {
     mode: mode,
     attempts: attempts ?? this.attempts,
     nextTryAt: nextTryAt ?? this.nextTryAt,
+    uploadedUrl: uploadedUrl ?? this.uploadedUrl,
   );
 
   Map<String, dynamic> toJson() => {
@@ -69,6 +80,7 @@ class UploadJob {
     'mode': mode.name,
     'attempts': attempts,
     'nextTryAt': nextTryAt?.millisecondsSinceEpoch,
+    'uploadedUrl': uploadedUrl,
   };
 }
 
@@ -80,6 +92,12 @@ abstract interface class UploadStore {
 
 /// The local photo is gone (app data cleared), so the job can never succeed.
 class UploadFileMissing implements Exception {
+  const new();
+}
+
+/// The server refused the photo or its link for good (no permission, or
+/// the tab is gone), so retrying can't help.
+class UploadRefused implements Exception {
   const new();
 }
 
@@ -139,16 +157,21 @@ class UploadQueue {
         remaining.add(job);
         continue;
       }
+      var current = job;
       try {
-        final url = await _uploader.upload(job);
-        await _target.attach(job, url);
-        await _target.discardLocal(job);
+        final url = current.uploadedUrl ?? await _uploader.upload(current);
+        current = current.copyWith(uploadedUrl: url);
+        await _target.attach(current, url);
+        await _target.discardLocal(current);
       } on UploadFileMissing {
         // Nothing left to upload; drop it.
+      } on UploadRefused {
+        await _target.discardLocal(current);
       } on Exception {
-        final attempts = job.attempts + 1;
+        // No cap on attempts: a long offline trip must not lose photos.
+        final attempts = current.attempts + 1;
         remaining.add(
-          job.copyWith(
+          current.copyWith(
             attempts: attempts,
             nextTryAt: _clock().add(backoffFor(attempts)),
           ),
@@ -158,6 +181,15 @@ class UploadQueue {
     await _store.save(remaining);
   });
 
+  /// Forgets every waiting photo and its local copy (on signing out, so
+  /// the next person on this phone never uploads them).
+  Future<void> clear() => _serial(() async {
+    for (final job in await _store.load()) {
+      await _target.discardLocal(job);
+    }
+    await _store.save(const []);
+  });
+
   /// Runs one change at a time so overlapping calls can't lose jobs. A
   /// failing call reports its error but doesn't block later ones.
   Future<void> _serial(Future<void> Function() body) {
@@ -165,4 +197,19 @@ class UploadQueue {
     _running = next.catchError((Object _) {});
     return next;
   }
+}
+
+/// Runs [clear] each time someone who was signed in signs out (a session
+/// [users] stream of uids). Starting signed out clears nothing.
+StreamSubscription<String?> clearOnSignOut(
+  Stream<String?> users,
+  Future<void> Function() clear,
+) {
+  String? last;
+  return users.listen((uid) {
+    if (last != null && uid == null) {
+      unawaited(clear().catchError((Object _) {}));
+    }
+    last = uid;
+  });
 }
