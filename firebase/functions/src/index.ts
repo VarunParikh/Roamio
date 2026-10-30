@@ -19,6 +19,7 @@ export {
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
 export { checkTab } from "./tabs/checkTab";
+export { profileReadersOnAdventure } from "./squad/profileReaders";
 export { budgetOnChange, budgetOnTab } from "./budget/budget";
 export { deleteMyAccount } from "./privacy/deleteAccount";
 export { dailyFxRates } from "./fx/rates";

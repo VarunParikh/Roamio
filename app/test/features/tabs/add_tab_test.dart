@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 
 import '../../support/fake_adventure_service.dart';
@@ -24,6 +26,7 @@ Adventure _bangkok({DateTime? end}) => Adventure(
 Future<FakeTabService> _openAdventure(
   WidgetTester tester, {
   Adventure? adventure,
+  FxRepository? fx,
 }) async {
   final tabs = FakeTabService();
   await pumpRoamio(
@@ -34,6 +37,7 @@ Future<FakeTabService> _openAdventure(
       ..names.addAll({'ari': 'Ari Chen', 'bob': 'Bob Lee'})
       ..palsByAdventure['bkk'] = [const Pal(id: 'kiko', nickname: 'Kiko')],
     tabs: tabs,
+    fx: fx,
   );
   // A finished trip sits in the collapsed Past list.
   final past = find.textContaining('Past adventures');
@@ -117,6 +121,33 @@ void main() {
       expect(find.text('Your share'), findsOneWidget);
     });
 
+    testWidgets('keeps the day of the rates it used (follow-up C4)', (
+      tester,
+    ) async {
+      // It's the 29th, but the 29th's rates haven't arrived yet.
+      final tabs = await _openAdventure(
+        tester,
+        fx: _RatesFrom('2026-10-28', const {'THB': '35'}),
+      );
+      await _openAddTab(tester);
+      await tester.enterText(find.widgetWithText(TextField, 'Amount'), '900');
+      await tester.pumpAndSettle();
+      await _tapVisible(tester, find.textContaining('Food & Dining'));
+      await _save(tester);
+
+      final (_, tab) = tabs.added.single;
+      expect(tab.date, DateTime(2026, 10, 29));
+      expect(tab.fxDate, '2026-10-28');
+
+      // The tab says which day's rates convert it.
+      await tester.scrollUntilVisible(find.text('Food & Dining'), 200);
+      await _tapVisible(tester, find.text('Food & Dining'));
+      expect(
+        find.text('Converted at exchange rates from Wed, 28 Oct 2026'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('unticking someone changes the split', (tester) async {
       final tabs = await _openAdventure(tester);
       await _openAddTab(tester);
@@ -176,4 +207,16 @@ void main() {
       expect(find.text('No tabs yet. Add the first one.'), findsOneWidget);
     });
   });
+}
+
+/// Always answers with one stored day's rates, whatever day is asked for.
+class _RatesFrom implements FxRepository {
+  new(this.day, this.rates);
+
+  final String day;
+  final Map<String, String> rates;
+
+  @override
+  Future<FxRates?> ratesFor(String date) async =>
+      FxRates(date: day, usdRates: rates);
 }
