@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
@@ -53,12 +54,18 @@ Future<void> runRoamio({
   ConnectivityMonitor? connectivity,
   Future<void> Function(String text)? shareText,
   Future<void> Function(List<XFile> files, List<String> names)? shareFiles,
+  bool phase2 = false,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final (:pipeline, :flush) = await (_started ??= _start());
   runApp(
     ProviderScope(
       overrides: [
+        // Journey E still exercises the Phase 2 under-18 features.
+        if (phase2) ...[
+          minorsEnabledProvider.overrideWithValue(true),
+          nomineeEnabledProvider.overrideWithValue(true),
+        ],
         photoPipelineProvider.overrideWithValue(pipeline),
         photoFlushProvider.overrideWithValue(flush),
         connectivityMonitorProvider.overrideWithValue(

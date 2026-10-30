@@ -383,3 +383,4 @@ Overall app coverage ≥ 70%.
 5. **Android package name:** `app.roamio.android`.
 6. **Minimum age:** 13+. Ages 13–17 need parental consent (§7).
 7. **Accounts:** the owner creates Google/Firebase (Blaze), Unsplash and email-provider accounts with step-by-step guidance in the setup tasks.
+8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/ROADMAP.md`). Supersedes item 6 for the pilot.

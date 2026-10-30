@@ -20,7 +20,7 @@ void journeyE() {
     final aid = await seedAdventure(dan, name: 'School trip Jaipur');
     final invite = await call('createInvite', {'adventureId': aid}, as: dan);
 
-    await launch(tester);
+    await launch(tester, phase2: true); // under-18s are Phase 2
     final email = uniqueEmail('mia');
     final now = DateTime.now();
     final uid = await signUpWithEmail(
@@ -120,7 +120,7 @@ void journeyE() {
     tester,
   ) async {
     final pat = await createPerson('Pat Parent');
-    await launch(tester);
+    await launch(tester, phase2: true); // under-18s are Phase 2
     final email = uniqueEmail('leo');
     final now = DateTime.now();
     final uid = await signUpWithEmail(

@@ -142,7 +142,7 @@ class FirebaseAuthService implements AuthService {
     required String name,
     required String email,
     required String password,
-    required DateTime dob,
+    required DateTime? dob,
   }) => _guard(() async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -155,7 +155,7 @@ class FirebaseAuthService implements AuthService {
   });
 
   @override
-  Future<void> completeProfile({required DateTime dob}) => _guard(() async {
+  Future<void> completeProfile({required DateTime? dob}) => _guard(() async {
     final user = _auth.currentUser!;
     final name = (user.displayName ?? '').trim();
     await _writeRecords(
@@ -169,12 +169,13 @@ class FirebaseAuthService implements AuthService {
   });
 
   /// The public profile and the private account record (DATA_MODEL.md).
-  /// The server then sets `ageStatus` from [dob].
+  /// The server then sets `ageStatus` from [dob], or to adult when the
+  /// person declared they're 18 or older (no [dob]).
   Future<void> _writeRecords(
     String uid, {
     required String name,
     required String? photoUrl,
-    required DateTime dob,
+    required DateTime? dob,
   }) async {
     await _db.doc('users/$uid').set({
       'name': name,
@@ -182,7 +183,7 @@ class FirebaseAuthService implements AuthService {
       'bio': '',
     });
     await _account(uid).set({
-      'dob': isoDate(dob),
+      if (dob != null) 'dob': isoDate(dob) else 'adultDeclared': true,
       'profileCurrency': 'INR',
       'consents': <String, bool>{},
       'noticeVersion': privacyNoticeVersion,

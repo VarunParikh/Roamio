@@ -272,6 +272,24 @@ describe("users/{uid}/private/account", () => {
     );
   });
 
+  it("owner may sign up without a birth date by declaring they're 18 or older (pilot)", async () => {
+    const declared = { profileCurrency: "INR", consents: {}, noticeVersion: "1", adultDeclared: true };
+    await assertSucceeds(setDoc(doc(as("nora"), "users/nora/private/account"), declared));
+  });
+
+  it("refuses a sign-up record without a birth date or a real declaration", async () => {
+    const own = doc(as("nora"), "users/nora/private/account");
+    const base = { profileCurrency: "INR", consents: {}, noticeVersion: "1" };
+    await assertFails(setDoc(own, { ...base, adultDeclared: false }));
+    await assertFails(setDoc(own, { ...base, adultDeclared: "yes" }));
+    // Not both: a birth date decides on its own (Phase 2).
+    await assertFails(setDoc(own, { ...base, dob: "2010-05-01", adultDeclared: true }));
+    // Nor added later.
+    await assertFails(
+      updateDoc(doc(as("bob"), "users/bob/private/account"), { adultDeclared: true }),
+    );
+  });
+
   it("owner can change currency and consents but never dob or age status", async () => {
     const own = doc(as("bob"), "users/bob/private/account");
     await assertSucceeds(

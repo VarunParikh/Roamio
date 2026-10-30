@@ -98,11 +98,14 @@ service cloud.firestore {
 
       match /private/account {
         allow read: if signedIn() && me() == uid;
+        // Either a date of birth (Phase 2, spec §7) or, in the pilot, the
+        // sign-up tick "I'm 18 or older" — never both, never added later.
         allow create: if signedIn() && me() == uid
-          && incoming().keys().hasAll(['dob'])
-          && incoming().keys().hasOnly(
-               ['dob', 'profileCurrency', 'consents', 'noticeVersion', 'createdAt', 'fcmTokens'])
-          && isDate(incoming().dob);
+          && incoming().keys().hasOnly(['dob', 'adultDeclared', 'profileCurrency',
+               'consents', 'noticeVersion', 'createdAt', 'fcmTokens'])
+          && (incoming().keys().hasAll(['dob'])
+                ? isDate(incoming().dob) && !('adultDeclared' in incoming())
+                : incoming().get('adultDeclared', false) == true);
         allow update: if signedIn() && me() == uid
           && changed().hasOnly(['profileCurrency', 'consents', 'fcmTokens', 'nominee'])
           && (!('profileCurrency' in changed()) || isCurrency(incoming().profileCurrency))

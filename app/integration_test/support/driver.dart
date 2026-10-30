@@ -40,9 +40,11 @@ class Shared {
 Future<Shared> launch(
   WidgetTester tester, {
   ScriptedConnection? connection,
+  bool phase2 = false,
 }) async {
   final shared = Shared();
   await app.runRoamio(
+    phase2: phase2,
     connectivity: connection ?? ScriptedConnection(),
     shareText: (text) async => shared.texts.add(text),
     shareFiles: (files, names) async {
@@ -182,19 +184,26 @@ Future<void> signInWithEmail(
 
 /// Creates an email account through "New here? Create an account", then
 /// verifies the email (the emulator sends nothing) and returns the uid.
+/// Without [dob] it signs up the pilot way: no date of birth, just the
+/// "I'm 18 or older" tick. Phase 2 journeys (launched with `phase2: true`)
+/// pass a [dob].
 Future<String> signUpWithEmail(
   WidgetTester tester, {
   required String name,
   required String email,
-  required DateTime dob,
+  DateTime? dob,
 }) async {
   await tapText(tester, 'New here? Create an account');
   await typeInto(tester, 'Your name', name);
   await typeInto(tester, 'Email', email);
   await typeInto(tester, 'Password', emulators.password);
-  await tapText(tester, 'Choose a date');
-  await tester.enterText(find.byType(TextField).last, usDate(dob));
-  await tapText(tester, 'OK');
+  if (dob != null) {
+    await tapText(tester, 'Choose a date');
+    await tester.enterText(find.byType(TextField).last, usDate(dob));
+    await tapText(tester, 'OK');
+  } else {
+    await waitFor(tester, find.text('I’m 18 or older and I’ve read the '));
+  }
   await tapOn(tester, find.byType(Checkbox));
   await tapText(tester, 'Create account');
 

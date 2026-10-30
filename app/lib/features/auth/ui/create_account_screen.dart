@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
@@ -42,7 +43,10 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
     final today = ref.read(todayProvider);
     setState(() => _submitted = true);
     final fieldsOk = _form.currentState!.validate();
-    if (!fieldsOk || dobMessage(_dob, today) != null || !_accepted) return;
+    // The pilot asks no birth date (lib/core/config/phase2.dart).
+    final asksDob = ref.read(minorsEnabledProvider);
+    final dobOk = !asksDob || dobMessage(_dob, today) == null;
+    if (!fieldsOk || !dobOk || !_accepted) return;
 
     setState(() => _busy = true);
     try {
@@ -52,7 +56,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
             name: _name.text.trim(),
             email: _email.text.trim(),
             password: _password.text,
-            dob: _dob!,
+            dob: asksDob ? _dob : null,
           );
     } on AuthException catch (e) {
       if (mounted) showAuthMessage(context, e.failure.message);
@@ -64,6 +68,7 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   @override
   Widget build(BuildContext context) {
     final today = ref.watch(todayProvider);
+    final asksDob = ref.watch(minorsEnabledProvider);
     return AuthScaffold(
       showBack: true,
       title: 'Create your account',
@@ -112,19 +117,22 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
                   (v ?? '').length < 8 ? 'Use at least 8 characters.' : null,
             ),
             const SizedBox(height: 16),
-            DobField(
-              value: _dob,
-              today: today,
-              onChanged: (d) => setState(() => _dob = d),
-              errorText: _submitted || _dob != null
-                  ? dobMessage(_dob, today)
-                  : null,
-            ),
-            const SizedBox(height: 8),
+            if (asksDob) ...[
+              DobField(
+                value: _dob,
+                today: today,
+                onChanged: (d) => setState(() => _dob = d),
+                errorText: _submitted || _dob != null
+                    ? dobMessage(_dob, today)
+                    : null,
+              ),
+              const SizedBox(height: 8),
+            ],
             PrivacyNoticeCheck(
               accepted: _accepted,
               onChanged: (v) => setState(() => _accepted = v),
               showError: _submitted && !_accepted,
+              adultDeclaration: !asksDob,
             ),
           ],
         ),

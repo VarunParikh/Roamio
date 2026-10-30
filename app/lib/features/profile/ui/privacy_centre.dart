@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
@@ -134,7 +135,10 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final offline = ref.watch(isOfflineProvider);
-    final children = ref.watch(_childrenProvider).value ?? const [];
+    // Linked children and nominees are Phase 2 (lib/core/config/phase2.dart).
+    final children = ref.watch(minorsEnabledProvider)
+        ? ref.watch(_childrenProvider).value ?? const <LinkedChild>[]
+        : const <LinkedChild>[];
     final busy = _downloading != null || _deleting;
     final muted = text.bodyMedium?.copyWith(color: RoamioColors.slate);
 
@@ -210,7 +214,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
             'Change your name, photo and description on the You page. '
                 'Your date of birth can only be fixed by writing to us.',
           ),
-          const _NomineeSection(),
+          if (ref.watch(nomineeEnabledProvider)) const _NomineeSection(),
           section(
             'Raise a concern',
             'Write to our grievance officer at $grievanceEmail. We reply '

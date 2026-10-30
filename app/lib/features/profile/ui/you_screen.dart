@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/images/upload_queue.dart';
@@ -117,7 +118,10 @@ class _YouScreenState extends ConsumerState<YouScreen> {
       _name.text = profile.name;
       _bio.text = profile.bio;
     }
-    final children = ref.watch(_linkedChildrenProvider).value ?? const [];
+    // Linked children are a Phase 2 feature (lib/core/config/phase2.dart).
+    final children = ref.watch(minorsEnabledProvider)
+        ? ref.watch(_linkedChildrenProvider).value ?? const <LinkedChild>[]
+        : const <LinkedChild>[];
     final currency = ref.watch(profileCurrencyProvider).value ?? 'INR';
     final currencies = {
       ...?ref.watch(countriesProvider).value?.currencies,
