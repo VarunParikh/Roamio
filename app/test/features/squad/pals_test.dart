@@ -186,6 +186,24 @@ void main() {
       expect(find.text('Squad (5)'), findsOneWidget);
     });
 
+    testWidgets('a message from before doesn’t cover the Add button', (
+      tester,
+    ) async {
+      await _open(tester);
+      ScaffoldMessenger.of(tester.element(find.text('Add pal'))).showSnackBar(
+        const SnackBar(
+          content: Text('Bob is now a co-lead.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Bob is now a co-lead.'), findsOneWidget);
+
+      await _openForm(tester);
+
+      expect(find.text('Bob is now a co-lead.'), findsNothing);
+    });
+
     testWidgets('closing the picker keeps the nickname, and has no skip', (
       tester,
     ) async {

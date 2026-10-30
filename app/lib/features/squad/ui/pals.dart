@@ -90,13 +90,16 @@ Future<bool> showPalForm(
   BuildContext context, {
   required Adventure adventure,
   Pal? pal,
-}) async =>
-    await Navigator.of(context, rootNavigator: true).push<bool>(
-      MaterialPageRoute(
-        builder: (_) => _PalForm(adventure: adventure, pal: pal),
-      ),
-    ) ??
-    false;
+}) async {
+  // A message from the last screen would float over the Add button.
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  return await Navigator.of(context, rootNavigator: true).push<bool>(
+        MaterialPageRoute(
+          builder: (_) => _PalForm(adventure: adventure, pal: pal),
+        ),
+      ) ??
+      false;
+}
 
 /// A nickname and a character, both required. Nicknames are trimmed, 1–30
 /// characters, and unique among the squad's pals ignoring case.
