@@ -49,6 +49,8 @@ trap cleanup EXIT
 CONFIG="$ROOT/app/android/app/src/dev/google-services.json"
 if [[ ! -f "$CONFIG" ]]; then
   echo "No dev google-services.json; writing a stand-in for the emulators."
+  # A fresh checkout has no src/dev folder: it only ever holds this file.
+  mkdir -p "$(dirname "$CONFIG")"
   cat >"$CONFIG" <<'JSON'
 {
   "project_info": {
