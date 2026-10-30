@@ -105,6 +105,12 @@ one journey:
 tool/e2e.sh integration_test/journeys_test.dart --plain-name "Journey C"
 ```
 
+The script guards against a locked-up device: only one run at a time, a running
+emulator up for over an hour is rebooted first, and 10 minutes without output
+counts as a hang. A hang keeps its logs as `app/build/e2e/*-at-hang.*` and gets one
+retry on a restarted device; a second hang exits 75. A test that fails is never
+retried.
+
 The journeys take about 3 minutes; a cold start (booting both emulators) about
 4. Without a dev `google-services.json` the script writes a stand-in with no
 real keys, which is enough because every call goes to the emulators. CI runs
