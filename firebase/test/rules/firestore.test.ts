@@ -8,6 +8,7 @@ import {
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -208,6 +209,14 @@ describe("users/{uid} public profile", () => {
     await assertSucceeds(getDoc(doc(as("pete"), "users/pete")));
     await assertFails(getDoc(doc(as("pete"), "users/bob")));
     await assertFails(getDoc(doc(anon(), "users/bob")));
+  });
+
+  it("nobody can list every profile (Task 43: minors' names stay private)", async () => {
+    await assertFails(getDocs(collection(as("dan"), "users")));
+    await assertFails(
+      getDocs(query(collection(as("alice"), "users"), limit(5))),
+    );
+    await assertFails(getDocs(collection(as("pete"), "users")));
   });
 });
 
@@ -745,6 +754,43 @@ describe("tabs", () => {
     );
   });
 
+  it("memories are only our own stored photos (no tracking links)", async () => {
+    const ours = (n: number) =>
+      `https://firebasestorage.googleapis.com/v0/b/roamio-dev-varun.firebasestorage.app/o/adventures%2Fa1%2Ftabs%2Ft1%2Fm${n}.webp?alt=media`;
+    const emulator =
+      "http://10.0.2.2:9199/v0/b/demo-roamio.appspot.com/o/adventures%2Fa1%2Ftabs%2Ft1%2Fm.webp?alt=media";
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { memories: [ours(1), ours(2), ours(3), emulator] }),
+      ),
+    );
+    const id = fresh("adventures/a1/tabs");
+    await assertSucceeds(setDoc(doc(as("bob"), id), tab("bob")));
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), id), { memories: [ours(1)] }),
+    );
+    for (const bad of [
+      "https://tracker.example/pixel.gif",
+      "http://firebasestorage.googleapis.com/insecure.webp",
+      "https://firebasestorage.googleapis.com.evil.example/x.webp",
+      42,
+    ]) {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          tab("bob", { memories: [bad] }),
+        ),
+      );
+      // A bad link hidden behind good ones is refused too.
+      await assertFails(
+        updateDoc(doc(as("bob"), id), {
+          memories: [ours(1), ours(2), ours(3), bad],
+        }),
+      );
+    }
+  });
+
   it("location is allowed for adults and refused for minors (spec §7.2)", async () => {
     const location = { lat: 13.75, lng: 100.5 };
     await assertSucceeds(
@@ -845,6 +891,60 @@ describe("tabs", () => {
       updateDoc(doc(as("cara"), "adventures/a1/tabs/t1"), { amountMinor: 1 }),
     );
     await assertFails(deleteDoc(doc(as("alice"), "adventures/a1/tabs/t1")));
+  });
+
+  it("a tab's creator can't delete or bring back their own tab by editing it", async () => {
+    // Bob, the creator, edits normally...
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+        description: "Dinner by the river",
+      }),
+    );
+    // ...but can't hide it without saying who did (a plain member isn't a lead)...
+    await assertFails(
+      updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { deleted: true }),
+    );
+    // ...nor undo a lead's delete.
+    await env.withSecurityRulesDisabled((ctx) =>
+      updateDoc(doc(ctx.firestore(), "adventures/a1/tabs/t1"), {
+        deleted: true,
+        deletedBy: "alice",
+      }),
+    );
+    await assertFails(
+      updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+        deleted: false,
+        deletedBy: deleteField(),
+      }),
+    );
+  });
+
+  it("amounts have an upper limit (10,000,000 in a 3-decimal currency)", async () => {
+    const most = 10_000_000_000;
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", {
+          amountMinor: most,
+          payers: [{ id: "bob", amountMinor: most }],
+        }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", {
+          amountMinor: most + 1,
+          payers: [{ id: "bob", amountMinor: most + 1 }],
+        }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/settlements")),
+        settlement("bob", "alice", "bob", { amountMinor: most + 1 }),
+      ),
+    );
   });
 
   it("a soft delete records who did it, truthfully (spec UC-22)", async () => {

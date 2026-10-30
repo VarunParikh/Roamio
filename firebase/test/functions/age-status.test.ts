@@ -81,8 +81,8 @@ async function eventually<T>(
   return read();
 }
 
-async function signUp(email: string, dob: string) {
-  const uid = await createAuthUser(email);
+async function signUp(email: string, dob: string, uid?: string) {
+  uid ??= await createAuthUser(email);
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
     await setDoc(doc(db, `users/${uid}`), {
@@ -136,5 +136,14 @@ describe("setAgeStatus trigger (spec UC-4, §7)", () => {
   it("removes an account record with an impossible date so the app asks again", async () => {
     const { account } = await signUp("future@example.com", "2999-01-01");
     expect(await eventually(account, (d) => d === undefined)).toBeUndefined();
+  });
+
+  it("removes records written by a deleted account whose sign-in token still works", async () => {
+    // Journey E: a just-deleted person's ID token stays valid for up to an
+    // hour, and the rules can't tell. They must not come back as an adult.
+    const ghost = `deleted-${Date.now()}`;
+    const { account } = await signUp("ghost@example.com", bornYearsAgo(30), ghost);
+    expect(await eventually(account, (d) => d === undefined)).toBeUndefined();
+    expect(await readDoc(`users/${ghost}`)).toBeUndefined();
   });
 });
