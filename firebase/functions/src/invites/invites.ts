@@ -15,6 +15,19 @@ export function uidOf(request: { auth?: { uid: string } }): string {
   return request.auth.uid;
 }
 
+/**
+ * The caller's uid once their account is active: signed in and not waiting
+ * for, or frozen out of, parental consent or the adult notice (spec §7).
+ */
+export async function activeUidOf(request: { auth?: { uid: string } }): Promise<string> {
+  const uid = uidOf(request);
+  const status = (await db().doc(`users/${uid}/private/account`).get()).get("ageStatus");
+  if (status !== "adult" && status !== "minor_active") {
+    throw new HttpsError("failed-precondition", "Your account can't do that right now.");
+  }
+  return uid;
+}
+
 /** Loads an adventure and checks the caller leads it. */
 async function ledAdventure(adventureId: unknown, uid: string): Promise<DocumentSnapshot> {
   const snap = await db()
@@ -42,7 +55,7 @@ async function firstNameOf(uid: string): Promise<string> {
  * has expired (spec UC-9). Leads and co-leads only.
  */
 export const createInvite = onCall(async (request) => {
-  const uid = uidOf(request);
+  const uid = await activeUidOf(request);
   const adventure = await ledAdventure(request.data?.adventureId, uid);
 
   const current = adventure.get("activeInviteCode") as string | undefined;
@@ -87,7 +100,7 @@ export const createInvite = onCall(async (request) => {
 
 /** Stops the current link working; the next share makes a new one. */
 export const revokeInvite = onCall(async (request) => {
-  const uid = uidOf(request);
+  const uid = await activeUidOf(request);
   const adventure = await ledAdventure(request.data?.adventureId, uid);
   const current = adventure.get("activeInviteCode") as string | undefined;
   const batch = db().batch();

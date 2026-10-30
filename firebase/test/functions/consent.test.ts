@@ -96,6 +96,9 @@ async function requested(child: Person, parentEmail: string) {
   return latestToken(parentEmail.toLowerCase());
 }
 
+/** Stands in for Cloud Storage in sweeps run from the test process. */
+const noPhotos = { removeAvatars: async () => undefined };
+
 const consentOf = async (uid: string) =>
   (await getFirestore().doc(`parentalConsents/${uid}`).get()).data();
 const accountOf = async (uid: string) =>
@@ -175,6 +178,21 @@ describe("requestParentalConsent", () => {
       parent,
     );
     expect(stale.error?.status).toBe("PERMISSION_DENIED");
+  });
+});
+
+describe("consent emails", () => {
+  it("never put a link-like name in front of the parent", async () => {
+    const child = await person("verify-at-evil.example/login", "minor_pending");
+    const parentEmail = unique("parent");
+    await requested(child, parentEmail);
+    const mail = await getFirestore()
+      .collection("mail")
+      .where("to", "==", parentEmail)
+      .get();
+    const { subject, text } = mail.docs[0].get("message");
+    expect(subject).toBe("Your child wants to use Roamio");
+    expect(text).not.toContain("evil.example");
   });
 });
 
@@ -372,10 +390,93 @@ describe("withdrawParentalConsent (spec §7.3)", () => {
     const { child, parent } = await consented();
     await call("withdrawParentalConsent", { childUid: child.uid }, parent);
 
-    await runConsentSweep(new Date(Date.now() + 47 * 60 * 60 * 1000));
+    await runConsentSweep(new Date(Date.now() + 47 * 60 * 60 * 1000), noPhotos);
     expect(await authUserExists(child.uid)).toBe(true);
 
-    await runConsentSweep(new Date(Date.now() + 48 * 60 * 60 * 1000 + 60_000));
+    await runConsentSweep(new Date(Date.now() + 48 * 60 * 60 * 1000 + 60_000), noPhotos);
+    expect(await authUserExists(child.uid)).toBe(false);
+    expect((await consentOf(child.uid))?.status).toBe("closed");
+  });
+});
+
+describe("deleting a child takes them out of their squads (spec §7.3, §8)", () => {
+  async function inSquads() {
+    const child = await person("Mia", "minor_pending");
+    const parent = await person("Pat", "adult");
+    const token = await requested(child, parent.email);
+    await call(
+      "decideParentalConsent",
+      { childUid: child.uid, token, decision: "grant" },
+      parent,
+    );
+    const friend = await person("Bob", "adult");
+    const db = getFirestore();
+    // Mia leads one squad with Bob in it and is a member of Bob's.
+    const led = db.collection("adventures").doc();
+    await led.set({
+      name: "Mia's trip",
+      leaderUid: child.uid,
+      coLeadUids: [],
+      memberUids: [child.uid, friend.uid],
+    });
+    const joined = db.collection("adventures").doc();
+    await joined.set({
+      name: "Bob's trip",
+      leaderUid: friend.uid,
+      coLeadUids: [child.uid],
+      memberUids: [friend.uid, child.uid],
+    });
+    for (const a of [led, joined]) {
+      await a.collection("members").doc(child.uid).set({ role: "member", status: "active" });
+      await a.collection("budgets").doc(child.uid).set({ amountMinor: 1000, currency: "INR" });
+    }
+    await call("withdrawParentalConsent", { childUid: child.uid }, parent);
+    return { child, friend, led, joined };
+  }
+  const later = () => new Date(Date.now() + 48 * 60 * 60 * 1000 + 60_000);
+
+  it("hands over a squad they lead and leaves every squad", async () => {
+    const { child, friend, led, joined } = await inSquads();
+    const removed: string[] = [];
+    await runConsentSweep(later(), { removeAvatars: async (uid) => void removed.push(uid) });
+
+    expect(await authUserExists(child.uid)).toBe(false);
+    expect(removed).toContain(child.uid);
+    const ledNow = (await led.get()).data();
+    expect(ledNow?.leaderUid).toBe(friend.uid);
+    expect(ledNow?.memberUids).toEqual([friend.uid]);
+    expect(ledNow?.archived).toBeUndefined();
+    const joinedNow = (await joined.get()).data();
+    expect(joinedNow?.memberUids).toEqual([friend.uid]);
+    expect(joinedNow?.coLeadUids).toEqual([]);
+    for (const a of [led, joined]) {
+      expect((await a.collection("budgets").doc(child.uid).get()).exists).toBe(false);
+      expect((await a.collection("members").doc(child.uid).get()).exists).toBe(false);
+    }
+    const audit = await getFirestore()
+      .collection("auditLog")
+      .where("target", "==", child.uid)
+      .where("action", "==", "account_deleted")
+      .get();
+    expect(audit.size).toBe(1);
+    expect((await consentOf(child.uid))?.status).toBe("closed");
+  });
+
+  it("tries again the next day if a deletion fails part-way", async () => {
+    const { child } = await inSquads();
+    const other = await inSquads();
+    const failing = {
+      removeAvatars: async (uid: string) => {
+        if (uid === child.uid) throw new Error("Storage is down");
+      },
+    };
+    await runConsentSweep(later(), failing);
+    // One failure doesn't stop the others, and isn't marked as done.
+    expect(await authUserExists(other.child.uid)).toBe(false);
+    expect(await authUserExists(child.uid)).toBe(true);
+    expect((await consentOf(child.uid))?.status).toBe("withdrawn");
+
+    await runConsentSweep(later(), noPhotos);
     expect(await authUserExists(child.uid)).toBe(false);
     expect((await consentOf(child.uid))?.status).toBe("closed");
   });
@@ -393,7 +494,7 @@ describe("runConsentSweep (daily reminders and expiry)", () => {
         .get()
     ).size;
 
-    await runConsentSweep(new Date(Date.now() + 3 * DAY + 60_000));
+    await runConsentSweep(new Date(Date.now() + 3 * DAY + 60_000), noPhotos);
 
     const after = (
       await getFirestore()
@@ -409,7 +510,7 @@ describe("runConsentSweep (daily reminders and expiry)", () => {
     const child = await person("Mia", "minor_pending");
     await requested(child, unique("parent"));
 
-    await runConsentSweep(new Date(Date.now() + 7 * DAY + 60_000));
+    await runConsentSweep(new Date(Date.now() + 7 * DAY + 60_000), noPhotos);
 
     expect(await authUserExists(child.uid)).toBe(false);
     expect(await accountOf(child.uid)).toBeUndefined();
