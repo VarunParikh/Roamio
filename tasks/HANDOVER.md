@@ -1,46 +1,59 @@
-# Handover — 2026-10-30
+# Handover — 2026-10-30 (evening)
 
 Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`.
 The owner works from a phone and will do **one manual test session at the end**: never ask for device checks, add them to the list below. Ask before merging (the owner must name the PR numbers), before adding a dependency, and before anything that adds Firebase cost or changes the data model.
 
 ## Where things stand
 
-**Merged into `main`:** everything through #50.
-- #41 export includes left adventures
-- #42 nominee, ticking Task 35
-- #43 join-card offline guard
-- #44 weather, ticking Task 36
-- #45 the previous handover
-- #46 Remote Config, ticking Task 37
-- #47 activity screen
-- #48 update popup, ticking Task 38
-- #49 compliance docs, ticking Task 40
-- #50 release pipeline (Task 42 progress)
+**Merged into `main`:** everything through #57.
+- #51 UX pass (Task 39)
+- #52 the previous handover
+- #53 end-to-end journey tests A–F (Task 41), plus the deleted-account sign-out fix
+- #54 pilot guide draft (`docs/PILOT_GUIDE.md`, part of Task 44)
+- #55 security, privacy and code review (Task 43): reports in `docs/reviews/`
+- #56 Task 43 follow-ups
+- #57 nightly journey tests fixed for GitHub's runners (they now pass there in about 13 min)
 
-**Open:** #51 Task 39 UX pass (CI green, waiting for the owner to approve "merge #51").
+**Open, waiting for the owner to name them** (all CI-green or running):
+- #58 the owner's decisions:
+  - C4/C14: each tab keeps its exchange-rate day;
+  - S3b: profiles visible only to squadmates;
+  - S12: old emails deleted after 30 days;
+  - S7 and S8 recorded.
 
-**The owner's working plan:** finish everything that doesn't need a manual test, running independent tasks in parallel and dependent ones in sequence. The owner then tests everything by hand in one session and raises issues.
+  Data-model changes, approved.
+- #59 CI hardening (S14): pinned Actions; releases need the owner's approval in the new `release` environment (already created on GitHub with the owner as reviewer); the publish job alone can write. CI change, approved.
+- #60 App Check (S15): set up with Play Integrity in the prod app, **not enforced**. New package `firebase_app_check`, approved.
+
+Merge order: #58, then #59 and #60 in either order. After each merge, run `gh pr update-branch` on the next and wait for its CI.
 
 **Task status**
-- Done (ticked): 1–32, 34–38, 40. Task 39 is ticked in #51.
-- Task 33: only device checks left (the `disableNetwork`/`enableNetwork` spike and the airplane-mode Journey D test).
-- Task 42: code done (#50). Owner steps left: create and back up the upload keystore, add the GitHub secrets, push the first `v*` tag (see `docs/RELEASING.md`).
-- Tasks 41, 43: not started. Task 44 (pilot): owner.
-- Grievance email: placeholder `grievance@roamio.example` until the next phase (owner's decision). The Hosting privacy page is written but not deployed.
+- Done (ticked): 1–32, 34–41, 43.
+- **Task 33:** only device checks are left (airplane mode, Sync, a second phone). The automated Journey D covers the app side.
+- **Task 42:** code done. Owner steps left:
+  - create and back up the upload keystore;
+  - add the three secrets **to the `release` environment** (after #59; the commands are in `docs/RELEASING.md`);
+  - push the first `v0.1.0-rc1` tag and approve the run.
+- **Task 44 (pilot):** owner. The guide is drafted. Before inviting anyone, see the checklist in `docs/PILOT_GUIDE.md` part 2:
+  - deploy Hosting;
+  - install the Trigger Email extension on prod;
+  - set up the feedback form.
+- **Checkpoints 0–6:** the owner's manual journeys and sign-off.
 
-## Next steps (in order; each starts only after the previous PR merges)
-1. Merge #51 (needs the owner's "merge #51").
-2. **Task 41, end-to-end journey tests:**
-   - `app/integration_test/` covers Journeys A–F (spec §15) against the Firebase emulators on the Android emulator (`Roamio_Pixel_API36`; commands in `docs/SETUP.md`).
-   - Simulate other people via Admin/REST calls against the emulators.
-   - The nightly `.github/workflows/e2e.yml` is a CI change: flag it in the PR. If it needs a third-party Action (e.g. an Android emulator runner), ask first.
-3. **Task 43, security, privacy and code review:** rules, functions, the app's privacy guards, secrets; fix what's found, with allow and deny tests.
-4. Then hand over for the owner's manual session and Task 44.
+**Nothing left for an agent except:** follow-ups from the owner's manual session, and keeping the nightly journey workflow green.
 
-## Decisions waiting on the owner
-1. "Merge #51".
-2. Task 42 owner steps (signing key and secrets).
-3. Grievance email (next phase).
+## Owner decisions (2026-10-30)
+- **S7:** a removed member can still rejoin with the old link (left as is).
+- **S8:** photos added to tabs stay with the squad when an account is deleted.
+- **C4:** lock each tab's rate day (built in #58).
+- **S3b, S12, S14, S15:** approved and built (#58–#60).
+- **App Check:** don't enforce during the pilot. Enforce after the app is on the Play Store (`docs/SETUP.md` → App Check).
+- **Grievance email:** placeholder until the next phase.
+
+## Owner deploy steps once #58–#60 are merged
+- `firebase deploy --only firestore -P prod`: rules, indexes, and the 30-day TTL on `mail.expiresAt`.
+- `firebase deploy --only functions -P prod`: includes `profileReadersOnAdventure`.
+- `firebase deploy --only hosting -P prod`: invite links and the privacy page.
 
 ## Hands-on checks for the owner (nothing here has run on a device or real Firebase)
 - Photos and push:
@@ -64,6 +77,12 @@ The owner works from a phone and will do **one manual test session at the end**:
 - UX: TalkBack reading order and wording; the pulse's feel.
 - Remote Config: set the keys in the console and see the flags change.
 - Releases: the release workflow on the first tag; the update popup on the previous version.
+- **Added 2026-10-30:**
+  - Exchange-rate day: a foreign-currency tab added before 06:00 India time keeps its total after that day's rates arrive. The tab screen shows *Converted at exchange rates from …*.
+  - Profiles are private: a new member sees the squad's names right after joining; someone outside the squad can't see them.
+  - Offline photos: a photo whose link failed to save uploads on the next Sync; signing out clears the queue.
+  - Releases: the first tag waits for your **Approve** in Actions, then publishes the APK.
+  - App Check: after installing the prod APK, the Firebase console → App Check shows requests (not enforced).
 
 ## Facts and traps learned
 - **This repo was edited from a cloud container**; local path on the owner's Mac is `/Users/varunparikh/Projects/Roamio-travel-partner`. The old brief mentioned `tasks/HANDOVER.md` which did not exist; this file replaces it.
@@ -85,4 +104,11 @@ The owner works from a phone and will do **one manual test session at the end**:
 - **Stacked PRs squash-merged:** when a base PR is squash-merged, its child conflicts on the same lines. Merge `origin/main` into the child, keep the child's side (it's a superset), rerun both suites.
 - **Sessions can only be started on the owner's own message**, not from a background-task or child-session event.
 - **Screen-state rules:** `tasks/screen_states.md`; text colours `coralText`/`mintText` for words (coral/mint only for fills); accessibility guideline tests in `app/test/features/ux/`.
+- **Journey tests:** `tool/e2e.sh` runs everything (Firebase + Android emulators, `flutter test integration_test`), then stops what it started; docs in `docs/SETUP.md`. Other people are simulated over the emulators' REST APIs (`app/integration_test/support/emulators.dart`). About 4 min on the Mac, 13 min on GitHub.
+- **On GitHub's runners:**
+  - set `ANDROID_AVD_HOME`, or the emulator can't find the AVD;
+  - a fresh checkout has no `app/android/app/src/dev/` folder;
+  - the script writes a stand-in `google-services.json` (no secrets needed).
+- **Local `firebase/functions/.env.local`** (git-ignored, only on the owner's Mac) makes the 3 banner tests fail. Move it aside for `npm test`, then put it back.
+- **Merges were refused** when the owner said "merge and continue" without numbers, for PRs created after that message. Always ask for the numbers.
 
