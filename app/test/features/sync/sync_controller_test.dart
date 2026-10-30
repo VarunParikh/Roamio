@@ -31,10 +31,42 @@ void main() {
 
   SyncPhase phase() => container.read(syncControllerProvider).phase;
 
-  test('online at start: normal, network left alone', () async {
+  test('online at start: normal, and the network is switched on', () async {
     await start(online: true);
     expect(phase(), SyncPhase.online);
-    expect(network.calls, isEmpty);
+    // Firestore's switch lives outside Flutter, so an earlier run may have
+    // left it off (see the restart test below).
+    expect(network.calls, ['enable']);
+  });
+
+  test('reopened online after going offline: the network comes back on, '
+      'so nothing stays stuck on the phone', () async {
+    // Firestore keeps its on/off state while the app's process lives, even
+    // when Flutter restarts (Back out while offline, reopen when online).
+    final firestore = _PersistentSwitch();
+    ProviderContainer run({required bool online}) {
+      final c = ProviderContainer(
+        overrides: [
+          connectivityMonitorProvider.overrideWithValue(
+            FakeConnectivity(online: online),
+          ),
+          networkSwitchProvider.overrideWithValue(firestore),
+          photoFlushProvider.overrideWithValue(() async {}),
+        ],
+      )..listen(syncControllerProvider, (_, _) {});
+      return c;
+    }
+
+    final first = run(online: false);
+    await first.read(syncControllerProvider.notifier).ready;
+    expect(firestore.enabled, isFalse);
+    first.dispose();
+
+    final second = run(online: true);
+    addTearDown(second.dispose);
+    await second.read(syncControllerProvider.notifier).ready;
+    expect(second.read(syncControllerProvider).phase, SyncPhase.online);
+    expect(firestore.enabled, isTrue);
   });
 
   test('offline at start: Firestore goes to offline mode', () async {
@@ -48,7 +80,8 @@ void main() {
     connectivity.set(online: false);
     await pumpEventQueue();
     expect(phase(), SyncPhase.offline);
-    expect(network.calls, ['disable']);
+    // 'enable' is from starting online.
+    expect(network.calls, ['enable', 'disable']);
   });
 
   test('coming back shows Sync but does not touch the network', () async {
@@ -130,4 +163,18 @@ void main() {
 
     expect(network.calls.where((c) => c == 'enable'), hasLength(1));
   });
+}
+
+/// Firestore's network switch, which outlives a Flutter restart.
+class _PersistentSwitch implements NetworkSwitch {
+  bool enabled = true;
+
+  @override
+  Future<void> disable() async => enabled = false;
+
+  @override
+  Future<void> enable() async => enabled = true;
+
+  @override
+  Future<void> waitForPendingWrites() async {}
 }
