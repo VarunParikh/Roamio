@@ -18,12 +18,16 @@ class JoinCard {
   final String memberName;
 }
 
-/// Someone on the trip without the app: a nickname only (spec UC-18).
+/// Someone on the trip without the app: a nickname and a character, never a
+/// real name (spec UC-18).
 class Pal {
-  const new({required this.id, required this.nickname});
+  const new({required this.id, required this.nickname, this.characterId});
 
   final String id;
   final String nickname;
+
+  /// Null for a pal from before characters; they show the default picture.
+  final String? characterId;
 }
 
 /// A squad action failed; [message] is safe to show as-is.
@@ -66,9 +70,19 @@ abstract interface class SquadService {
   Stream<List<Pal>> pals(String adventureId);
 
   /// Leads only (spec UC-18). Works offline and syncs later.
-  Future<void> addPal(String adventureId, String nickname);
+  Future<void> addPal(String adventureId, String nickname, String characterId);
 
-  Future<void> renamePal(String adventureId, String palId, String nickname);
+  /// Leads only (spec UC-18). Works offline and syncs later.
+  Future<void> editPal(
+    String adventureId,
+    String palId,
+    String nickname,
+    String characterId,
+  );
+
+  /// Pals who were removed: not in the squad any more, but still on old tabs
+  /// with their nickname and picture.
+  Stream<List<Pal>> removedPals(String adventureId);
 
   /// Marks the pal Left: pals are never deleted, so tabs keep their history
   /// (spec UC-16).
@@ -117,6 +131,12 @@ final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
 final StreamProviderFamily<List<Pal>, String> palsProvider =
     StreamProvider.family<List<Pal>, String>(
       (ref, adventureId) => ref.watch(squadServiceProvider).pals(adventureId),
+    );
+
+final StreamProviderFamily<List<Pal>, String> removedPalsProvider =
+    StreamProvider.family<List<Pal>, String>(
+      (ref, adventureId) =>
+          ref.watch(squadServiceProvider).removedPals(adventureId),
     );
 
 final joinCardsProvider = StreamProvider<List<JoinCard>>(

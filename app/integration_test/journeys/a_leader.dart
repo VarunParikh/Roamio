@@ -76,13 +76,13 @@ void journeyA() {
     await waitFor(tester, find.text('Squad (2)'));
     await scrollTo(tester, find.text('Add pal'));
     await tapText(tester, 'Add pal');
-    await tester.enterText(find.byType(TextField).last, 'Kiko');
-    await tapOn(tester, find.widgetWithText(FilledButton, 'Add'));
+    await addPal(tester, nickname: 'Kiko', character: 'Traveller 2');
     await waitFor(tester, find.text('Squad (3)'));
     expect(find.text('Pal'), findsOneWidget);
     expect(find.text('Co-lead'), findsOneWidget);
     final pals = await listDocs('adventures/$aid/pals', as: bob);
     expect(pals.map((p) => p['nickname']), ['Kiko']);
+    expect(pals.map((p) => p['characterId']), ['traveller_02']);
 
     await signOut(tester);
   });

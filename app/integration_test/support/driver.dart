@@ -169,6 +169,19 @@ Future<void> typeIntoKey(WidgetTester tester, String key, String text) async {
   await settle(tester, const Duration(milliseconds: 200));
 }
 
+/// Fills in the pal screen and adds them (spec UC-18).
+Future<void> addPal(
+  WidgetTester tester, {
+  required String nickname,
+  required String character,
+}) async {
+  await typeInto(tester, 'Nickname', nickname);
+  await tapText(tester, 'Choose a character');
+  await waitFor(tester, find.text('Choose a character for $nickname'));
+  await tapOn(tester, find.bySemanticsLabel(character));
+  await tapOn(tester, find.widgetWithText(FilledButton, 'Add'));
+}
+
 /// Fills Material's date picker in typing mode (en_US: MM/DD/YYYY).
 String usDate(DateTime d) =>
     '${d.month.toString().padLeft(2, '0')}/'

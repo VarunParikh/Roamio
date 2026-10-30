@@ -86,30 +86,55 @@ class FakeSquadService implements SquadService {
     yield* _palChanges.stream.map((_) => [..._palsOf(adventureId)]);
   }
 
+  /// Pals removed per adventure.
+  final Map<String, List<Pal>> removedByAdventure = {};
+
+  /// When set, pal writes show at once but don't finish until it completes,
+  /// like a write queued while offline.
+  Completer<void>? palWrite;
+
   @override
-  Future<void> addPal(String adventureId, String nickname) async {
-    calls.add('addPal:$adventureId/$nickname');
-    _palsOf(adventureId).add(Pal(id: 'pal${++_nextPal}', nickname: nickname));
-    _palChanges.add(null);
+  Stream<List<Pal>> removedPals(String adventureId) async* {
+    List<Pal> removed() => [...?removedByAdventure[adventureId]];
+    yield removed();
+    yield* _palChanges.stream.map((_) => removed());
   }
 
   @override
-  Future<void> renamePal(
+  Future<void> addPal(
+    String adventureId,
+    String nickname,
+    String characterId,
+  ) async {
+    calls.add('addPal:$adventureId/$nickname/$characterId');
+    _palsOf(adventureId).add(
+      Pal(id: 'pal${++_nextPal}', nickname: nickname, characterId: characterId),
+    );
+    _palChanges.add(null);
+    await palWrite?.future;
+  }
+
+  @override
+  Future<void> editPal(
     String adventureId,
     String palId,
     String nickname,
+    String characterId,
   ) async {
-    calls.add('renamePal:$palId/$nickname');
+    calls.add('editPal:$palId/$nickname/$characterId');
     final pals = _palsOf(adventureId);
     final i = pals.indexWhere((p) => p.id == palId);
-    pals[i] = Pal(id: palId, nickname: nickname);
+    pals[i] = Pal(id: palId, nickname: nickname, characterId: characterId);
     _palChanges.add(null);
+    await palWrite?.future;
   }
 
   @override
   Future<void> removePal(String adventureId, String palId) async {
     calls.add('removePal:$palId');
-    _palsOf(adventureId).removeWhere((p) => p.id == palId);
+    final pals = _palsOf(adventureId);
+    final i = pals.indexWhere((p) => p.id == palId);
+    removedByAdventure.putIfAbsent(adventureId, () => []).add(pals.removeAt(i));
     _palChanges.add(null);
   }
 

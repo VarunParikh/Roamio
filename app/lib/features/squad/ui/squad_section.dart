@@ -72,16 +72,11 @@ class SquadSection extends ConsumerWidget {
             onAction: (action) => _run(context, ref, action, uid, nameOf(uid)),
           ),
         for (final pal in pals)
-          PalTile(
-            adventure: adventure,
-            pal: pal,
-            canManage: iLead,
-            allPals: pals,
-          ),
+          PalTile(adventure: adventure, pal: pal, canManage: iLead),
         if (iLead) ...[
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            onPressed: () => _addPal(context, ref, pals),
+            onPressed: () => showPalForm(context, adventure: adventure),
             icon: const Icon(Icons.person_add_alt),
             label: const Text('Add pal'),
           ),
@@ -145,22 +140,6 @@ class SquadSection extends ConsumerWidget {
       if (context.mounted) showAuthMessage(context, done);
     } on SquadException catch (e) {
       if (context.mounted) showAuthMessage(context, e.message);
-    }
-  }
-
-  Future<void> _addPal(
-    BuildContext context,
-    WidgetRef ref,
-    List<Pal> pals,
-  ) async {
-    final name = await askPalNickname(
-      context,
-      title: 'Add a pal',
-      action: 'Add',
-      taken: [for (final p in pals) p.nickname],
-    );
-    if (name != null) {
-      await ref.read(squadServiceProvider).addPal(adventure.id, name);
     }
   }
 

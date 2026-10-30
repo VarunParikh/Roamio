@@ -347,7 +347,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: required method per payer, last used remembered on the phone; three-line row; tab details and exports show the name; unknown value shows as Other and `checkTab` ignores it.
   - Verify: widget tests; export test; `checkTab` test.
 
-- [ ] **Task 53: Pal nickname and character** — M · Deps: 46 · UC-18
+- [x] **Task 53: Pal nickname and character** — M · Deps: 46 · UC-18
   - Acceptance: one screen from both entry points; Add disabled with a reason; picker title "Choose a character for <nickname>"; used characters dimmed; Edit replaces Rename; member hint on Add tab; adding offline doesn't hang.
   - Verify: rules allow + deny tests; widget tests; Journeys A and C updated.
 
