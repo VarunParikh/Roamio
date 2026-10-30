@@ -84,6 +84,12 @@ Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then
   - delete my account on the dev project (leader message, sign-out);
   - no Nominate section and no Linked children (hidden for the pilot);
   - the privacy notice link.
+- Approval notifications (two phones, notifications on):
+  - a member's tab pushes to each admin but not the creator, and Home shows "1 tab to approve", which opens the adventure;
+  - one admin approves: the card goes from both admins' Home within a moment;
+  - rejecting pushes to the creator, and Home's card opens the tab;
+  - with notifications off, the card still appears and no push arrives;
+  - tapping a push opens the app, not the adventure: nothing routes pushes yet.
 - Names and activity: "Deleted user" and a left member's name on real tabs; the activity screen.
 - Hero card: the weather pill; text readable over real banner photos.
 - UX: TalkBack reading order and wording; the pulse's feel.
