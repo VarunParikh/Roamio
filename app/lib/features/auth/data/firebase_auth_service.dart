@@ -7,6 +7,28 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 
+/// Codes Firebase Auth gives when the server has deleted or shut a sign-in.
+const _goneCodes = {'user-not-found', 'user-disabled', 'user-token-expired'};
+
+/// When someone's account record is missing, checks their sign-in still
+/// exists and signs out if the server deleted it (a parent declined, or the
+/// account was erased), so the phone doesn't ask them to set up a profile
+/// again. A new sign-up without a record yet, or a failed check, stays.
+/// Returns whether it signed out.
+Future<bool> signOutIfDeleted({
+  required Future<void> Function() reload,
+  required Future<void> Function() signOut,
+}) async {
+  try {
+    await reload();
+    return false;
+  } on FirebaseAuthException catch (e) {
+    if (!_goneCodes.contains(e.code)) return false;
+    await signOut();
+    return true;
+  }
+}
+
 class FirebaseAuthService implements AuthService {
   new(this._auth, this._db, this._google);
 
@@ -48,10 +70,12 @@ class FirebaseAuthService implements AuthService {
                 : null,
           );
       out.add(facts());
-      account = _account(user.uid).snapshots().listen(
-        (snap) => out.add(facts(loaded: true, snap: snap)),
-        onError: (Object _) => out.add(facts(loaded: true)),
-      );
+      account = _account(user.uid).snapshots().listen((snap) {
+        out.add(facts(loaded: true, snap: snap));
+        if (!snap.exists) {
+          unawaited(signOutIfDeleted(reload: user.reload, signOut: signOut));
+        }
+      }, onError: (Object _) => out.add(facts(loaded: true)));
     }
 
     out = StreamController<SessionFacts>(

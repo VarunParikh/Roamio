@@ -85,6 +85,34 @@ Emails aren't sent; open a verification link from
 `http://127.0.0.1:9099/emulator/v1/projects/roamio-dev-varun/oobCodes`.
 Google sign-in needs a real Google account on the device and is checked against the real dev project.
 
+### End-to-end journey tests (Task 41)
+
+`app/integration_test/journeys_test.dart` runs the spec §15 journeys A–F on the
+Android emulator against the Firebase emulators: the person on the phone uses
+the real app, and everyone else (joiners, the parent, other squad members) is
+simulated through the emulators' REST APIs. One command does it all:
+
+```bash
+tool/e2e.sh
+```
+
+It builds the functions, starts the Firebase emulators and `Roamio_Pixel_API36`
+(headless) if they aren't already running, runs `flutter test integration_test`,
+then stops whatever it started. Logs go to `app/build/e2e/`. To run one file or
+one journey:
+
+```bash
+tool/e2e.sh integration_test/journeys_test.dart --plain-name "Journey C"
+```
+
+The journeys take about 3 minutes; a cold start (booting both emulators) about
+4. Without a dev `google-services.json` the script writes a stand-in with no
+real keys, which is enough because every call goes to the emulators. CI runs
+the same script nightly (`.github/workflows/e2e.yml`).
+
+Still manual: installing the APK from an invite link, real airplane mode,
+photos on tabs, Google sign-in, real emails and push notifications.
+
 
 | | Dev | Prod |
 |---|---|---|
