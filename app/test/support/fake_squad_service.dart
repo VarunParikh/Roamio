@@ -56,12 +56,18 @@ class FakeSquadService implements SquadService {
   /// Every list of uids looked up, in order.
   final List<List<String>> lookups = [];
 
+  /// Characters people chose, by uid.
+  final Map<String, String> characters = {};
+
   @override
-  Future<Map<String, String>> namesOf(List<String> uids) async {
+  Future<Map<String, SquadPerson>> peopleOf(List<String> uids) async {
     lookups.add(uids);
     return {
       for (final uid in uids)
-        uid: deleted.contains(uid) ? deletedUserName : names[uid] ?? uid,
+        uid: SquadPerson(
+          name: deleted.contains(uid) ? deletedUserName : names[uid] ?? uid,
+          characterId: characters[uid],
+        ),
     };
   }
 

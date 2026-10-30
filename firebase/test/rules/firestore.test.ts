@@ -188,6 +188,41 @@ describe("users/{uid} public profile", () => {
     );
   });
 
+  it("owner can set a character, or null for not now", async () => {
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "users/bob"), { characterId: "red_panda" }),
+    );
+    await assertSucceeds(
+      updateDoc(doc(as("bob"), "users/bob"), { characterId: null }),
+    );
+    await assertSucceeds(
+      setDoc(doc(as("nora"), "users/nora"), {
+        name: "Nora",
+        photoUrl: null,
+        bio: "",
+        characterId: "panda",
+      }),
+    );
+  });
+
+  it("a character id can't be a link, a path or anything but a short id", async () => {
+    for (const characterId of [
+      "https://example.com/me.png",
+      "../avatar",
+      "Panda",
+      "",
+      "a".repeat(31),
+      7,
+    ]) {
+      await assertFails(
+        updateDoc(doc(as("bob"), "users/bob"), { characterId }),
+      );
+    }
+    await assertFails(
+      updateDoc(doc(as("dan"), "users/bob"), { characterId: "panda" }),
+    );
+  });
+
   it("nobody else can write it, and no extra fields are allowed", async () => {
     await assertFails(
       updateDoc(doc(as("dan"), "users/bob"), { name: "Hacked" }),

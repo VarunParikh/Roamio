@@ -76,9 +76,12 @@ service cloud.firestore {
     // ---------- users ----------
     match /users/{uid} {
       function validProfile() {
-        return incoming().keys().hasOnly(['name', 'photoUrl', 'bio'])
+        return incoming().keys().hasOnly(['name', 'photoUrl', 'bio', 'characterId'])
           && isText(incoming().name, 1, 60)
           && (incoming().get('photoUrl', null) == null || incoming().photoUrl is string)
+          && (incoming().get('characterId', null) == null
+              || (incoming().characterId is string
+                  && incoming().characterId.matches('^[a-z0-9_]{1,30}$')))
           && isText(incoming().get('bio', ''), 0, 200);
       }
       // Someone who shares, or shared, a squad (profileReaders, kept by the

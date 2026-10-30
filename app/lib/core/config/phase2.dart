@@ -12,3 +12,7 @@ final minorsEnabledProvider = Provider<bool>((ref) => false);
 
 /// Nominate a person in the Privacy centre (spec UC-29, DPDP §14).
 final nomineeEnabledProvider = Provider<bool>((ref) => false);
+
+/// Uploading your own display picture. Off (the pilot): people choose a
+/// character instead (owner, 2026-10-30).
+final photoUploadsEnabledProvider = Provider<bool>((ref) => false);

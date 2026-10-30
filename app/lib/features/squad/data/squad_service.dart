@@ -60,7 +60,7 @@ abstract interface class SquadService {
   Future<void> leave(String adventureId);
 
   /// Display names for [uids], from their public profiles.
-  Future<Map<String, String>> namesOf(List<String> uids);
+  Future<Map<String, SquadPerson>> peopleOf(List<String> uids);
 
   /// The adventure's active pals, A to Z.
   Stream<List<Pal>> pals(String adventureId);
@@ -89,12 +89,27 @@ String nameFromProfile(Map<String, dynamic>? profile) => profile == null
     ? deletedUserName
     : (profile['name'] as String?) ?? 'Someone';
 
-/// Names for a squad, keyed by the comma-joined uids so it reloads when
-/// the squad changes.
+/// Who someone in a squad is, as the squad sees them.
+class SquadPerson {
+  const new({required this.name, this.characterId});
+
+  final String name;
+  final String? characterId;
+}
+
+/// Names and characters for a squad, keyed by the comma-joined uids so it
+/// reloads when the squad changes.
+final FutureProviderFamily<Map<String, SquadPerson>, String>
+squadPeopleProvider = FutureProvider.family<Map<String, SquadPerson>, String>(
+  (ref, uids) => ref.watch(squadServiceProvider).peopleOf(uids.split(',')),
+);
+
+/// Just the names, for the many places that show only those.
 final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
-    FutureProvider.family<Map<String, String>, String>(
-      (ref, uids) => ref.watch(squadServiceProvider).namesOf(uids.split(',')),
-    );
+    FutureProvider.family<Map<String, String>, String>((ref, uids) async {
+      final people = await ref.watch(squadPeopleProvider(uids).future);
+      return {for (final e in people.entries) e.key: e.value.name};
+    });
 
 final StreamProviderFamily<List<Pal>, String> palsProvider =
     StreamProvider.family<List<Pal>, String>(
