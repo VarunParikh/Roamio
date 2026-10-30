@@ -229,6 +229,55 @@ describe("rejecting a tab", () => {
   });
 });
 
+describe("Paid with is never a reason to remove a tab (spec UC-21)", () => {
+  const paid = (method: unknown) =>
+    tab("ari", { payers: [{ id: "ari", amountMinor: 90000, method }] });
+  const active = new Set(["ari"]);
+  const isMember = (id: string) => id === "ari";
+
+  it("accepts every method, a missing one, and values it doesn't know", () => {
+    for (const method of [
+      "cash",
+      "card",
+      "upi",
+      "cheque",
+      "bank_transfer",
+      "other",
+      undefined,
+      null,
+      "",
+      "crypto",
+      42,
+      { a: 1 },
+    ]) {
+      expect(tabProblem(paid(method), active, isMember)).toBeNull();
+    }
+    expect(tabProblem(tab("ari"), active, isMember)).toBeNull();
+  });
+
+  it("keeps a saved tab with an unknown or missing method", async () => {
+    const { ari, id } = await squad();
+    const unknown = db().collection(`adventures/${id}/tabs`).doc();
+    const missing = db().collection(`adventures/${id}/tabs`).doc();
+    await unknown.set(
+      tab(ari.uid, { payers: [{ id: ari.uid, amountMinor: 90000, method: "crypto" }] }),
+    );
+    await missing.set(tab(ari.uid));
+
+    // Both have been through the trigger once the adventure says it has tabs.
+    await eventually(async () => {
+      expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).toBe(true);
+    });
+    expect((await unknown.get()).get("deleted")).toBe(false);
+    expect((await missing.get()).get("deleted")).toBe(false);
+    const rejected = await db()
+      .collection(`adventures/${id}/activity`)
+      .where("type", "==", "tab_rejected")
+      .get();
+    expect(rejected.empty).toBe(true);
+  });
+});
+
 describe("deleting a tab", () => {
   it("logs who deleted it in the activity (spec UC-22)", async () => {
     const { ari, id } = await squad();

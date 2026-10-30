@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/main.dart' as app;
 import 'package:share_plus/share_plus.dart';
 
@@ -263,7 +264,22 @@ Future<void> addSimpleTab(
   if (currency != null) await pickCurrency(tester, currency);
   await tapOn(tester, find.textContaining('Food & Dining'));
   await typeInto(tester, 'Description (optional)', description);
+  await pickPaidWith(
+    tester,
+    find.byType(DropdownButtonFormField<PaymentMethod>),
+  );
   await saveTab(tester);
+}
+
+/// Chooses [item] in a Paid with menu. A fresh install has no method yet, so
+/// Save stays disabled until this is done.
+Future<void> pickPaidWith(
+  WidgetTester tester,
+  Finder dropdown, {
+  String item = '💵 Cash',
+}) async {
+  await tapOn(tester, dropdown);
+  await tapOn(tester, find.text(item).last);
 }
 
 /// Picks [currency] in the tab's currency menu, which opens at the

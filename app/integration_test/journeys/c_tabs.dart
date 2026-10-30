@@ -63,6 +63,12 @@ void journeyC() {
       kiko = pals.single['id']! as String;
       return true;
     });
+    await pickPaidWith(tester, find.byKey(ValueKey('method-${ari.uid}')));
+    await pickPaidWith(
+      tester,
+      find.byKey(ValueKey('method-${bob.uid}')),
+      item: '📱 UPI',
+    );
     await tapText(tester, 'Custom %');
     await typeIntoKey(tester, 'pct-${ari.uid}', '50');
     await typeIntoKey(tester, 'pct-${bob.uid}', '30');

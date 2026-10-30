@@ -15,10 +15,11 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
-/// One tab (spec UC-23): who paid, everyone's share, photos and where.
+/// One tab (spec UC-23): who paid and how, everyone's share, photos and where.
 /// Its creator can edit it; leads can delete it (soft, UC-22).
 class TabDetailScreen extends ConsumerWidget {
   const new({required this.adventureId, required this.tabId, super.key});
@@ -163,7 +164,11 @@ class _Details extends ConsumerWidget {
         const SizedBox(height: 24),
         Text('Paid by', style: text.titleMedium),
         for (final p in tab.split.payers)
-          _Line(label: who(p.payer), value: money(p.amountMinor)),
+          _Line(
+            label: who(p.payer),
+            value: money(p.amountMinor),
+            method: p.method,
+          ),
         const SizedBox(height: 16),
         Text(
           percent == null ? 'Shares · split equally' : 'Shares · custom %',
@@ -234,23 +239,38 @@ class _Details extends ConsumerWidget {
 }
 
 class _Line extends StatelessWidget {
-  const new({required this.label, required this.value});
+  const new({required this.label, required this.value, this.method});
 
   final String label;
   final String value;
 
+  /// How a payer paid, under their name.
+  final PaymentMethod? method;
+
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
-        ),
-        Text(value, style: Theme.of(context).textTheme.bodyLarge),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(label, style: text.bodyLarge)),
+              Text(value, style: text.bodyLarge),
+            ],
+          ),
+          if (method case final m?)
+            Text(
+              '${m.emoji} ${m.label}',
+              semanticsLabel: paidWithLabel([m]),
+              style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Gone extends StatelessWidget {

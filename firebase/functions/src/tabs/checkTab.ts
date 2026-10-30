@@ -11,6 +11,8 @@ import { logger } from "firebase-functions";
 // (DATA_MODEL.md): payments add up, percentages add up, and everyone on a
 // new tab is in the squad. A failing tab is soft-deleted and logged; the
 // app's split engine already refuses these, so this only catches bypasses.
+// A payer's `method` is deliberately not checked: the app shows an unknown one
+// as Other, so it must never remove a tab (spec UC-21).
 
 const db = () => getFirestore();
 

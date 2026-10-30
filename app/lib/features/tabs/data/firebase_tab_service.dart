@@ -7,7 +7,23 @@ import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/data/merged_tabs.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/tabs/domain/tab_status.dart';
+
+/// One entry of a tab's `payers` as stored (DATA_MODEL.md).
+Map<String, Object?> payerFields(Payment p) => {
+  'id': p.payer,
+  'amountMinor': p.amountMinor,
+  'method': p.method.id,
+};
+
+/// One entry of a tab's `payers`; see [PaymentMethod.fromStored] for a
+/// missing or unknown method.
+Payment paymentFromStored(Map<String, dynamic> p) => Payment(
+  p['id'] as String,
+  p['amountMinor'] as int,
+  method: PaymentMethod.fromStored(p['method']),
+);
 
 class FirebaseTabService implements TabService {
   new(this._auth, this._db);
@@ -56,9 +72,7 @@ class FirebaseTabService implements TabService {
     'currency': tab.currency,
     'date': isoDate(tab.date),
     'fxDate': tab.fxDate,
-    'payers': [
-      for (final p in tab.payers) {'id': p.payer, 'amountMinor': p.amountMinor},
-    ],
+    'payers': [for (final p in tab.payers) payerFields(p)],
     'participants': tab.participants,
     'percentBp': tab.percentBp,
     if (tab.location case final p?)
@@ -166,7 +180,7 @@ class FirebaseTabService implements TabService {
         amount: Money(data['amountMinor'] as int, currency),
         payers: [
           for (final p in (data['payers'] as List).cast<Map<String, dynamic>>())
-            Payment(p['id'] as String, p['amountMinor'] as int),
+            paymentFromStored(p),
         ],
         participants: (data['participants'] as List).cast<String>(),
         percentBp: percent,

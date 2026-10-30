@@ -148,10 +148,10 @@ void main() {
         expect(find.text(day), findsOneWidget, reason: day);
       }
       expect(find.text('Dinner'), findsOneWidget);
-      expect(find.text('Bob Lee paid · Total ฿900.00'), findsOneWidget);
-      expect(find.text('฿300.00'), findsOneWidget); // Ari's share
-      expect(find.text('You paid · Total ฿200.00'), findsOneWidget);
-      expect(find.text('฿150.00'), findsOneWidget); // 75% of ฿200
+      expect(find.text('฿900.00'), findsOneWidget);
+      expect(find.text('Your share ฿300.00'), findsOneWidget);
+      expect(find.text('฿200.00'), findsOneWidget);
+      expect(find.text('Your share ฿150.00'), findsOneWidget); // 75% of ฿200
       expect(find.text('Not in it'), findsOneWidget); // the museum
       // Deleted tabs are not listed.
       expect(find.text('Old taxi'), findsNothing);

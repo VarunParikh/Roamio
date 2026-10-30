@@ -21,10 +21,12 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
+import 'package:roamio/features/tabs/data/payment_memory.dart';
 import 'package:roamio/features/tabs/data/receipt_parser.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/location_picker.dart';
@@ -105,6 +107,27 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   /// Percentage per participant in Custom % mode; null for Equal.
   Map<String, TextEditingController>? _percentFields;
 
+  /// How each payer paid, once chosen or from the tab being edited. Anyone
+  /// else starts on [_lastUsed].
+  final Map<String, PaymentMethod> _methods = {};
+
+  /// The method last used on this phone; null the first time.
+  PaymentMethod? _lastUsed;
+  bool _recalled = false;
+
+  PaymentMethod? _methodOf(String id) => _methods[id] ?? _lastUsed;
+
+  /// Who paid, as the form stands.
+  List<String> _payerIds(String myUid) => switch (_texts(_payerFields)) {
+    final texts? => [for (final p in payersFrom(texts, _currency)) p.payer],
+    null => [_old?.createdBy ?? myUid],
+  };
+
+  void _setMethod(String id, PaymentMethod method) {
+    _doneTyping();
+    setState(() => _methods[id] = method);
+  }
+
   /// Shown after Custom % went back to Equal because the people changed.
   bool _resetToEqual = false;
 
@@ -124,8 +147,16 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   @override
   void initState() {
     super.initState();
+    ref.read(paymentMemoryProvider).read().then((method) {
+      if (!mounted) return;
+      setState(() {
+        _lastUsed = method;
+        _recalled = true;
+      });
+    }).ignore();
     final old = _old;
     if (old == null) return;
+    _methods.addAll({for (final p in old.split.payers) p.payer: p.method});
     final currency = old.amount.currency;
     _amount.text = amountText(old.amount.minor, currency);
     _description.text = old.description;
@@ -229,7 +260,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       if (!_unticked.contains(id)) id,
   ];
 
-  Set<TabProblem> _problems(List<Pal> pals) => tabProblems(
+  Set<TabProblem> _problems(List<Pal> pals, String myUid) => tabProblems(
     adventure: _a,
     amountText: _amount.text,
     currency: _currency,
@@ -239,6 +270,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     participants: _ticked(pals),
     payerTexts: _texts(_payerFields),
     percentTexts: _texts(_percentFields),
+    paymentMethods: _payerIds(myUid).map(_methodOf).toList(),
   );
 
   /// Moving on from the amount closes the keyboard, so the form stops
@@ -276,7 +308,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
   Future<void> _save(List<Pal> pals, String myUid) async {
     setState(() => _tried = true);
-    final problems = _problems(pals);
+    final problems = _problems(pals, myUid);
     if (problems.contains(TabProblem.closed)) {
       showAuthMessage(context, _closedMessage);
       return;
@@ -286,15 +318,17 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final ratesDay = await _ratesDay();
     if (!mounted) return;
     final tabs = ref.read(tabServiceProvider);
+    final memory = ref.read(paymentMemoryProvider);
     final old0 = _old;
     final payers = _payerFields == null
         ? [
             Payment(
               _old?.createdBy ?? myUid,
               parseAmount(_amount.text, _currency)!,
+              method: _methodOf(_old?.createdBy ?? myUid)!,
             ),
           ]
-        : payersFrom(_texts(_payerFields)!, _currency);
+        : payersFrom(_texts(_payerFields)!, _currency, methodOf: _methodOf);
     final sharing = _ticked(pals);
     final tab = NewTab(
       status: old0 == null
@@ -335,6 +369,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final String id;
     if (old == null) {
       id = await tabs.addTab(_a.id, tab);
+      // Only a new tab counts as using a method; fixing an old one doesn't.
+      await memory.write(rememberedMethod(tab.payers, myUid));
     } else {
       id = old.id;
       await tabs.updateTab(_a.id, id, tab);
@@ -456,13 +492,14 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final names = squadLabels(ref, _a);
     final countries = ref.watch(countriesProvider).value;
     final categories = ref.watch(categoriesProvider).value ?? const [];
-    final now = _problems(pals);
+    final now = _problems(pals, myUid);
     final problems = _tried ? now : const <TabProblem>{};
     // Save waits until split payments and custom percentages add up (UC-21).
     final blocked =
         (_payerFields != null && now.contains(TabProblem.paymentsDontAddUp)) ||
         (_percentFields != null &&
-            now.contains(TabProblem.percentagesDontAddUp));
+            now.contains(TabProblem.percentagesDontAddUp)) ||
+        now.contains(TabProblem.noPaymentMethod);
     final symbol = countries?.symbolFor(_currency);
     final each = _eachLabel(pals, countries?.symbolFor(_currency));
 
@@ -628,12 +665,21 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
               amountMinor: parseAmount(_amount.text, _currency) ?? 0,
               symbol: symbol,
               onChanged: () => setState(() {}),
+              methodOf: _methodOf,
+              onMethod: _setMethod,
             )
-          else
+          else ...[
             Text(
               'You paid it all',
               style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
             ),
+            const SizedBox(height: 12),
+            PaidWithDropdown(
+              payerId: _old?.createdBy ?? myUid,
+              value: _methodOf(_old?.createdBy ?? myUid),
+              onChanged: (m) => _setMethod(_old?.createdBy ?? myUid, m),
+            ),
+          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -725,6 +771,19 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
         busy: _busy,
         onPressed: blocked ? null : () => _save(pals, myUid),
       ),
+      // Beside Save, since the dropdown may be far up the form.
+      footer: _recalled && now.contains(TabProblem.noPaymentMethod)
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _payerFields == null
+                    ? 'Choose how this was paid to save the tab.'
+                    : 'Choose how each person paid to save the tab.',
+                textAlign: TextAlign.center,
+                style: text.bodyMedium?.copyWith(color: RoamioColors.coralText),
+              ),
+            )
+          : null,
     );
   }
 }

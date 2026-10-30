@@ -103,7 +103,11 @@ ExportData buildExportData({
           currency: t.amount.currency,
           paidBy: [
             for (final p in t.split.payers)
-              '${who(p.payer)} ${amountText(p.amountMinor, t.amount.currency)}',
+              [
+                who(p.payer),
+                amountText(p.amountMinor, t.amount.currency),
+                '(${p.method.label})',
+              ].join(' '),
           ].join(', '),
           sharedBy: switch (t.split.percentBp) {
             final bp? => [
