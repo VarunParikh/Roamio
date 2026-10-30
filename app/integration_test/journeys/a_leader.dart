@@ -11,15 +11,13 @@ void journeyA() {
     final shared = await launch(tester);
     final email = uniqueEmail('ari');
 
-    // Sign up with email, then verify it.
-    final uid = await signUpWithEmail(
-      tester,
-      name: 'Ari Lead',
-      email: email,
-      dob: DateTime(1995, 6, 15),
-    );
+    // Sign up the pilot way (no date of birth, the 18+ tick), then verify.
+    final uid = await signUpWithEmail(tester, name: 'Ari Lead', email: email);
     await waitFor(tester, find.text('Hey Ari 👋'));
-    expect((await getDoc('users/$uid/private/account'))!['ageStatus'], 'adult');
+    final account = (await getDoc('users/$uid/private/account'))!;
+    expect(account['ageStatus'], 'adult');
+    expect(account['adultDeclared'], true);
+    expect(account.containsKey('dob'), isFalse);
 
     // Create an adventure in Thailand happening now.
     await tapText(tester, 'New Adventure');

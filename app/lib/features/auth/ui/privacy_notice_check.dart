@@ -8,12 +8,16 @@ class PrivacyNoticeCheck extends StatelessWidget {
     required this.accepted,
     required this.onChanged,
     this.showError = false,
+    this.adultDeclaration = false,
     super.key,
   });
 
   final bool accepted;
   final ValueChanged<bool> onChanged;
   final bool showError;
+
+  /// The pilot asks no birth date: the tick also says "I'm 18 or older".
+  final bool adultDeclaration;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,12 @@ class PrivacyNoticeCheck extends StatelessWidget {
             Expanded(
               child: Wrap(
                 children: [
-                  Text('I’ve read the ', style: text.bodyMedium),
+                  Text(
+                    adultDeclaration
+                        ? 'I’m 18 or older and I’ve read the '
+                        : 'I’ve read the ',
+                    style: text.bodyMedium,
+                  ),
                   GestureDetector(
                     onTap: () => _showSummary(context),
                     child: Text(
@@ -47,7 +56,10 @@ class PrivacyNoticeCheck extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 12),
             child: Text(
-              'Please read and accept the privacy notice.',
+              adultDeclaration
+                  ? 'Please confirm you’re 18 or older and accept the privacy '
+                        'notice.'
+                  : 'Please read and accept the privacy notice.',
               style: text.bodySmall?.copyWith(color: RoamioColors.coralText),
             ),
           ),
@@ -64,7 +76,7 @@ class PrivacyNoticeCheck extends StatelessWidget {
         child: Text(
           'What Roamio collects and why\n\n'
           '• Your name, email and date of birth, to run your account and '
-          'keep under-18s safe.\n'
+          'check your age.\n'
           '• Trips, tabs, receipts and photos you add, to split costs with '
           'your squad.\n'
           '• Your location, only if you switch it on, to tag a tab.\n\n'

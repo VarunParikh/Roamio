@@ -81,7 +81,7 @@ async function eventually<T>(
   return read();
 }
 
-async function signUp(email: string, dob: string, uid?: string) {
+async function signUp(email: string, dob: string | null, uid?: string) {
   uid ??= await createAuthUser(email);
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
@@ -91,7 +91,8 @@ async function signUp(email: string, dob: string, uid?: string) {
       bio: "",
     });
     await setDoc(doc(db, `users/${uid}/private/account`), {
-      dob,
+      // The pilot asks no birth date: the person ticks "I'm 18 or older".
+      ...(dob === null ? { adultDeclared: true } : { dob }),
       profileCurrency: "INR",
     });
   });
@@ -113,6 +114,27 @@ describe("setAgeStatus trigger (spec UC-4, §7)", () => {
     const { account } = await signUp("adult@example.com", bornYearsAgo(18));
     const data = await eventually(account, (d) => d?.ageStatus !== undefined);
     expect(data?.ageStatus).toBe("adult");
+  });
+
+  it("marks someone who declared they're 18 or older as adult (pilot: no birth date)", async () => {
+    const { account } = await signUp("declared@example.com", null);
+    const data = await eventually(account, (d) => d?.ageStatus !== undefined);
+    expect(data?.ageStatus).toBe("adult");
+  });
+
+  it("removes a record with neither a birth date nor the declaration", async () => {
+    const uid = await createAuthUser("neither@example.com");
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `users/${uid}/private/account`), {
+        profileCurrency: "INR",
+      });
+    });
+    expect(
+      await eventually(
+        () => readDoc(`users/${uid}/private/account`),
+        (d) => d === undefined,
+      ),
+    ).toBeUndefined();
   });
 
   it("marks 13–17 year olds as waiting for parental consent", async () => {

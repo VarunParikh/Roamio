@@ -309,6 +309,8 @@ Common verification commands:
 
     `firebase/functions` audit clean. The test-only `firebase/` grpc-js advisory is explained, with no upstream fix. Medium/low follow-ups are listed in the reports.
 
+- **Pilot scope (owner, 2026-10-30):** no date of birth is asked and no one is refused (sign-up tick: "I'm 18 or older"); under-18 accounts and Nominate a person are switched off until a DPDP-compliant Phase 2 version. See [docs/ROADMAP.md](../docs/ROADMAP.md).
+
 - [ ] **Task 44: Pilot** — S · Deps: 42, 43 · 👤 owner invites users
   - Acceptance: `v1.0.0` released; pilot guide (install APK, Play Protect note, how to report issues); 10 users onboarded; feedback form; issues triaged into GitHub Issues.
   - Verify: 10 active accounts; spec §15 criteria 1–9 ticked.

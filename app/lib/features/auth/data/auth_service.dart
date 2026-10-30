@@ -49,16 +49,18 @@ abstract interface class AuthService {
   Future<void> sendPasswordReset(String email);
 
   /// Creates an email account plus its profile and account records, then
-  /// sends the verification email.
+  /// sends the verification email. A null [dob] means the person ticked
+  /// "I'm 18 or older" instead (the pilot asks no birth date; Phase 2 does).
   Future<void> createAccount({
     required String name,
     required String email,
     required String password,
-    required DateTime dob,
+    required DateTime? dob,
   });
 
-  /// Writes the account record for someone who signed in with Google.
-  Future<void> completeProfile({required DateTime dob});
+  /// Writes the account record for someone who signed in with Google; a
+  /// null [dob] means they declared they're 18 or older.
+  Future<void> completeProfile({required DateTime? dob});
 
   Future<void> sendVerificationEmail();
 

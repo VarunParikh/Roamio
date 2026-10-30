@@ -29,7 +29,7 @@ Roamio is an app for splitting travel costs with friends. Roamio is run by Varun
 | What | Why |
 |---|---|
 | Your name, email and how you sign in (Google or email + password) | To create your account and let you sign in. |
-| Your date of birth | To check you are 13 or older, and whether a parent needs to say yes first. It can't be changed in the app. |
+| That you confirmed you're 18 or older (the sign-up tick) | Roamio's pilot is for adults. We don't ask your date of birth; we record that you confirmed your age, and when. |
 | Profile photo and short description (optional) | So your squad recognises you. |
 | Your profile currency | To show amounts in money you know. |
 | Your choices for notifications, location and camera | So the app only does what you allowed. |
@@ -71,7 +71,7 @@ Like any website, these services see your phone's internet (IP) address when you
 - **Download your data:** a file of everything we keep about you, plus your photos as zip files.
 - **Correct your data:** change your name, photo and description on the You page. To fix your date of birth, write to us (we check it by hand).
 - **Delete your account.** If you lead a squad with others in it, make someone else leader first.
-- **Nominate a person** to use these rights for you if you can't (for example through illness or death).
+- **Nominate a person** to use these rights for you if you can't (for example through illness or death). During the pilot, write to our grievance officer (below) with their name and email; choosing one in the app comes in Phase 2.
 - **Change your mind:** switch notifications, location or camera on or off at any time. Turning one off stops it from then on.
 - **Raise a concern** with our grievance officer (below). If you're not happy with our answer, you can complain to the **Data Protection Board of India**.
 
@@ -90,6 +90,8 @@ If we change this notice we'll update its version and date, and tell you before 
 ## Child notice (for parents and guardians)
 
 Version 2026-10 · For the parent or lawful guardian of a 13–17-year-old
+
+> **Not in use during the pilot.** Roamio's Android pilot is for adults (18 and over). This notice applies once under-18 accounts open in Phase 2.
 
 Your child wants to use Roamio, an app for splitting travel costs with friends. Because they are under 18, Indian law (DPDP Act §9) needs your **verifiable consent** first. Roamio is run by Varun Parikh (the "Data Fiduciary").
 
@@ -147,3 +149,4 @@ We acknowledge every concern **within 7 days**. You can also complain to the **D
 | Version | Date | Change |
 |---|---|---|
 | 2026-10 | 2026-10-30 | First adult and child notices for the Android pilot. |
+| 2026-10 (revised) | 2026-10-30 | Before anyone accepted it: the pilot asks no date of birth (people confirm they're 18 or older at sign-up), nominating is by writing to us until Phase 2, and the child notice is marked as not in use. Version unchanged because no one had agreed to the earlier wording. |

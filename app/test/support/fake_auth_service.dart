@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/data/categories.dart';
@@ -110,12 +111,16 @@ class FakeAuthService implements AuthService {
     required String name,
     required String email,
     required String password,
-    required DateTime dob,
-  }) => _act('create:$name:$email:${dob.year}-${dob.month}-${dob.day}');
+    required DateTime? dob,
+  }) => _act(
+    'create:$name:$email:'
+    '${dob == null ? 'adult' : '${dob.year}-${dob.month}-${dob.day}'}',
+  );
 
   @override
-  Future<void> completeProfile({required DateTime dob}) =>
-      _act('complete:${dob.year}-${dob.month}-${dob.day}');
+  Future<void> completeProfile({required DateTime? dob}) => _act(
+    'complete:${dob == null ? 'adult' : '${dob.year}-${dob.month}-${dob.day}'}',
+  );
 
   @override
   Future<void> sendVerificationEmail() => _act('resend');
@@ -188,6 +193,9 @@ Future<void> pumpRoamio(
   bool weatherEnabled = true,
   UpdateChecker? updates,
   Map<String, String>? remoteConfig,
+  // Phase 2 features (under-18s, nominee) are off in the pilot app; most
+  // feature tests still exercise them. Pilot tests pass `phase2: false`.
+  bool phase2 = true,
 }) async {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 2.625;
@@ -264,6 +272,8 @@ Future<void> pumpRoamio(
                 FakeUpdateStore(),
               ),
         ),
+        minorsEnabledProvider.overrideWithValue(phase2),
+        nomineeEnabledProvider.overrideWithValue(phase2),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
         ),

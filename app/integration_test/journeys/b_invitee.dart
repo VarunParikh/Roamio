@@ -21,7 +21,6 @@ void journeyB() {
       tester,
       name: 'Cara Invitee',
       email: email,
-      dob: DateTime(1999, 2, 3),
     );
     await waitFor(tester, find.text('Hey Cara 👋'));
 
