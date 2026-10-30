@@ -7,6 +7,7 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// What has happened in an adventure, newest first: joins, role changes,
@@ -27,18 +28,18 @@ class ActivityScreen extends ConsumerWidget {
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final activity = ref.watch(activityProvider(adventureId));
     final entries = activity.value;
-    final labels = adventure == null
-        ? const <String, String>{}
-        : squadLabels(ref, adventure);
+    final people = adventure == null
+        ? const <String, SquadPerson>{}
+        : squadPeople(ref, adventure);
     final lines = [
       for (final e in entries ?? const <ActivityEntry>[])
         if (describeActivity(
               e,
               myUid: myUid,
-              who: (id) => labels[id] ?? deletedUserName,
+              who: (id) => people[id]?.name ?? deletedUserName,
             )
             case final line?)
-          (line, e.createdAt),
+          (line, e.createdAt, e.actorUid),
     ];
 
     return Scaffold(
@@ -68,9 +69,10 @@ class ActivityScreen extends ConsumerWidget {
               itemCount: lines.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) {
-                final (line, at) = lines[i];
+                final (line, at, actor) = lines[i];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
+                  leading: PersonAvatar(uid: actor, person: people[actor]),
                   title: Text(line),
                   subtitle: at == null ? null : Text(formatDate(at)),
                 );

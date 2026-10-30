@@ -4,6 +4,8 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 
+import 'package:roamio/features/squad/ui/person.dart';
+
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
 import '../../support/fake_invite_service.dart';
@@ -83,6 +85,20 @@ void main() {
   });
 
   group('lead card when someone joins (UC-14)', () {
+    testWidgets('the card shows the picture of who joined', (tester) async {
+      await pumpRoamio(
+        tester,
+        FakeAuthService(initial: readyFacts),
+        adventures: FakeAdventureService([_bangkok()]),
+        squad: FakeSquadService([_bobJoined]),
+      );
+
+      expect(
+        find.byWidgetPredicate((w) => w is PersonAvatar && w.uid == 'bob'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('the leader sees Make co-lead and Remove', (tester) async {
       final squad = FakeSquadService([_bobJoined]);
       await pumpRoamio(

@@ -91,7 +91,7 @@ class _Tile extends StatelessWidget {
           padding: const EdgeInsets.all(2),
           child: LayoutBuilder(
             builder: (context, box) => CharacterAvatar(
-              name: character.label,
+              uid: character.id,
               characterId: character.id,
               radius: box.maxWidth / 2,
             ),

@@ -30,6 +30,32 @@ void main() {
       expect(characterById(null), isNull);
     });
 
+    test('a default is stable, whatever the app version', () {
+      // Fixed values: this must not change, or everyone's picture would.
+      expect(defaultCharacterFor('ari').id, 'giraffe');
+      expect(defaultCharacterFor('ari').id, 'giraffe');
+      expect(defaultCharacterFor('bob'), isNot(defaultCharacterFor('ari')));
+    });
+
+    test('a default copes with any id', () {
+      expect(characters, contains(defaultCharacterFor('')));
+      expect(characters, contains(defaultCharacterFor('x' * 500)));
+      expect(characters, contains(defaultCharacterFor('नमस्ते')));
+    });
+
+    test('defaults reach many characters', () {
+      final seen = {
+        for (var i = 0; i < 2000; i++) defaultCharacterFor('uid-$i').id,
+      };
+      expect(seen, hasLength(47));
+    });
+
+    test('a chosen character wins over the default', () {
+      expect(characterFor('ari', 'panda').id, 'panda');
+      expect(characterFor('ari', null).id, 'giraffe');
+      expect(characterFor('ari', 'from_the_future').id, 'giraffe');
+    });
+
     test('the images on disk are exactly the characters', () {
       final files = Directory('assets/characters')
           .listSync()

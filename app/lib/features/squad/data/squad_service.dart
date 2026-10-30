@@ -91,10 +91,13 @@ String nameFromProfile(Map<String, dynamic>? profile) => profile == null
 
 /// Who someone in a squad is, as the squad sees them.
 class SquadPerson {
-  const new({required this.name, this.characterId});
+  const new({required this.name, this.characterId, this.deleted = false});
 
   final String name;
   final String? characterId;
+
+  /// Their account is gone: "Deleted user".
+  final bool deleted;
 }
 
 /// Names and characters for a squad, keyed by the comma-joined uids so it

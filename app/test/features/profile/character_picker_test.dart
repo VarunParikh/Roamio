@@ -110,16 +110,17 @@ void main() {
       );
     });
 
-    testWidgets('with no character you see your initial', (tester) async {
+    testWidgets('with no character you see your default', (tester) async {
       await _openYou(
         tester,
         FakeProfileService(profile: const Profile(name: 'Ari')),
       );
 
-      expect(find.text('A'), findsOneWidget);
+      expect(_assetImage('giraffe'), findsOneWidget);
+      expect(find.text('A'), findsNothing);
     });
 
-    testWidgets('an id this version doesn’t know shows your initial', (
+    testWidgets('an id this version doesn’t know shows your default', (
       tester,
     ) async {
       await _openYou(
@@ -129,7 +130,32 @@ void main() {
         ),
       );
 
-      expect(find.text('A'), findsOneWidget);
+      expect(_assetImage('giraffe'), findsOneWidget);
+    });
+
+    testWidgets('your default is marked in the picker', (tester) async {
+      await _openYou(
+        tester,
+        FakeProfileService(profile: const Profile(name: 'Ari')),
+      );
+
+      await tester.tap(find.byTooltip(_choose));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.bySemanticsLabel('Giraffe'),
+        300,
+        scrollable: find.byType(Scrollable).last,
+      );
+
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              w.properties.label == 'Giraffe' &&
+              (w.properties.selected ?? false),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a stored photo link is never loaded', (tester) async {
@@ -162,7 +188,7 @@ void main() {
     });
   });
 
-  group('Home asks once', () {
+  group('Home offers a change once', () {
     Future<void> openHome(WidgetTester tester, FakeProfileService profile) =>
         pumpRoamio(
           tester,
@@ -172,41 +198,57 @@ void main() {
         );
 
     const notAsked = Profile(name: 'Ari', characterOffered: false);
+    const prompt = 'We picked this for you';
 
-    testWidgets('a new account is offered a character', (tester) async {
+    testWidgets('a new account sees its default and can change it', (
+      tester,
+    ) async {
       await openHome(tester, FakeProfileService(profile: notAsked));
 
-      expect(find.text('Pick your character'), findsOneWidget);
+      expect(find.text(prompt), findsOneWidget);
+      // Beside the greeting and on the card.
+      expect(_assetImage('giraffe'), findsNWidgets(2));
     });
 
-    testWidgets('Not now is remembered, and sets no character', (tester) async {
+    testWidgets('Keep it is remembered, and keeps the default', (tester) async {
       final profile = FakeProfileService(profile: notAsked);
       await openHome(tester, profile);
 
-      await tester.tap(find.text('Not now'));
+      await tester.tap(find.text('Keep it'));
       await tester.pumpAndSettle();
 
       expect(profile.characterSaved, [null]);
-      expect(find.text('Pick your character'), findsNothing);
+      expect(find.text(prompt), findsNothing);
+      expect(_assetImage('giraffe'), findsOneWidget);
     });
 
-    testWidgets('Choose opens the picker and saves the pick', (tester) async {
+    testWidgets('Change opens the picker and saves the pick', (tester) async {
       final profile = FakeProfileService(profile: notAsked);
       await openHome(tester, profile);
 
-      await tester.tap(find.text('Choose'));
+      await tester.tap(find.text('Change'));
       await tester.pumpAndSettle();
       await tester.tap(find.bySemanticsLabel('Robot'));
       await tester.pumpAndSettle();
 
       expect(profile.characterSaved, ['robot']);
-      expect(find.text('Pick your character'), findsNothing);
+      expect(find.text(prompt), findsNothing);
+      expect(_assetImage('robot'), findsOneWidget);
     });
 
     testWidgets('someone already asked isn’t asked again', (tester) async {
       await openHome(tester, FakeProfileService());
 
-      expect(find.text('Pick your character'), findsNothing);
+      expect(find.text(prompt), findsNothing);
+    });
+
+    testWidgets('your picture beside the greeting opens You', (tester) async {
+      await openHome(tester, FakeProfileService());
+
+      await tester.tap(find.byTooltip('Your profile'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Your profile'), findsOneWidget);
     });
   });
 }

@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/profile/domain/characters.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/profile/ui/character_picker.dart';
 
-/// Offers a new account a character, once (spec UC-28). Not now is saved on
-/// the profile, so it isn't asked again; the You page can still change it.
+/// Shows a new account the character it was given, and offers a change, once
+/// (spec UC-28). Keep it is saved on the profile, so it isn't asked again; the
+/// You page can still change it.
 class CharacterPrompt extends ConsumerWidget {
   const new({super.key});
 
-  Future<void> _choose(BuildContext context, WidgetRef ref) async {
-    final id = await showCharacterPicker(context);
+  Future<void> _change(BuildContext context, WidgetRef ref, String uid) async {
+    final id = await showCharacterPicker(
+      context,
+      current: defaultCharacterFor(uid).id,
+    );
     if (id != null) await ref.read(profileServiceProvider).setCharacter(id);
   }
 
@@ -20,6 +27,7 @@ class CharacterPrompt extends ConsumerWidget {
     if (profile == null || profile.characterOffered) {
       return const SizedBox.shrink();
     }
+    final uid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final text = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -29,26 +37,41 @@ class CharacterPrompt extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Pick your character', style: text.titleMedium),
-              const SizedBox(height: 4),
-              Text(
-                'Your squad sees it next to your name.',
-                style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+              Row(
+                children: [
+                  CharacterAvatar(uid: uid, radius: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('We picked this for you', style: text.titleMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Your squad sees it next to your name. Change it?',
+                          style: text.bodyMedium?.copyWith(
+                            color: RoamioColors.slate,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _choose(context, ref),
-                      child: const Text('Choose'),
+                      onPressed: () => _change(context, ref, uid),
+                      child: const Text('Change'),
                     ),
                   ),
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () =>
                         ref.read(profileServiceProvider).setCharacter(null),
-                    child: const Text('Not now'),
+                    child: const Text('Keep it'),
                   ),
                 ],
               ),

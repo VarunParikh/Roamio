@@ -6,6 +6,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
@@ -113,6 +114,13 @@ class _JoinCardViewState extends ConsumerState<_JoinCardView> {
           children: [
             Row(
               children: [
+                PersonAvatar(
+                  uid: c.memberUid,
+                  person: ref
+                      .watch(squadPeopleProvider(c.memberUid))
+                      .value?[c.memberUid],
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     '${c.memberName} joined your squad',

@@ -15,16 +15,23 @@ import 'package:roamio/features/tabs/domain/tab_list.dart';
 /// Display names for everyone on an adventure's tabs and transfers: its
 /// members, its pals, and people who have left or deleted their account
 /// ("Deleted user").
-Map<String, String> squadLabels(WidgetRef ref, Adventure adventure) {
-  final names =
-      ref.watch(squadNamesProvider(adventure.memberUids.join(','))).value ??
-      const <String, String>{};
+Map<String, String> squadLabels(WidgetRef ref, Adventure adventure) => {
+  for (final MapEntry(:key, :value) in squadPeople(ref, adventure).entries)
+    key: value.name,
+};
+
+/// Everyone who can appear on an adventure, with their pictures: see
+/// [squadLabels]. Someone still being looked up isn't in it yet.
+Map<String, SquadPerson> squadPeople(WidgetRef ref, Adventure adventure) {
+  final members =
+      ref.watch(squadPeopleProvider(adventure.memberUids.join(','))).value ??
+      const <String, SquadPerson>{};
   final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
   final known = {...adventure.memberUids, for (final p in pals) p.id};
   final tabs = ref.watch(tabsProvider(adventure.id)).value ?? const [];
   final transfers =
       ref.watch(settlementsProvider(adventure.id)).value ?? const [];
-  // Looked up apart from the members, so the members' names don't reload.
+  // Looked up apart from the members, so the members don't reload.
   final others = {
     for (final t in tabs) ...[
       ...t.split.participants,
@@ -32,11 +39,15 @@ Map<String, String> squadLabels(WidgetRef ref, Adventure adventure) {
     ],
     for (final s in transfers) ...[s.from, s.to],
   }.difference(known).toList()..sort();
-  final otherNames = others.isEmpty
-      ? const <String, String>{}
-      : ref.watch(squadNamesProvider(others.join(','))).value ??
-            const <String, String>{};
-  return {...otherNames, ...names, for (final p in pals) p.id: p.nickname};
+  final otherPeople = others.isEmpty
+      ? const <String, SquadPerson>{}
+      : ref.watch(squadPeopleProvider(others.join(','))).value ??
+            const <String, SquadPerson>{};
+  return {
+    ...otherPeople,
+    ...members,
+    for (final p in pals) p.id: SquadPerson(name: p.nickname),
+  };
 }
 
 /// Formats [money] with its currency's symbol when one is known.
