@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
@@ -52,6 +53,49 @@ Finder _menuFor(String name) => find.descendant(
 );
 
 void main() {
+  testWidgets('the squad list shows the character each person chose', (
+    tester,
+  ) async {
+    final squad = _squad()..characters['bob'] = 'panda';
+    await pumpRoamio(
+      tester,
+      FakeAuthService(
+        initial: const SessionFacts(
+          uid: 'ari',
+          hasAccount: true,
+          ageStatus: 'adult',
+        ),
+      ),
+      adventures: FakeAdventureService([_bangkok]),
+      squad: squad,
+    );
+    await tester.tap(find.text('Bangkok trip'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Bob Lee'), 200);
+
+    final bob = find.widgetWithText(ListTile, 'Bob Lee');
+    expect(
+      find.descendant(
+        of: bob,
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is CharacterAvatar &&
+              w.characterId == 'panda' &&
+              w.name == 'Bob Lee',
+        ),
+      ),
+      findsOneWidget,
+    );
+    // Someone who hasn't chosen keeps their initial.
+    expect(
+      find.descendant(
+        of: find.widgetWithText(ListTile, 'Cara Diaz'),
+        matching: find.text('C'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   group('squad list (UC-15)', () {
     testWidgets('shows everyone with their role and a 🎩 on leads', (
       tester,

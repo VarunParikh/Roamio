@@ -5,6 +5,7 @@ import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
@@ -49,8 +50,8 @@ class SquadSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final uids = adventure.memberUids;
-    final names = ref.watch(squadNamesProvider(uids.join(','))).value ?? {};
-    String nameOf(String uid) => names[uid] ?? '…';
+    final people = ref.watch(squadPeopleProvider(uids.join(','))).value ?? {};
+    String nameOf(String uid) => people[uid]?.name ?? '…';
     final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
     final iLead = adventure.isLead(myUid);
     final offline = ref.watch(isOfflineProvider);
@@ -63,6 +64,7 @@ class SquadSection extends ConsumerWidget {
         for (final uid in uids)
           _MemberTile(
             name: uid == myUid ? '${nameOf(uid)} (you)' : nameOf(uid),
+            characterId: people[uid]?.characterId,
             role: _role(uid),
             isLead: adventure.isLead(uid),
             actions: offline ? const [] : _actionsOn(uid),
@@ -232,6 +234,7 @@ class SquadSection extends ConsumerWidget {
 class _MemberTile extends StatelessWidget {
   const new({
     required this.name,
+    required this.characterId,
     required this.role,
     required this.isLead,
     required this.actions,
@@ -239,6 +242,7 @@ class _MemberTile extends StatelessWidget {
   });
 
   final String name;
+  final String? characterId;
   final String role;
   final bool isLead;
   final List<_Action> actions;
@@ -257,11 +261,7 @@ class _MemberTile extends StatelessWidget {
     leading: Stack(
       clipBehavior: Clip.none,
       children: [
-        CircleAvatar(
-          backgroundColor: RoamioColors.hairline,
-          foregroundColor: RoamioColors.ink,
-          child: Text(name.isEmpty ? '?' : name.characters.first),
-        ),
+        CharacterAvatar(name: name, characterId: characterId),
         if (isLead)
           const Positioned(
             right: -6,

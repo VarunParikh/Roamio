@@ -177,7 +177,7 @@ Each item is written so it can become a test.
 
 ### 5.9 Profile (bottom tab: You)
 
-- **UC-28** Photo (camera/gallery), name, optional description, profile currency, notification and location toggles.
+- **UC-28** Character (chosen from the 47 in `assets/characters/`, always on opaque white; Home offers it once to a new account; an initial until then; uploading your own picture is Phase 2), name, optional description, profile currency, notification and location toggles.
 - **UC-29 Privacy centre:** download my data (JSON + photos zip), correct my data, delete my account, nominate a person, raise a concern (grievance contact), withdraw individual consents. For parents: **Linked children** (§7).
 
 ### 5.10 Offline & sync

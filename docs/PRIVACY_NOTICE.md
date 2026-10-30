@@ -30,7 +30,7 @@ Roamio is an app for splitting travel costs with friends. Roamio is run by Varun
 |---|---|
 | Your name, email and how you sign in (Google or email + password) | To create your account and let you sign in. |
 | That you confirmed you're 18 or older (the sign-up tick) | Roamio's pilot is for adults. We don't ask your date of birth; we record that you confirmed your age, and when. |
-| Profile photo and short description (optional) | So your squad recognises you. |
+| The character you choose as your picture, and a short description (both optional) | So your squad recognises you. |
 | Your profile currency | To show amounts in money you know. |
 | Your choices for notifications, location and camera | So the app only does what you allowed. |
 | A code that lets us send notifications to your phone | For alerts when friends join and when you near your budget. Removed when a phone stops using it. |
@@ -69,7 +69,7 @@ Like any website, these services see your phone's internet (IP) address when you
 
 ### Your rights — all in **You → Privacy centre**
 - **Download your data:** a file of everything we keep about you, plus your photos as zip files.
-- **Correct your data:** change your name, photo and description on the You page. To fix your date of birth, write to us (we check it by hand).
+- **Correct your data:** change your name, character and description on the You page. To fix your date of birth, write to us (we check it by hand).
 - **Delete your account.** If you lead a squad with others in it, make someone else leader first.
 - **Nominate a person** to use these rights for you if you can't (for example through illness or death). During the pilot, write to our grievance officer (below) with their name and email; choosing one in the app comes in Phase 2.
 - **Change your mind:** switch notifications, location or camera on or off at any time. Turning one off stops it from then on.

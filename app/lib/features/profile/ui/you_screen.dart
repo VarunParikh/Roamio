@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,13 +8,14 @@ import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/images/upload_queue.dart';
-import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
+import 'package:roamio/features/profile/ui/character_picker.dart';
 import 'package:roamio/features/profile/ui/consent_switches.dart';
 import 'package:roamio/features/profile/ui/privacy_centre.dart';
 
@@ -62,6 +62,11 @@ class _YouScreenState extends ConsumerState<YouScreen> {
     showAuthMessage(context, 'Profile saved.');
   }
 
+  Future<void> _chooseCharacter(String? current) async {
+    final id = await showCharacterPicker(context, current: current);
+    if (id != null) await ref.read(profileServiceProvider).setCharacter(id);
+  }
+
   Future<void> _changePhoto() async {
     final cameraAllowed = ref.read(cameraAllowedProvider).value ?? true;
     final camera = await showModalBottomSheet<bool>(
@@ -99,6 +104,8 @@ class _YouScreenState extends ConsumerState<YouScreen> {
         field: 'photoUrl',
         mode: UploadMode.replace,
       );
+      // A character would hide the new photo.
+      await ref.read(profileServiceProvider).setCharacter(null);
       if (mounted) {
         showAuthMessage(context, 'Your photo will appear once it’s uploaded.');
       }
@@ -127,8 +134,7 @@ class _YouScreenState extends ConsumerState<YouScreen> {
       ...?ref.watch(countriesProvider).value?.currencies,
       currency,
     }.toList()..sort();
-    final photoUrl = profile?.photoUrl;
-    final initial = _name.text.trim().characters.firstOrNull ?? '?';
+    final uploads = ref.watch(photoUploadsEnabledProvider);
 
     return SafeArea(
       child: ListView(
@@ -141,26 +147,34 @@ class _YouScreenState extends ConsumerState<YouScreen> {
           Center(
             child: Stack(
               children: [
-                CircleAvatar(
-                  radius: 48,
-                  backgroundColor: RoamioColors.hairline,
-                  foregroundColor: RoamioColors.ink,
-                  backgroundImage: photoUrl == null
-                      ? null
-                      : CachedNetworkImageProvider(photoUrl),
-                  child: photoUrl == null
-                      ? Text(initial, style: text.displayMedium)
-                      : null,
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: CharacterAvatar(
+                    name: _name.text,
+                    characterId: profile?.characterId,
+                    photoUrl: uploads ? profile?.photoUrl : null,
+                    radius: 48,
+                  ),
                 ),
                 Positioned(
                   right: 0,
                   bottom: 0,
                   child: IconButton.filledTonal(
-                    tooltip: 'Change photo',
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    onPressed: _changePhoto,
+                    tooltip: 'Choose your character',
+                    icon: const Icon(Icons.edit_outlined),
+                    onPressed: () => _chooseCharacter(profile?.characterId),
                   ),
                 ),
+                if (uploads)
+                  Positioned(
+                    left: 0,
+                    bottom: 0,
+                    child: IconButton.filledTonal(
+                      tooltip: 'Change photo',
+                      icon: const Icon(Icons.photo_camera_outlined),
+                      onPressed: _changePhoto,
+                    ),
+                  ),
               ],
             ),
           ),
