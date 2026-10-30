@@ -16,7 +16,21 @@ export type EraseDeps = {
   removeAvatars: (uid: string) => Promise<void>;
   /** A parent has accepted that their linked children stay (spec §7.5). */
   confirmLinkedChildren?: boolean;
+  /**
+   * For a child whose parent said no or withdrew consent: a squad they lead
+   * passes to a co-lead (or else the longest-listed member) instead of
+   * blocking the deletion, which they can't do themselves (spec §7.3).
+   */
+  handOverLeadership?: boolean;
 };
+
+const leadsOthers = (uid: string, leader: string, members: string[]) =>
+  leader === uid && members.length > 1;
+const handOverFirst = (name: unknown) =>
+  new HttpsError(
+    "failed-precondition",
+    `Make someone else squad leader of ${name} before you delete your account.`,
+  );
 
 export async function removeAvatarFiles(uid: string): Promise<void> {
   await getStorage()
@@ -33,11 +47,11 @@ export async function eraseAccount(uid: string, deps: EraseDeps): Promise<void> 
 
   // Leading a squad that others are in needs a hand-over first.
   for (const adventure of memberships.docs) {
-    if (adventure.get("leaderUid") === uid && (adventure.get("memberUids") ?? []).length > 1) {
-      throw new HttpsError(
-        "failed-precondition",
-        `Make someone else squad leader of ${adventure.get("name")} before you delete your account.`,
-      );
+    if (
+      !deps.handOverLeadership &&
+      leadsOthers(uid, adventure.get("leaderUid"), adventure.get("memberUids") ?? [])
+    ) {
+      throw handOverFirst(adventure.get("name"));
     }
   }
   const children = await db()
@@ -57,8 +71,28 @@ export async function eraseAccount(uid: string, deps: EraseDeps): Promise<void> 
     await db().runTransaction(async (tx) => {
       const squad = await loadSquad(tx, adventure.id);
       if (!squad.members.includes(uid)) return;
+      // Checked again here: someone may have joined since the check above.
+      const handOver = leadsOthers(uid, squad.leader, squad.members);
+      if (handOver && !deps.handOverLeadership) throw handOverFirst(squad.adventure.get("name"));
       await dropMember(tx, squad, uid, uid, "member_left");
-      if (squad.leader === uid) {
+      if (handOver) {
+        const next = squad.coLeads[0] ?? squad.members.filter((m) => m !== uid)[0];
+        tx.update(squad.adventure.ref, {
+          leaderUid: next,
+          coLeadUids: squad.coLeads.filter((c) => c !== next),
+        });
+        tx.set(
+          squad.adventure.ref.collection("members").doc(next),
+          { role: "leader", status: "active" },
+          { merge: true },
+        );
+        tx.create(squad.adventure.ref.collection("activity").doc(), {
+          type: "leader_changed",
+          actorUid: uid,
+          subject: next,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      } else if (squad.leader === uid) {
         tx.update(squad.adventure.ref, {
           archived: true,
           archivedAt: FieldValue.serverTimestamp(),

@@ -2,7 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onCall, type CallableRequest } from "firebase-functions/https";
 import { todayInIndia } from "../auth/age";
-import { deleteUserCompletely } from "../auth/deleteUser";
+import { eraseAccount, removeAvatarFiles, type EraseDeps } from "../privacy/deleteAccount";
 import { queueMail, siteUrl } from "../mail";
 import { canRequestAgain, isExpired, type RequestCounter, WITHDRAW_GRACE_HOURS } from "./rules";
 import { hashToken, newToken, tokensMatch } from "./token";
@@ -29,9 +29,13 @@ async function ageStatusOf(uid: string): Promise<string | undefined> {
   return (await accountDoc(uid).get()).get("ageStatus");
 }
 
+/** Letters only: a name the child typed must never read as a link to the parent. */
+const PLAIN_NAME = /^[\p{L}\p{M}'’-]{1,30}$/u;
+
 async function firstNameOf(uid: string): Promise<string> {
   const name: string = (await getFirestore().doc(`users/${uid}`).get()).get("name") ?? "";
-  return name.trim().split(/\s+/)[0] || "Your child";
+  const first = name.trim().split(/\s+/)[0];
+  return PLAIN_NAME.test(first) ? first : "Your child";
 }
 
 export function consentLink(childUid: string, token: string): string {
@@ -159,6 +163,11 @@ export const decideParentalConsent = onCall(async (request) => {
   }
 
   const childUid = snap.id;
+  // A decline deletes first and records after, so a deletion that stops
+  // part-way leaves the request open for the parent to answer again.
+  if (data.decision === "decline") {
+    await deleteChild(childUid, "your parent or guardian said no");
+  }
   const db = getFirestore();
   await db.runTransaction(async (tx) => {
     const fresh = await tx.get(consentDoc(childUid));
@@ -176,15 +185,19 @@ export const decideParentalConsent = onCall(async (request) => {
       tx.update(accountDoc(childUid), { ageStatus: "minor_active", parentUid: parent.uid });
     }
   });
-
-  if (data.decision === "decline") {
-    await deleteChild(childUid, "your parent or guardian said no");
-  }
   return { ok: true };
 });
 
-/** Tells the child why, then deletes their account and data (spec §7.1 step 7). */
-export async function deleteChild(childUid: string, reason: string): Promise<void> {
+/**
+ * Tells the child why, then erases their account the way deleting one does
+ * (spec §7.1 step 7, §8): out of every squad, budgets and photos gone.
+ * Safe to run again if it stops part-way.
+ */
+export async function deleteChild(
+  childUid: string,
+  reason: string,
+  removeAvatars: EraseDeps["removeAvatars"] = removeAvatarFiles,
+): Promise<void> {
   const email = await getAuth()
     .getUser(childUid)
     .then((u) => u.email)
@@ -197,7 +210,11 @@ export async function deleteChild(childUid: string, reason: string): Promise<voi
         `You're welcome to sign up again with a parent or guardian's consent.`,
     );
   }
-  await deleteUserCompletely(childUid);
+  await eraseAccount(childUid, {
+    removeAvatars,
+    confirmLinkedChildren: true,
+    handOverLeadership: true,
+  });
 }
 
 /**
