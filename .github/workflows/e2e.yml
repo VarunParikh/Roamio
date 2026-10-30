@@ -90,3 +90,39 @@ jobs:
       - name: Show emulator logs
         if: ${{ !success() }}
         run: tail -n 200 app/build/e2e/*.log || true
+
+  # A scheduled run that doesn't pass opens a GitHub Issue (or adds to the
+  # open one), so failures have a record. The daily Claude routine "Roamio
+  # nightly journey check" then opens a fix PR that closes it. A separate
+  # job, so only it can write issues; the tests stay read-only.
+  report:
+    name: Open an issue if the nightly run failed
+    needs: journeys
+    if: ${{ always() && needs.journeys.result != 'success' && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.journeys.result }}
+        run: |
+          run="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          day=$(date -u +%Y-%m-%d)
+          gh label create nightly-failure --color B60205 \
+            --description "The nightly journey tests didn't pass" --force
+          open=$(gh issue list --label nightly-failure --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "Didn't pass again on $day ($RESULT): $run"
+          else
+            gh issue create --label nightly-failure \
+              --title "Nightly journey tests didn't pass ($day)" \
+              --body "The nightly end-to-end journey tests ended as **$RESULT** on $day.
+
+          Run and logs: $run
+
+          The daily Claude routine (\"Roamio nightly journey check\", about 03:00 India time) investigates and opens a pull request titled \"Fix nightly journeys: …\" that closes this issue. Nothing is merged without you naming the PR."
+          fi

@@ -108,7 +108,11 @@ tool/e2e.sh integration_test/journeys_test.dart --plain-name "Journey C"
 The journeys take about 3 minutes; a cold start (booting both emulators) about
 4. Without a dev `google-services.json` the script writes a stand-in with no
 real keys, which is enough because every call goes to the emulators. CI runs
-the same script nightly (`.github/workflows/e2e.yml`).
+the same script nightly (`.github/workflows/e2e.yml`). A scheduled run that
+doesn't pass opens a GitHub Issue labelled `nightly-failure`. Every morning at
+about 03:00 India time, the Claude routine "Roamio nightly journey check"
+(claude.ai/code/routines) looks at the run. On a failure it opens a
+"Fix nightly journeys: …" PR that closes the issue; it never merges.
 
 Still manual: installing the APK from an invite link, real airplane mode,
 photos on tabs, Google sign-in, real emails and push notifications.
