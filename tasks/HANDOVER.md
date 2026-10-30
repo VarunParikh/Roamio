@@ -1,59 +1,65 @@
-# Handover — 2026-10-30 (evening)
+# Handover — 2026-10-30 (night)
 
-Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`.
-The owner works from a phone and will do **one manual test session at the end**: never ask for device checks, add them to the list below. Ask before merging (the owner must name the PR numbers), before adding a dependency, and before anything that adds Firebase cost or changes the data model.
+Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`, `docs/ROADMAP.md`.
+The owner works **remotely from a phone** (Remote Control) and does **one manual test session at the end**: never ask for device checks; add them to the list below. Ask before merging (**the owner must name the PR numbers**, e.g. "merge #66"; blanket approvals are refused by the permission check), before adding a dependency, before anything that adds Firebase cost, and before changing the data model.
 
 ## Where things stand
 
-**Merged into `main`:** everything through #57.
-- #51 UX pass (Task 39)
-- #52 the previous handover
-- #53 end-to-end journey tests A–F (Task 41), plus the deleted-account sign-out fix
-- #54 pilot guide draft (`docs/PILOT_GUIDE.md`, part of Task 44)
-- #55 security, privacy and code review (Task 43): reports in `docs/reviews/`
-- #56 Task 43 follow-ups
-- #57 nightly journey tests fixed for GitHub's runners (they now pass there in about 13 min)
+**Merged into `main`: everything through #65. No open PRs** (apart from the PR carrying this handover). CI and the nightly journey tests are green.
 
-**Open, waiting for the owner to name them** (all CI-green or running):
-- #58 the owner's decisions:
-  - C4/C14: each tab keeps its exchange-rate day;
-  - S3b: profiles visible only to squadmates;
-  - S12: old emails deleted after 30 days;
-  - S7 and S8 recorded.
-
-  Data-model changes, approved.
-- #59 CI hardening (S14): pinned Actions; releases need the owner's approval in the new `release` environment (already created on GitHub with the owner as reviewer); the publish job alone can write. CI change, approved.
-- #60 App Check (S15): set up with Play Integrity in the prod app, **not enforced**. New package `firebase_app_check`, approved.
-
-Merge order: #58, then #59 and #60 in either order. After each merge, run `gh pr update-branch` on the next and wait for its CI.
+Since the previous handover:
+- #58 the owner's review decisions:
+  - each tab keeps its exchange-rate day;
+  - profiles visible only to squadmates;
+  - old emails deleted after 30 days.
+- #59 CI hardening: pinned Actions, and a `release` environment that needs the owner's approval.
+- #60 App Check, set up but not enforced.
+- #61 handover.
+- #62 a failed nightly run opens a `nightly-failure` issue.
+- #63 offline-restart fix: reopening the app online after it was offline no longer leaves Firestore's network off.
+- #64 **pilot scope, the owner's decision (option B)**:
+  - sign-up asks **no date of birth** and refuses no one; the tick reads **"I'm 18 or older and I've read the privacy notice"** (`adultDeclared: true`, and the server sets the account adult);
+  - **under-18 screens and Nominate a person are hidden** by two switches in `app/lib/core/config/phase2.dart`, for a separate DPDP-compliant Phase 2 version;
+  - the code, rules and tests stay, and Journey E runs with `launch(phase2: true)`;
+  - see `docs/ROADMAP.md`.
+- #65 **app icon**: the split pin ("paid + owed"); master `design/app-icon/roamio-icon-split-pin.svg`; adaptive, themed, round and PNG versions in `app/android/app/src/main/res`.
 
 **Task status**
-- Done (ticked): 1–32, 34–41, 43.
-- **Task 33:** only device checks are left (airplane mode, Sync, a second phone). The automated Journey D covers the app side.
-- **Task 42:** code done. Owner steps left:
-  - create and back up the upload keystore;
-  - add the three secrets **to the `release` environment** (after #59; the commands are in `docs/RELEASING.md`);
-  - push the first `v0.1.0-rc1` tag and approve the run.
-- **Task 44 (pilot):** owner. The guide is drafted. Before inviting anyone, see the checklist in `docs/PILOT_GUIDE.md` part 2:
-  - deploy Hosting;
-  - install the Trigger Email extension on prod;
-  - set up the feedback form.
-- **Checkpoints 0–6:** the owner's manual journeys and sign-off.
+- Done: 1–32, 34–41, 43.
+- **Task 33:** device checks only.
+- **Task 42:** owner steps. Create and back up the upload key, add the secrets to the `release` environment (`docs/RELEASING.md`), push `v0.1.0-rc1`, and approve the run.
+- **Task 44, pilot:** owner. The checklist is in `docs/PILOT_GUIDE.md` part 2.
 
-**Nothing left for an agent except:** follow-ups from the owner's manual session, and keeping the nightly journey workflow green.
+## Test APK for the owner (2026-10-30)
+- `Roamio-dev-2026-10-30.apk`: dev flavor, release mode, signed with the debug key, 97 MB, built from `main` at #65.
+- Shared through a **private draft GitHub release**, `test-build-2026-10-30` (no tag, so the release workflow didn't run). Delete the draft once it's no longer needed: `gh release delete test-build-2026-10-30`.
+- **It talks to the real dev Firebase project (`roamio-dev-varun`).** As of 2026-10-30 the dev backend may not be deployed (`firebase functions:list -P dev` failed). Until the owner deploys, sign-up may stall: no server function sets the account status, and the rules may not be published. Deploy dev with:
+  - `firebase deploy --only firestore,functions,storage -P dev`;
+  - Hosting is optional.
 
-## Owner decisions (2026-10-30)
-- **S7:** a removed member can still rejoin with the old link (left as is).
-- **S8:** photos added to tabs stay with the squad when an account is deleted.
-- **C4:** lock each tab's rate day (built in #58).
-- **S3b, S12, S14, S15:** approved and built (#58–#60).
-- **App Check:** don't enforce during the pilot. Enforce after the app is on the Play Store (`docs/SETUP.md` → App Check).
-- **Grievance email:** placeholder until the next phase.
+  Both need the Blaze plan.
+- Files over 30 MB can't be sent to the owner's phone through Remote Control; use a private draft release.
 
-## Owner deploy steps once #58–#60 are merged
-- `firebase deploy --only firestore -P prod`: rules, indexes, and the 30-day TTL on `mail.expiresAt`.
-- `firebase deploy --only functions -P prod`: includes `profileReadersOnAdventure`.
-- `firebase deploy --only hosting -P prod`: invite links and the privacy page.
+## Waiting on the owner
+1. **Deploy** dev (for the APK test) and later prod: `firebase deploy --only firestore,functions,storage[,hosting] -P dev|prod`.
+2. **The manual test session** (list below), then report issues.
+3. **The phone load test** on a spare older Samsung: proposed, **not approved**. The plan:
+   - seed heavy data into the emulators;
+   - point the phone at them over `adb reverse` (this needs an emulator-host build option, because `firebase_setup.dart` hard-codes `10.0.2.2`);
+   - profile memory and jank, plus an optional burst test.
+
+   The known risks:
+   - the functions cap is `maxInstances: 5`;
+   - tab lists aren't paged.
+4. Task 42 owner steps; then the pilot.
+5. The grievance email (next phase).
+
+## Local-only notes (the owner's Mac)
+- `firebase/functions/.env.local` (untracked; created during the screenshot run) overrides `UNSPLASH_API_BASE`, so **3 banner tests fail locally only**. CI is fine. Deleting it fixes local runs. It's treated as possibly holding credentials, so don't print it.
+- `screenshots/` is git-excluded:
+  - app screenshots (`screenshots/2026-10-30/`, 54 images);
+  - icon option files (`screenshots/icon-options/`);
+  - the APK copy.
 
 ## Hands-on checks for the owner (nothing here has run on a device or real Firebase)
 - Photos and push:
@@ -61,16 +67,16 @@ Merge order: #58, then #59 and #60 in either order. After each merge, run `gh pr
   - a real push notification arrives;
   - scan a real bill;
   - open an exported PDF.
-- Sign-in and journeys: Google sign-in; the Checkpoint 3 journeys; the teen/parent consent journey.
+- Sign-in and journeys: Google sign-in and email sign-up with the **"I'm 18 or older" tick (no date of birth)**; the Checkpoint 3 journeys. (The teen/parent consent journey is Phase 2.)
 - Offline:
   - airplane mode, then Sync, then a second phone sees the change (Journey D);
   - a photo queued offline doesn't freeze the queue;
   - the offline banner's wording.
 - You page: photo, name, currency, switches; the Location switch; the Camera switch hides "Take a photo".
 - Privacy centre:
-  - download my data (real JSON and zips; also a parent's download for a child);
-  - delete my account on the dev project (leader message, parent confirmation, sign-out);
-  - nominate, change and remove a person;
+  - download my data (real JSON and zips);
+  - delete my account on the dev project (leader message, sign-out);
+  - no Nominate section and no Linked children (hidden for the pilot);
   - the privacy notice link.
 - Names and activity: "Deleted user" and a left member's name on real tabs; the activity screen.
 - Hero card: the weather pill; text readable over real banner photos.
@@ -83,6 +89,8 @@ Merge order: #58, then #59 and #60 in either order. After each merge, run `gh pr
   - Offline photos: a photo whose link failed to save uploads on the next Sync; signing out clears the queue.
   - Releases: the first tag waits for your **Approve** in Actions, then publishes the APK.
   - App Check: after installing the prod APK, the Firebase console → App Check shows requests (not enforced).
+  - Offline restart (#63): go offline, press Back to leave the app, reopen when online, add a tab, and see it on the second phone.
+  - App icon (#65): the split pin on the home screen and app list, on a Samsung (rounded-square icons) and with themed icons on (Android 13+).
 
 ## Facts and traps learned
 - **This repo was edited from a cloud container**; local path on the owner's Mac is `/Users/varunparikh/Projects/Roamio-travel-partner`. The old brief mentioned `tasks/HANDOVER.md` which did not exist; this file replaces it.
