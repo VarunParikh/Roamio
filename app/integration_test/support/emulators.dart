@@ -20,7 +20,11 @@ const _functionsBase = 'http://$_host:5001/$project/asia-south1';
 /// Emulator-only token that skips security rules (like the Admin SDK).
 const _owner = 'owner';
 
-final _http = HttpClient();
+final _http = HttpClient()..connectionTimeout = const Duration(seconds: 10);
+
+/// Long enough for a function's cold start. A silent emulator otherwise hangs
+/// the journey with no error at all.
+const _answerWithin = Duration(seconds: 60);
 var _n = 0;
 
 /// A unique, readable email for this run.
@@ -58,8 +62,16 @@ Future<Map<String, dynamic>> _send(
   request.headers.contentType = ContentType.json;
   if (token != null) request.headers.set('Authorization', 'Bearer $token');
   if (body != null) request.write(jsonEncode(body));
-  final response = await request.close();
-  final text = await response.transform(utf8.decoder).join();
+  Never noAnswer() =>
+      throw HttpException('$method $url → no answer in $_answerWithin');
+  final response = await request.close().timeout(
+    _answerWithin,
+    onTimeout: noAnswer,
+  );
+  final text = await response
+      .transform(utf8.decoder)
+      .join()
+      .timeout(_answerWithin, onTimeout: noAnswer);
   final json = text.isEmpty
       ? <String, dynamic>{}
       : jsonDecode(text) is Map<String, dynamic>

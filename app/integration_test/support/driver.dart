@@ -116,13 +116,17 @@ List<String> visibleTexts() => [
 
 /// Waits for [finder], scrolls it into view and taps the first match.
 /// A button that is briefly busy (its label swapped for a spinner) is
-/// waited for again rather than missed.
+/// waited for again rather than missed. So is a target the layout moved out
+/// from under the tap: a keyboard that is still opening shrinks the list
+/// after it scrolled, and can leave the target behind a pinned button.
 Future<void> tapOn(WidgetTester tester, Finder finder) async {
   for (var attempt = 1; ; attempt++) {
     await waitFor(tester, finder);
     await tester.ensureVisible(finder.first);
     await settle(tester, const Duration(milliseconds: 300));
-    if (finder.evaluate().isNotEmpty || attempt == 5) break;
+    if (finder.first.hitTestable().evaluate().isNotEmpty || attempt == 10) {
+      break;
+    }
   }
   await tester.tap(finder.first);
   await settle(tester);
@@ -205,6 +209,7 @@ Future<String> signUpWithEmail(
     await waitFor(tester, find.text('I’m 18 or older and I’ve read the '));
   }
   await tapOn(tester, find.byType(Checkbox));
+  expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
   await tapText(tester, 'Create account');
 
   await waitFor(tester, find.text('I’ve verified my email'));
