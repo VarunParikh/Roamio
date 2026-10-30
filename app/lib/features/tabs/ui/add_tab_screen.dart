@@ -306,7 +306,18 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final tab = NewTab(
       status: old0 == null
           ? statusForNewTab(_a, myUid, payers, sharing)
-          : statusForEditedTab(_a, myUid, old0.status, payers, sharing),
+          : statusForEditedTab(
+              _a,
+              myUid,
+              old0,
+              amountMinor: parseAmount(_amount.text, _currency)!,
+              currency: _currency,
+              payers: payers,
+              sharing: sharing,
+              percentBp: _percentFields == null
+                  ? null
+                  : percentsFrom(_texts(_percentFields)!),
+            ),
       description: _description.text,
       category: _category!,
       amountMinor: parseAmount(_amount.text, _currency)!,

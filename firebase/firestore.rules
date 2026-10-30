@@ -203,7 +203,8 @@ service cloud.firestore {
           return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
                    'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
-                   'baseUpdatedAt', 'status', 'decidedBy', 'decidedAt'])
+                   'baseUpdatedAt', 'status', 'decidedBy', 'decidedAt', 'rejectReason'])
+            && isText(t.get('rejectReason', ''), 0, 200)
             && t.status in ['waiting', 'approved', 'rejected', 'personal']
             && (t.status != 'personal' || isOwnShape(t))
             && t.get('baseUpdatedAt', request.time) is timestamp
@@ -230,9 +231,12 @@ service cloud.firestore {
           return isLead(aid) && adventure(aid).coLeadUids.size() == 0;
         }
 
-        // A personal tab is only for its creator, not even for admins.
+        // A personal tab is only for its creator, not even for admins; a
+        // rejected one is for its creator and the admins (spec UC-21a).
         allow read: if isMember(aid)
-          && (resource.data.status != 'personal' || resource.data.createdBy == me());
+          && (resource.data.status in ['waiting', 'approved']
+            || resource.data.createdBy == me()
+            || (resource.data.status == 'rejected' && isLead(aid)));
         allow create: if isMember(aid)
           && validTab()
           && incoming().createdBy == me()
@@ -249,18 +253,24 @@ service cloud.firestore {
               // left with only you, it's personal; add someone and it needs
               // approving like any new tab
               || incoming().status == 'personal'
-              || (resource.data.status == 'personal'
+              || (resource.data.status in ['personal', 'rejected']
                 && (incoming().status == 'waiting'
-                  || (incoming().status == 'approved' && isOnlyAdmin())))))
-          // its creator deletes a personal tab, since admins can't see it
-          || (resource.data.createdBy == me() && resource.data.status == 'personal'
+                  || (incoming().status == 'approved' && isOnlyAdmin())))
+              // a money edit needs approving again; checkTab enforces it
+              || (resource.data.status == 'approved' && incoming().status == 'waiting')))
+          // its creator deletes a personal tab, since admins can't see it, or
+          // a rejected one
+          || (resource.data.createdBy == me()
+            && resource.data.status in ['personal', 'rejected']
             && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
             && incoming().deleted == true && incoming().get('deletedBy', '') == me())
           // an admin decides a waiting tab, once, and never their own while
           // another admin could (spec UC-21a)
           || (isLead(aid) && resource.data.status == 'waiting'
-            && changed().hasOnly(['status', 'decidedBy', 'decidedAt', 'updatedAt'])
+            && changed().hasOnly(['status', 'decidedBy', 'decidedAt', 'updatedAt', 'rejectReason'])
             && incoming().status in ['approved', 'rejected']
+            && (incoming().status == 'rejected' || !('rejectReason' in incoming()))
+            && isText(incoming().get('rejectReason', ''), 0, 200)
             && incoming().decidedBy == me()
             && (resource.data.createdBy != me() || isOnlyAdmin()))
           // a lead soft-deletes any tab, saying who did it (shown in activity)

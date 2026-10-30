@@ -262,6 +262,34 @@ class _TabRow extends ConsumerWidget {
                     ),
                   ),
                 ),
+              if (tab.status == TabStatus.rejected)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    switch (tab.rejectReason) {
+                      final reason? => '$rejectedLabel: $reason',
+                      null => rejectedLabel,
+                    },
+                    style: text.labelMedium?.copyWith(
+                      color: RoamioColors.coralText,
+                    ),
+                  ),
+                ),
+              if (tab.status == TabStatus.rejected &&
+                  tab.createdBy == myUid &&
+                  adventure.tabsOpenOn(ref.watch(todayProvider)))
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                    ),
+                    onPressed: () => context.push(
+                      '/adventures/${adventure.id}/tabs/${tab.id}/edit',
+                    ),
+                    child: const Text('Edit and resubmit'),
+                  ),
+                ),
               if (canDecideTab(adventure, tab, myUid))
                 _DecideButtons(adventure: adventure, tab: tab),
             ],
@@ -285,30 +313,18 @@ class _DecideButtons extends ConsumerWidget {
     WidgetRef ref, {
     required bool approve,
   }) async {
+    String? reason;
     if (!approve) {
-      final sure = await showDialog<bool>(
+      reason = await showDialog<String>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Reject this tab?'),
-          content: const Text('It won’t count towards anyone’s balance.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Reject'),
-            ),
-          ],
-        ),
+        builder: (_) => const _RejectDialog(),
       );
-      if (!(sure ?? false)) return;
+      if (reason == null) return;
     }
     try {
       await ref
           .read(tabServiceProvider)
-          .decideTab(adventure.id, tab.id, approve: approve);
+          .decideTab(adventure.id, tab.id, approve: approve, reason: reason);
     } on TabAlreadyDecided {
       if (context.mounted) showAuthMessage(context, alreadyDecidedMessage);
     }
@@ -351,4 +367,51 @@ class _DecideButtons extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Confirms a rejection and takes an optional reason. Returns the reason,
+/// empty if none, or null when cancelled.
+class _RejectDialog extends StatefulWidget {
+  const new();
+
+  @override
+  State<_RejectDialog> createState() => _RejectDialogState();
+}
+
+class _RejectDialogState extends State<_RejectDialog> {
+  final _reason = TextEditingController();
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Reject this tab?'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('It won’t count towards anyone’s balance.'),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _reason,
+          maxLength: 200,
+          decoration: const InputDecoration(labelText: 'Reason (optional)'),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.pop(context, _reason.text.trim()),
+        child: const Text('Reject'),
+      ),
+    ],
+  );
 }

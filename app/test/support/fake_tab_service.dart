@@ -49,7 +49,10 @@ class FakeTabService implements TabService {
   ]..sort((a, b) => b.date.compareTo(a.date));
 
   @override
-  Stream<List<TabEntry>> tabs(String adventureId) async* {
+  Stream<List<TabEntry>> tabs(
+    String adventureId, {
+    required bool isAdmin,
+  }) async* {
     if (failToLoad) throw Exception('tabs unavailable');
     yield _visible(adventureId);
     yield* _changes.stream.map((_) => _visible(adventureId));
@@ -99,6 +102,7 @@ class FakeTabService implements TabService {
     String adventureId,
     String tabId, {
     required bool approve,
+    String? reason,
   }) async {
     if (alreadyDecided) throw TabAlreadyDecided();
     final status = approve ? TabStatus.approved : TabStatus.rejected;
@@ -117,6 +121,7 @@ class FakeTabService implements TabService {
       memories: old.memories,
       deleted: old.deleted,
       status: status,
+      rejectReason: reason == null || reason.isEmpty ? null : reason,
     );
     _changes.add(null);
   }

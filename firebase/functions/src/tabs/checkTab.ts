@@ -88,6 +88,19 @@ export function replacedEdit(before?: DocumentData, after?: DocumentData): boole
   return !base.isEqual(was);
 }
 
+/** Whether what people owe changed; how someone paid doesn't count (spec UC-21a). */
+export function moneyChanged(before: DocumentData, after: DocumentData): boolean {
+  const facts = (t: DocumentData) =>
+    JSON.stringify([
+      t.amountMinor,
+      t.currency,
+      ((t.payers ?? []) as Payer[]).map((p) => [p.id, p.amountMinor]),
+      t.participants,
+      Object.entries(t.percentBp ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+    ]);
+  return facts(before) !== facts(after);
+}
+
 export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (event) => {
   const after = event.data?.after;
   const tab = after?.data();
@@ -117,6 +130,30 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const active = new Set([...members, ...pals.docs.map((p) => p.id)]);
   const problem = tabProblem(tab, active, (id) => members.includes(id), event.data?.before?.data());
   if (!problem) {
+    const before = event.data?.before?.data();
+    if (before?.status === "waiting" && tab.status === "rejected") {
+      await adventureRef.collection("activity").add({
+        type: "tab_declined",
+        actorUid: tab.decidedBy ?? null,
+        subject: event.params.tid,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    const onlyAdmin =
+      tab.createdBy === adventure.get("leaderUid") &&
+      ((adventure.get("coLeadUids") as string[]) ?? []).length === 0;
+    if (
+      before?.status === "approved" &&
+      tab.status === "approved" &&
+      !onlyAdmin &&
+      moneyChanged(before, tab)
+    ) {
+      await after.ref.update({
+        status: "waiting",
+        decidedBy: FieldValue.delete(),
+        decidedAt: FieldValue.delete(),
+      });
+    }
     if (!personal && replacedEdit(event.data?.before?.data(), tab)) {
       await adventureRef.collection("activity").add({
         type: "tab_edit_replaced",

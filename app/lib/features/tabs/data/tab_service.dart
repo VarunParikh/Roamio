@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:roamio/core/location/location_service.dart';
+import 'package:roamio/features/adventures/data/adventure_service.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
@@ -21,7 +23,11 @@ class TabEntry {
     this.deleted = false,
     this.updatedAt,
     this.status = TabStatus.approved,
+    this.rejectReason,
   });
+
+  /// Why an admin rejected it, if they said (spec UC-21a).
+  final String? rejectReason;
 
   final String id;
   final String description;
@@ -57,8 +63,9 @@ class TabEntry {
 class TabAlreadyDecided implements Exception;
 
 abstract interface class TabService {
-  /// The adventure's tabs that aren't deleted, newest first.
-  Stream<List<TabEntry>> tabs(String adventureId);
+  /// The adventure's tabs that aren't deleted and this person may see, newest
+  /// first. [isAdmin] adds other people's rejected tabs.
+  Stream<List<TabEntry>> tabs(String adventureId, {required bool isAdmin});
 
   /// Saves a tab as the signed-in member and returns its id at once.
   /// Works offline and syncs later.
@@ -79,6 +86,7 @@ abstract interface class TabService {
     String adventureId,
     String tabId, {
     required bool approve,
+    String? reason,
   });
 }
 
@@ -93,6 +101,15 @@ final StreamProviderFamily<TabEntry?, (String, String)> tabProvider =
     );
 
 final StreamProviderFamily<List<TabEntry>, String> tabsProvider =
-    StreamProvider.family<List<TabEntry>, String>(
-      (ref, adventureId) => ref.watch(tabServiceProvider).tabs(adventureId),
-    );
+    StreamProvider.family<List<TabEntry>, String>((ref, adventureId) {
+      final uid = ref.watch(sessionFactsProvider).value?.uid;
+      final isAdmin = ref.watch(
+        myAdventuresProvider.select(
+          (all) =>
+              uid != null &&
+              (all.value?.any((a) => a.id == adventureId && a.isLead(uid)) ??
+                  false),
+        ),
+      );
+      return ref.watch(tabServiceProvider).tabs(adventureId, isAdmin: isAdmin);
+    });

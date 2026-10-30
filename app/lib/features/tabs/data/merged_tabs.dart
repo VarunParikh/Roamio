@@ -2,41 +2,34 @@ import 'dart:async';
 
 import 'package:roamio/features/tabs/data/tab_service.dart';
 
-/// Shared tabs and your own personal ones as one list, newest first. Two
-/// queries, because the security rules hide other people's personal tabs and
-/// a query must only ask for what it's allowed to see (spec UC-21a). Emits
-/// once both have answered; an error from either is passed on.
-Stream<List<TabEntry>> mergedTabs(
-  Stream<List<TabEntry>> shared,
-  Stream<List<TabEntry>> personal,
-) {
+/// Several queries' tabs as one list, newest first, each tab once. Separate
+/// queries because the security rules hide some tabs from some people, and a
+/// query must only ask for what it's allowed to see (spec UC-21a). Emits once
+/// all have answered; an error from any is passed on.
+Stream<List<TabEntry>> mergedTabs(List<Stream<List<TabEntry>>> sources) {
   late final StreamController<List<TabEntry>> out;
   final subscriptions = <StreamSubscription<List<TabEntry>>>[];
-  List<TabEntry>? latestShared;
-  List<TabEntry>? latestPersonal;
+  final latest = List<List<TabEntry>?>.filled(sources.length, null);
 
   void emit() {
-    final a = latestShared;
-    final b = latestPersonal;
-    if (a == null || b == null) return;
-    out.add([...a, ...b]..sort((x, y) => y.date.compareTo(x.date)));
+    if (latest.contains(null)) return;
+    final byId = {
+      for (final tabs in latest)
+        for (final t in tabs!) t.id: t,
+    };
+    out.add(byId.values.toList()..sort((a, b) => b.date.compareTo(a.date)));
   }
 
   out = StreamController<List<TabEntry>>(
     onListen: () {
-      subscriptions
-        ..add(
-          shared.listen((tabs) {
-            latestShared = tabs;
-            emit();
-          }, onError: out.addError),
-        )
-        ..add(
-          personal.listen((tabs) {
-            latestPersonal = tabs;
+      for (final (i, source) in sources.indexed) {
+        subscriptions.add(
+          source.listen((tabs) {
+            latest[i] = tabs;
             emit();
           }, onError: out.addError),
         );
+      }
     },
     onCancel: () async {
       await Future.wait(subscriptions.map((s) => s.cancel()));

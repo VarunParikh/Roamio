@@ -175,6 +175,74 @@ void main() {
       expect(tabs.decisions, ['t1 rejected']);
     });
 
+    testWidgets('a reason goes with the rejection and shows on the row', (
+      tester,
+    ) async {
+      await _open(tester, as: 'cara');
+
+      await _tap(tester, _button('Reject'));
+      await tester.enterText(find.byType(TextField).last, 'Wrong trip');
+      await tester.tap(find.widgetWithText(FilledButton, 'Reject'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('$rejectedLabel: Wrong trip'), findsOneWidget);
+      expect(_button('Approve'), findsNothing);
+    });
+
+    testWidgets('a rejection needs no reason', (tester) async {
+      await _open(tester, as: 'cara');
+
+      await _tap(tester, _button('Reject'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Reject'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(rejectedLabel), findsOneWidget);
+    });
+
+    testWidgets('its creator can edit and resubmit a rejected tab', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        as: 'bob',
+        tabs: [_tab(status: TabStatus.rejected)],
+      );
+
+      await _tap(tester, _button('Edit and resubmit'));
+
+      expect(find.text('Edit tab'), findsWidgets);
+    });
+
+    testWidgets('an admin sees it rejected, with no resubmit button', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        as: 'ari',
+        tabs: [_tab(status: TabStatus.rejected)],
+      );
+
+      expect(find.text(rejectedLabel), findsOneWidget);
+      expect(_button('Edit and resubmit'), findsNothing);
+    });
+
+    test('who can delete a rejected tab', () {
+      final tab = _tab(status: TabStatus.rejected);
+      expect(canDeleteTab(_team, tab, 'bob'), isTrue);
+      expect(canDeleteTab(_team, tab, 'ari'), isTrue);
+      final teamWithMia = Adventure(
+        id: 'bkk',
+        name: 'Bangkok trip',
+        countryCode: 'TH',
+        startDate: DateTime(2026, 10),
+        endDate: DateTime(2026, 12, 8),
+        baseCurrency: 'THB',
+        leaderUid: 'ari',
+        memberUids: const ['ari', 'bob', 'mia'],
+      );
+      expect(canDeleteTab(teamWithMia, tab, 'mia'), isFalse);
+    });
+
     testWidgets('a member sees it’s waiting, with no buttons', (tester) async {
       await _open(tester, as: 'bob');
 

@@ -19,28 +19,32 @@ class FirebaseTabService implements TabService {
       _db.collection('adventures/$adventureId/tabs');
 
   @override
-  Stream<List<TabEntry>> tabs(String adventureId) {
+  Stream<List<TabEntry>> tabs(String adventureId, {required bool isAdmin}) {
     List<TabEntry> entries(QuerySnapshot<Map<String, dynamic>> q) =>
         q.docs.map(_fromDoc).toList();
     final live = _tabs(adventureId).where('deleted', isEqualTo: false);
-    return mergedTabs(
+    return mergedTabs([
       live
           .where(
             'status',
-            whereIn: [
-              TabStatus.waiting.name,
-              TabStatus.approved.name,
-              TabStatus.rejected.name,
-            ],
+            whereIn: [TabStatus.waiting.name, TabStatus.approved.name],
           )
           .snapshots()
           .map(entries),
       live
-          .where('status', isEqualTo: TabStatus.personal.name)
           .where('createdBy', isEqualTo: _auth.currentUser?.uid)
+          .where(
+            'status',
+            whereIn: [TabStatus.personal.name, TabStatus.rejected.name],
+          )
           .snapshots()
           .map(entries),
-    );
+      if (isAdmin)
+        live
+            .where('status', isEqualTo: TabStatus.rejected.name)
+            .snapshots()
+            .map(entries),
+    ]);
   }
 
   /// The fields a tab's creator writes (DATA_MODEL.md). On an edit, a
@@ -62,6 +66,12 @@ class FirebaseTabService implements TabService {
     else if (!isNew)
       'location': FieldValue.delete(),
     'status': tab.status.name,
+    // Going back to waiting starts the decision again.
+    if (!isNew && tab.status == TabStatus.waiting) ...{
+      'rejectReason': FieldValue.delete(),
+      'decidedBy': FieldValue.delete(),
+      'decidedAt': FieldValue.delete(),
+    },
     'updatedAt': FieldValue.serverTimestamp(),
     // Only an edit has a base; with none known, a stale one must not stay.
     if (!isNew)
@@ -92,6 +102,7 @@ class FirebaseTabService implements TabService {
     String adventureId,
     String tabId, {
     required bool approve,
+    String? reason,
   }) async {
     try {
       await _tabs(adventureId).doc(tabId).update({
@@ -99,6 +110,8 @@ class FirebaseTabService implements TabService {
         'decidedBy': _auth.currentUser!.uid,
         'decidedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+        if (!approve && reason != null && reason.isNotEmpty)
+          'rejectReason': reason,
       });
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') throw TabAlreadyDecided();
@@ -139,6 +152,7 @@ class FirebaseTabService implements TabService {
       createdBy: data['createdBy'] as String,
       deleted: data['deleted'] == true,
       status: TabStatus.fromStored(data['status'] as String?),
+      rejectReason: data['rejectReason'] as String?,
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       memories: ((data['memories'] as List?) ?? const []).cast<String>(),
       location: switch (data['location']) {

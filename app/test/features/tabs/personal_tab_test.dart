@@ -112,45 +112,101 @@ void main() {
   });
 
   group('editing changes it (spec UC-21a)', () {
+    TabStatus edit(
+      Adventure a,
+      String uid,
+      TabStatus before, {
+      List<String> sharing = const ['bob', 'cara'],
+      int amountMinor = 100,
+      String currency = 'THB',
+      List<Payment>? payers,
+      Map<String, int>? percentBp,
+    }) => statusForEditedTab(
+      a,
+      uid,
+      TabEntry(
+        id: 't',
+        description: '',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 20),
+        createdBy: uid,
+        status: before,
+        split: TabSplit(
+          amount: Money(100, 'THB'),
+          payers: [Payment(uid, 100)],
+          participants: const ['bob', 'cara'],
+          fxDate: '2026-10-20',
+        ),
+      ),
+      amountMinor: amountMinor,
+      currency: currency,
+      payers: payers ?? [Payment(uid, amountMinor)],
+      sharing: sharing,
+      percentBp: percentBp,
+    );
+
     test('adding someone to a personal tab makes it wait', () {
-      expect(
-        statusForEditedTab(_team, 'bob', TabStatus.personal, _bobPaid, const [
-          'bob',
-          'cara',
-        ]),
-        TabStatus.waiting,
-      );
+      expect(edit(_team, 'bob', TabStatus.personal), TabStatus.waiting);
     });
 
     test('for the only admin it’s approved', () {
       expect(
-        statusForEditedTab(
-          _solo,
-          'ari',
-          TabStatus.personal,
-          const [Payment('ari', 1)],
-          const ['ari', 'bob'],
-        ),
+        edit(_solo, 'ari', TabStatus.personal, sharing: const ['ari', 'bob']),
         TabStatus.approved,
       );
     });
 
     test('a shared tab left with only you becomes personal', () {
       expect(
-        statusForEditedTab(_team, 'bob', TabStatus.approved, _bobPaid, const [
-          'bob',
-        ]),
+        edit(_team, 'bob', TabStatus.approved, sharing: const ['bob']),
         TabStatus.personal,
       );
     });
 
-    test('otherwise an edit keeps the status', () {
-      for (final s in [TabStatus.waiting, TabStatus.approved]) {
-        expect(
-          statusForEditedTab(_team, 'bob', s, _bobPaid, const ['bob', 'cara']),
-          s,
-        );
-      }
+    test('resubmitting a rejected tab makes it wait', () {
+      expect(edit(_team, 'bob', TabStatus.rejected), TabStatus.waiting);
+    });
+
+    test('a money edit to an approved tab makes it wait', () {
+      expect(
+        edit(_team, 'bob', TabStatus.approved, amountMinor: 200),
+        TabStatus.waiting,
+      );
+      expect(
+        edit(_team, 'bob', TabStatus.approved, currency: 'INR'),
+        TabStatus.waiting,
+      );
+      expect(
+        edit(_team, 'bob', TabStatus.approved, sharing: const ['bob', 'mia']),
+        TabStatus.waiting,
+      );
+      expect(
+        edit(
+          _team,
+          'bob',
+          TabStatus.approved,
+          percentBp: const {'bob': 5000, 'cara': 5000},
+        ),
+        TabStatus.waiting,
+      );
+    });
+
+    test('the same money stays approved', () {
+      expect(edit(_team, 'bob', TabStatus.approved), TabStatus.approved);
+    });
+
+    test('the only admin’s money edit stays approved', () {
+      expect(
+        edit(_solo, 'ari', TabStatus.approved, amountMinor: 200),
+        TabStatus.approved,
+      );
+    });
+
+    test('a waiting tab keeps waiting', () {
+      expect(
+        edit(_team, 'bob', TabStatus.waiting, amountMinor: 200),
+        TabStatus.waiting,
+      );
     });
   });
 
@@ -162,10 +218,8 @@ void main() {
       final shared = StreamController<List<TabEntry>>();
       final personal = StreamController<List<TabEntry>>();
       final out = <List<String>>[];
-      final sub = mergedTabs(
-        shared.stream,
-        personal.stream,
-      ).listen((t) => out.add([for (final e in t) e.id]));
+      final sub = mergedTabs([shared.stream, personal.stream])
+          .listen((t) => out.add([for (final e in t) e.id]));
 
       shared.add([_entry('old', oct1, status: TabStatus.approved)]);
       await pumpEventQueue();
@@ -183,14 +237,21 @@ void main() {
       await sub.cancel();
     });
 
+    test('a tab two queries both return appears once', () async {
+      final a = _entry('same', oct1, status: TabStatus.rejected);
+      final out = await mergedTabs([
+        Stream.value([a]),
+        Stream.value([a]),
+      ]).first;
+      expect(out.map((t) => t.id), ['same']);
+    });
+
     test('passes an error on', () async {
       final shared = StreamController<List<TabEntry>>();
       final personal = StreamController<List<TabEntry>>();
       final errors = <Object>[];
-      final sub = mergedTabs(
-        shared.stream,
-        personal.stream,
-      ).listen((_) {}, onError: errors.add);
+      final sub = mergedTabs([shared.stream, personal.stream])
+          .listen((_) {}, onError: errors.add);
 
       shared.addError('offline');
       await pumpEventQueue();

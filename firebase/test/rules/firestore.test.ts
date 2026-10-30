@@ -893,7 +893,7 @@ describe("tabs", () => {
           query(
             tabs("mia"),
             where("deleted", "==", false),
-            where("status", "in", ["waiting", "approved", "rejected"]),
+            where("status", "in", ["waiting", "approved"]),
           ),
         ),
       );
@@ -976,6 +976,104 @@ describe("tabs", () => {
           status: "personal",
           participants: ["bob"],
           payers: [{ id: "bob", amountMinor: 45000 }],
+        }),
+      );
+    });
+  });
+
+  describe("rejected tabs (spec UC-21a)", () => {
+    const seed = async (extra: Record<string, unknown> = {}) =>
+      env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(
+          doc(ctx.firestore(), "adventures/a1/tabs/no"),
+          tab("bob", { status: "rejected", rejectReason: "Wrong trip", ...extra }),
+        );
+      });
+
+    it("only the creator and admins can read one", async () => {
+      await seed();
+      await assertSucceeds(getDoc(doc(as("bob"), "adventures/a1/tabs/no")));
+      await assertSucceeds(getDoc(doc(as("alice"), "adventures/a1/tabs/no")));
+      await assertSucceeds(getDoc(doc(as("cara"), "adventures/a1/tabs/no")));
+      await assertFails(getDoc(doc(as("mia"), "adventures/a1/tabs/no")));
+    });
+
+    it("listing: admins see all rejected, others only their own", async () => {
+      await seed();
+      const rejected = (who: string) =>
+        query(
+          collection(as(who), "adventures/a1/tabs"),
+          where("status", "==", "rejected"),
+        );
+      await assertSucceeds(getDocs(rejected("alice")));
+      await assertFails(getDocs(rejected("mia")));
+      await assertSucceeds(
+        getDocs(
+          query(
+            collection(as("bob"), "adventures/a1/tabs"),
+            where("createdBy", "==", "bob"),
+            where("status", "in", ["personal", "rejected"]),
+          ),
+        ),
+      );
+    });
+
+    it("a reason goes with a rejection, up to 200 characters", async () => {
+      const reject = (who: string, tid: string, rejectReason: unknown, status = "rejected") =>
+        updateDoc(doc(as(who), `adventures/a1/tabs/${tid}`), {
+          status,
+          decidedBy: who,
+          decidedAt: new Date(),
+          rejectReason,
+        });
+      await assertFails(reject("alice", "t1", "x".repeat(201)));
+      await assertFails(reject("alice", "t1", "Fine", "approved"));
+      await assertSucceeds(reject("alice", "t1", "Wrong trip"));
+    });
+
+    it("its creator can resubmit it, not approve it", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/no"), { status: "approved" }),
+      );
+      await assertFails(
+        updateDoc(doc(as("mia"), "adventures/a1/tabs/no"), { status: "waiting" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/no"), {
+          status: "waiting",
+          rejectReason: deleteField(),
+        }),
+      );
+    });
+
+    it("its creator can delete it, as can an admin", async () => {
+      await seed();
+      const del = (who: string) =>
+        updateDoc(doc(as(who), "adventures/a1/tabs/no"), {
+          deleted: true,
+          deletedBy: who,
+          updatedAt: new Date(),
+        });
+      await assertFails(del("mia"));
+      await assertSucceeds(del("bob"));
+    });
+
+    it("an approved tab's creator can send it back to waiting, not reject it", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(
+          doc(ctx.firestore(), "adventures/a1/tabs/yes"),
+          tab("bob", { status: "approved" }),
+        );
+      });
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/yes"), { status: "rejected" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/yes"), {
+          status: "waiting",
+          amountMinor: 50000,
+          payers: [{ id: "bob", amountMinor: 50000 }],
         }),
       );
     });
@@ -1402,7 +1500,7 @@ describe("tabs", () => {
     const shared = (who: string) =>
       query(
         collection(as(who), "adventures/a1/tabs"),
-        where("status", "in", ["waiting", "approved", "rejected"]),
+        where("status", "in", ["waiting", "approved"]),
       );
     await assertSucceeds(getDocs(shared("mia")));
     await assertFails(getDocs(shared("dan")));
