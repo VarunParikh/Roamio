@@ -27,7 +27,7 @@ Conventions:
 | `fx_rates/{yyyy-mm-dd}` | `date` (same as the id, for "latest on or before" queries), `rates{CODE: "decimal string"}` (units per USD, exact text from the provider), `source`, `fetchedAt`. Written daily at 00:30 UTC by `dailyFxRates`; nothing is written when the provider is down | active users | server-only |
 | `banners/{countryCode}` | `url` (Unsplash CDN link with resize params), `photographer`, `photographerUrl`, `unsplashUrl`, `fetchedAt` | active users | server-only |
 | `parentalConsents/{childUid}` | `childUid`, `parentEmail` (lower-case), `relationship`, `status` (`requested` \| `granted` \| `declined` \| `expired` \| `withdrawn` \| `closed` \| `aged_out`), `requestedAt`, `remindersSent`, `requestsOn{day,count}`, `noticeVersion`; once decided: `parentUid`, `decidedAt`, `method`. `tokenHash` (SHA-256 of the emailed link token) exists only while open | the child or the parent | server-only |
-| `mail/{id}` | `to`, `message{subject,text}`, `createdAt` — outbox in the Firebase "Trigger Email" extension format | nobody | server-only |
+| `mail/{id}` | `to`, `message{subject,text}`, `createdAt` (ms), `expiresAt` (timestamp, 30 days on; a Firestore TTL policy deletes the email then) — outbox in the Firebase "Trigger Email" extension format | nobody | server-only |
 | `auditLog/{id}` | `actorUid`, `action` (`account_deleted`), `target`, `at` (kept 1 year) | nobody (console only) | server-only |
 
 Anything not listed is denied.
