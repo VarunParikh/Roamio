@@ -192,7 +192,7 @@ service cloud.firestore {
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))
             && isCurrency(t.currency)
-            && isDate(t.date) && isDate(t.fxDate)
+            && isDate(t.date) && isDate(t.fxDate) && t.fxDate <= t.date
             && t.payers is list && t.payers.size() >= 1 && t.payers.size() <= 50
             && t.participants is list && t.participants.size() >= 1
             && t.participants.size() <= 50

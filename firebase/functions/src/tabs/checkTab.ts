@@ -16,6 +16,9 @@ const db = () => getFirestore();
 
 type Payer = { id: string; amountMinor: number };
 
+/** How much older than a tab its saved rates may be (an offline phone's last rates). */
+const MAX_RATE_AGE_DAYS = 7;
+
 /** Why [tab] is invalid, or null. [active] = members and active pals; [isMember] for payers. */
 export function tabProblem(
   tab: DocumentData,
@@ -44,6 +47,16 @@ export function tabProblem(
       total !== 10000
     ) {
       return "percentages must add up to 100% over the participants";
+    }
+  }
+
+  // The rates day the app saved (follow-up C4): never after the tab, and
+  // at most a week before it, so nobody backdates to a better rate. Only
+  // checked when it changes, so an old tab's edit is never refused for it.
+  if (tab.fxDate !== before?.fxDate || tab.date !== before?.date) {
+    const days = (Date.parse(tab.date) - Date.parse(tab.fxDate)) / 86_400_000;
+    if (!(days >= 0 && days <= MAX_RATE_AGE_DAYS)) {
+      return "the exchange rates must be from the tab's day or the week before";
     }
   }
 

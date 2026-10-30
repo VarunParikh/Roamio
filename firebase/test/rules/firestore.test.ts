@@ -842,6 +842,21 @@ describe("tabs", () => {
     );
   });
 
+  it("a tab's rates day is never after the tab (follow-up C14)", async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { date: "2026-12-02", fxDate: "2026-12-01" }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { date: "2026-12-02", fxDate: "2026-12-03" }),
+      ),
+    );
+  });
+
   it("a tab's category is one of the 10 known ones", async () => {
     await assertFails(
       setDoc(
