@@ -204,11 +204,38 @@ describe("users/{uid} public profile", () => {
     );
   });
 
-  it("active users can read other profiles; pending minors only their own", async () => {
-    await assertSucceeds(getDoc(doc(as("dan"), "users/bob")));
+  it("only squadmates and a consenting parent can read a profile (S3b)", async () => {
+    // profileReaders/{uid} is the server-kept list of who shares a squad.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      for (const uid of ["bob", "mia"]) {
+        await setDoc(doc(db, `profileReaders/${uid}`), {
+          uids: ["alice", "bob", "cara", "mia", "fay"],
+        });
+      }
+    });
+    await assertSucceeds(getDoc(doc(as("alice"), "users/bob")));
+    await assertSucceeds(getDoc(doc(as("mia"), "users/bob")));
+    // An active adult outside the squad can't, even knowing the id.
+    await assertFails(getDoc(doc(as("dan"), "users/bob")));
+    await assertFails(getDoc(doc(as("ola"), "users/bob")));
+    // ...unless they are the child's consenting parent.
+    await assertSucceeds(getDoc(doc(as("dan"), "users/mia")));
+    // No list yet (nobody shares a squad): only the owner.
+    await assertFails(getDoc(doc(as("cara"), "users/dan")));
+    await assertSucceeds(getDoc(doc(as("dan"), "users/dan")));
+    // Listed but frozen or waiting for consent: still no.
+    await assertFails(getDoc(doc(as("fay"), "users/bob")));
     await assertSucceeds(getDoc(doc(as("pete"), "users/pete")));
     await assertFails(getDoc(doc(as("pete"), "users/bob")));
     await assertFails(getDoc(doc(anon(), "users/bob")));
+    // A deleted account just reads as gone, so tabs show "Deleted user".
+    await assertSucceeds(getDoc(doc(as("alice"), "users/ghost")));
+    // The list itself is server-only.
+    await assertFails(getDoc(doc(as("bob"), "profileReaders/bob")));
+    await assertFails(
+      setDoc(doc(as("dan"), "profileReaders/bob"), { uids: ["dan"] }),
+    );
   });
 
   it("nobody can list every profile (Task 43: minors' names stay private)", async () => {

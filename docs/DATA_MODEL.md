@@ -12,7 +12,8 @@ Conventions:
 
 | Path | Fields | Read | Write |
 |---|---|---|---|
-| `users/{uid}` | `name`, `photoUrl`, `bio` | any active user, one at a time (no listing); owner always | owner (only these fields) |
+| `users/{uid}` | `name`, `photoUrl`, `bio` | one at a time (`get`, never list): the owner; an active user who shares or shared a squad with them (`profileReaders`); their consenting parent. A deleted profile reads as missing | owner (only these fields) |
+| `profileReaders/{uid}` | `uids[]`: everyone who shares, or shared (Left), a squad with `uid`. Rebuilt by `profileReadersOnAdventure` when a squad's `memberUids`/`leftUids` change, updated at once by `joinAdventure`, deleted with the account | nobody (rules read it) | server-only |
 | `users/{uid}/private/account` | `dob`, `profileCurrency`, `consents{location,camera,notifications}`, `noticeVersion`, `createdAt`, `nominee` (optional `{name, email}` or null: who may use the person's privacy rights if they can't; adults only), `fcmTokens[]` (each phone's FCM installation ID; push is sent only while `consents.notifications` is true); **server-only:** `ageStatus` (`adult` \| `minor_pending` \| `minor_active` \| `minor_frozen` (consent withdrawn) \| `adult_unconfirmed` (turned 18, notice not yet accepted)), `parentUid`, `adultNoticeAcceptedAt` | owner | owner creates (needs `dob`); owner updates `profileCurrency`, `consents`, `fcmTokens`, `nominee` (adults; name 1–80 chars, valid email); `dob` immutable |
 | `users/{uid}/invites/{code}` | `code`, `addedAt` — invite codes this user has opened (Home → Invites) | owner | owner |
 | `users/{uid}/notifications/{id}` | `type` (`member_joined` \| `budget_alert`), `adventureId`, `adventureName`, `memberUid`, `memberName` (joins) or `threshold` (budget), `createdAt`. Ids `{aid}_joined_{memberUid}` / `{aid}_budget_{threshold}`. Lead cards (spec UC-14); cleared for every lead when one acts on them | owner | server-only; owner may delete (dismiss) |
