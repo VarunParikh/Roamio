@@ -51,6 +51,7 @@ On Google's Firebase service, in the **Mumbai (asia-south1)** region in India. D
 | Service | What they get | Why |
 |---|---|---|
 | **Google Firebase** (Authentication, Firestore, Storage, Cloud Functions, Cloud Messaging, Remote Config, Hosting) | Everything above, as our data processor | To run the app. If you sign in with Google, Google also confirms who you are. |
+| **Google Play Integrity** (part of Google Play services on your phone) | A check that the app on your phone is the real Roamio and hasn't been tampered with; it says nothing about what you do in the app | To protect Roamio's servers from fake apps (Firebase App Check). |
 | **Open-Meteo** (open-meteo.com) | If you've turned Location on: your approximate position (rounded to about 1 km). Otherwise: just the adventure's city and country | To show the weather on your Home card. No account or name is sent. |
 | **Unsplash** (unsplash.com) | Your phone loads the adventure's country photo from Unsplash. Our server asks Unsplash for a photo of the country — never anything about you | Adventure banner pictures, with credit to the photographer. |
 | **GitHub** (github.com) | Your phone asks GitHub, at most once a day, for the latest Roamio version | To tell you when an update is ready. |
