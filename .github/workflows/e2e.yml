@@ -107,6 +107,7 @@ jobs:
   report:
     name: Open an issue if the nightly run failed
     needs: journeys
+    timeout-minutes: 5
     if: ${{ always() && needs.journeys.result != 'success' && github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     permissions:
