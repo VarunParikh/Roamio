@@ -40,6 +40,12 @@ Since the previous handover:
   Both need the Blaze plan.
 - Files over 30 MB can't be sent to the owner's phone through Remote Control; use a private draft release.
 
+## Paused schedules (owner, 2026-10-31)
+Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then:
+- GitHub nightly journeys: `gh workflow enable "E2E journeys" --repo VarunParikh/Roamio`. While it's off, it can't be started by hand on GitHub either; `tool/e2e.sh` still runs journeys locally.
+- Claude routine "Roamio nightly journey check" (`trig_01R2owk9VvzgSEVEXcTfDRtL`): set it enabled again, after the workflow, so it doesn't report a missing run.
+- Firebase has nothing to pause: functions aren't deployed on dev or prod, so the three scheduled functions (`dailyFxRates`, `consentSweep`, `birthdaySweep`) don't run yet. They start with the first deploy.
+
 ## Waiting on the owner
 1. **Deploy** dev (for the APK test) and later prod: `firebase deploy --only firestore,functions,storage[,hosting] -P dev|prod`.
 2. **The manual test session** (list below), then report issues.
