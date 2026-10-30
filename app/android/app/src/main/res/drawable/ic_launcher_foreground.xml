@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Roamio launcher icon: a map pin split in two, "paid" half lime, "owed" half lifted and outlined. Master: screenshots/icon-options/roamio-icon-split-pin.svg (owner's choice, 2026-10-30). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="512" android:viewportHeight="512">
+    <group android:translateX="102.40" android:translateY="97.00" android:scaleX="0.6" android:scaleY="0.6"><group android:translateY="12"><group android:translateX="-15"><path android:pathData="M256,436 C214,376 136,300 136,214 A120,120 0 0,1 256,94 Z" android:fillColor="#FFD4FF00" android:strokeColor="#FF0F1115" android:strokeWidth="18" android:strokeLineJoin="round"/><path android:pathData="M256,170 A44,44 0 0,0 256,258 Z" android:fillColor="#FF0F1115"/></group><group android:translateX="15" android:translateY="-24"><path android:pathData="M256,436 C298,376 376,300 376,214 A120,120 0 0,0 256,94 Z" android:fillColor="#FFECE8DF" android:strokeColor="#FF0F1115" android:strokeWidth="18" android:strokeLineJoin="round"/><path android:pathData="M256,170 A44,44 0 0,1 256,258 Z" android:fillColor="#FF0F1115"/></group></group></group>
+</vector>
