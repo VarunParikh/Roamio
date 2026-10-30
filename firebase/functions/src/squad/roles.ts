@@ -5,7 +5,7 @@ import {
   type Transaction,
 } from "firebase-admin/firestore";
 import { HttpsError, onCall, type CallableRequest } from "firebase-functions/https";
-import { uidOf } from "../invites/invites";
+import { activeUidOf } from "../invites/invites";
 import { joinCardId } from "../invites/join";
 
 // Squad roles (spec UC-14 to UC-17). The Squad Leader manages leadership;
@@ -95,7 +95,7 @@ function squadAction(
   body: (tx: Transaction, squad: Squad, uid: string, memberUid: string) => Promise<void> | void,
 ) {
   return onCall(async (request: CallableRequest) => {
-    const uid = uidOf(request);
+    const uid = await activeUidOf(request);
     await db().runTransaction(async (tx) => {
       const squad = await loadSquad(tx, request.data?.adventureId);
       await body(tx, squad, uid, String(request.data?.memberUid ?? ""));

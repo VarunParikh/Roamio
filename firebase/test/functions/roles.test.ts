@@ -158,6 +158,28 @@ describe("handOverLeadership (spec UC-17)", () => {
   });
 });
 
+describe("accounts that aren't active (Task 43)", () => {
+  it("a frozen or unconfirmed lead can't manage the squad or its invite", async () => {
+    for (const status of ["minor_frozen", "adult_unconfirmed", "minor_pending"]) {
+      const fay = await person("Fay", status);
+      const bob = await person("Bob");
+      const id = await adventure(fay, { memberUids: [fay.uid, bob.uid] });
+      for (const [name, data] of [
+        ["removeMember", { adventureId: id, memberUid: bob.uid }],
+        ["makeCoLead", { adventureId: id, memberUid: bob.uid }],
+        ["handOverLeadership", { adventureId: id, memberUid: bob.uid }],
+        ["createInvite", { adventureId: id }],
+        ["revokeInvite", { adventureId: id }],
+      ] as const) {
+        expect((await call(name, data, fay)).error?.status, `${status} ${name}`).toBe(
+          "FAILED_PRECONDITION",
+        );
+      }
+      expect((await adv(id))?.memberUids).toEqual([fay.uid, bob.uid]);
+    }
+  });
+});
+
 describe("joining an archived adventure", () => {
   it("is refused", async () => {
     const ari = await person("Ari");
