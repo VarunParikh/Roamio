@@ -25,9 +25,18 @@ import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
 import 'package:roamio/features/updates/update_gate.dart';
 
+/// Query parameter naming the adventure the Split tab opens on.
+const splitAdventureParam = 'adventure';
+
 abstract final class Routes {
   static const String home = AuthRoutes.home;
   static const split = '/split';
+
+  /// The Split tab opened on [adventureId] (spec UC-5, UC-20).
+  static String splitFor(String adventureId) => Uri(
+    path: split,
+    queryParameters: {splitAdventureParam: adventureId},
+  ).toString();
   static const you = '/you';
 }
 
@@ -165,7 +174,12 @@ final _routes = <RouteBase>[
       ),
       StatefulShellBranch(
         routes: [
-          GoRoute(path: Routes.split, builder: (_, _) => const SplitScreen()),
+          GoRoute(
+            path: Routes.split,
+            builder: (_, state) => SplitScreen(
+              adventureId: state.uri.queryParameters[splitAdventureParam],
+            ),
+          ),
         ],
       ),
       StatefulShellBranch(
