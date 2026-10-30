@@ -4,6 +4,7 @@ import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// What stops a tab being saved (spec UC-21).
@@ -20,6 +21,9 @@ enum TabProblem {
 
   /// Custom % is on and the percentages don't make exactly 100.00%.
   percentagesDontAddUp,
+
+  /// Someone who paid has no Paid with yet.
+  noPaymentMethod,
 }
 
 final _percentText = RegExp(r'^\d{1,3}(\.\d{1,2})?$');
@@ -54,12 +58,23 @@ Map<String, int> equalPercents(List<String> ids) {
   return {for (final (i, id) in ids.indexed) id: parts[i]};
 }
 
-/// The people who paid something, from the amounts typed per member.
-List<Payment> payersFrom(Map<String, String> texts, String currency) => [
+/// The people who paid something, from the amounts typed per member, each
+/// with how they paid ([methodOf]).
+List<Payment> payersFrom(
+  Map<String, String> texts,
+  String currency, {
+  PaymentMethod? Function(String id)? methodOf,
+}) => [
   for (final MapEntry(:key, :value) in texts.entries)
     if (parseAmount(value, currency) case final minor? when minor > 0)
-      Payment(key, minor),
+      Payment(key, minor, method: methodOf?.call(key) ?? PaymentMethod.other),
 ];
+
+/// What the phone remembers from a new tab: your own method, or the first
+/// payer's if you didn't pay.
+PaymentMethod rememberedMethod(List<Payment> payers, String myUid) =>
+    payers.where((p) => p.payer == myUid).firstOrNull?.method ??
+    payers.first.method;
 
 /// Basis points per participant from what was typed; null if any is unreadable.
 Map<String, int>? percentsFrom(Map<String, String> texts) {
@@ -90,6 +105,9 @@ Set<TabProblem> tabProblems({
 
   /// Percentage typed per participant in Custom % mode; null for Equal.
   Map<String, String>? percentTexts,
+
+  /// Paid with for each person who paid; null for one with none chosen.
+  List<PaymentMethod?>? paymentMethods,
 }) {
   final minor = parseAmount(amountText, currency);
   final payers = payerTexts == null ? null : payersFrom(payerTexts, currency);
@@ -118,6 +136,7 @@ Set<TabProblem> tabProblems({
             percents.values.any((bp) => bp <= 0) ||
             percents.values.fold(0, (a, b) => a + b) != fullBasisPoints))
       TabProblem.percentagesDontAddUp,
+    if (paymentMethods?.contains(null) ?? false) TabProblem.noPaymentMethod,
   };
 }
 

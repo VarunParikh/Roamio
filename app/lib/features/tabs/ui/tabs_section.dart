@@ -13,6 +13,7 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/domain/tab_status.dart';
@@ -80,7 +81,6 @@ class TabsSection extends ConsumerWidget {
       for (final c in ref.watch(categoriesProvider).value ?? const <Category>[])
         c.id: c,
     };
-    final labels = squadLabels(ref, adventure);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,7 +127,6 @@ class TabsSection extends ConsumerWidget {
                         tab: t,
                         category: categories[t.category],
                         myUid: myUid,
-                        labels: labels,
                         adventure: adventure,
                         onTap: () => context.push(
                           '/adventures/${adventure.id}/tabs/${t.id}',
@@ -146,7 +145,6 @@ class _TabRow extends ConsumerWidget {
     required this.tab,
     required this.category,
     required this.myUid,
-    required this.labels,
     required this.adventure,
     required this.onTap,
   });
@@ -155,23 +153,15 @@ class _TabRow extends ConsumerWidget {
   final TabEntry tab;
   final Category? category;
   final String myUid;
-  final Map<String, String> labels;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
-    final payers = tab.split.payers;
-    final paidBy = payers.length > 1
-        ? '${payers.length} people paid'
-        : payers.single.payer == myUid
-        ? 'You paid'
-        : '${labels[payers.single.payer] ?? 'Someone'} paid';
+    final slate = text.bodySmall?.copyWith(color: RoamioColors.slate);
     final sharing = tab.split.participants.contains(myUid);
-    final total = formatWithSymbol(ref, tab.amount);
-    final name = tab.description.isEmpty
-        ? category?.name ?? 'Tab'
-        : tab.description;
+    final share = formatWithSymbol(ref, tab.shareOf(myUid));
+    final methods = tab.split.payers.map((p) => p.method).toSet();
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: InkWell(
@@ -183,6 +173,7 @@ class _TabRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
                     radius: 22,
@@ -195,50 +186,55 @@ class _TabRow extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                name,
-                                style: text.titleMedium,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                        _RowLine(
+                          start: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  category?.name ?? 'Tab',
+                                  style: text.titleMedium,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                            if (tab.memories.isNotEmpty) const Text(' 📷'),
-                            if (tab.location != null) const Text(' 📍'),
-                          ],
+                              if (tab.memories.isNotEmpty) const Text(' 📷'),
+                              if (tab.location != null) const Text(' 📍'),
+                            ],
+                          ),
+                          end: Text(
+                            formatWithSymbol(ref, tab.amount),
+                            style: text.titleMedium,
+                          ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          '$paidBy · Total $total',
-                          style: text.bodySmall?.copyWith(
-                            color: RoamioColors.slate,
+                        _RowLine(
+                          start: Text(
+                            tab.description,
+                            style: slate,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          end: Text(
+                            sharing ? 'Your share $share' : 'Not in it',
+                            style: text.bodySmall,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // The start of this line is for the pictures of the
+                        // people sharing (Task 54).
+                        Row(
+                          children: [
+                            const Spacer(),
+                            Text(
+                              methods.map((m) => m.emoji).join(),
+                              semanticsLabel: paidWithLabel(methods),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        sharing
-                            ? formatWithSymbol(ref, tab.shareOf(myUid))
-                            : 'Not in it',
-                        style: text.titleMedium,
-                      ),
-                      if (sharing)
-                        Text(
-                          'Your share',
-                          style: text.labelSmall?.copyWith(
-                            color: RoamioColors.slate,
-                          ),
-                        ),
-                    ],
                   ),
                 ],
               ),
@@ -260,6 +256,29 @@ class _TabRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// One line of a tab's row: [start] gets what [end] leaves. [end] is an amount,
+/// so it shrinks to fit a small phone rather than being cut off.
+class _RowLine extends StatelessWidget {
+  const new({required this.start, required this.end});
+
+  final Widget start;
+  final Widget end;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Row(
+      children: [
+        Expanded(child: start),
+        const SizedBox(width: 8),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.7),
+          child: FittedBox(fit: BoxFit.scaleDown, child: end),
+        ),
+      ],
+    ),
+  );
 }
 
 /// Approve and Reject on a waiting tab's row (spec UC-21a). Plain buttons, so

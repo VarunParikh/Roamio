@@ -56,6 +56,12 @@ void journeyC() {
     await typeIntoKey(tester, 'pay-${ari.uid}', '2000');
     await typeIntoKey(tester, 'pay-${bob.uid}', '1000');
     await waitFor(tester, find.text('₹3,000.00 of ₹3,000.00 assigned'));
+    await pickPaidWith(tester, find.byKey(ValueKey('method-${ari.uid}')));
+    await pickPaidWith(
+      tester,
+      find.byKey(ValueKey('method-${bob.uid}')),
+      item: '📱 UPI',
+    );
     await tapText(tester, 'Custom %');
     await typeIntoKey(tester, 'pct-${ari.uid}', '50');
     await typeIntoKey(tester, 'pct-${bob.uid}', '30');

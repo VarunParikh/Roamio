@@ -116,9 +116,9 @@ void main() {
 
       // Back on the adventure, the tab shows with your share.
       await tester.scrollUntilVisible(find.text('Dinner at Jay Fai'), 200);
-      expect(find.text('You paid · Total ฿900.00'), findsOneWidget);
-      expect(find.text('฿300.00'), findsOneWidget);
-      expect(find.text('Your share'), findsOneWidget);
+      expect(find.text('฿900.00'), findsOneWidget);
+      expect(find.text('Your share ฿300.00'), findsOneWidget);
+      expect(find.text('💵'), findsOneWidget);
     });
 
     testWidgets('keeps the day of the rates it used (follow-up C4)', (

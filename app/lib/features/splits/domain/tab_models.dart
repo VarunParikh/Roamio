@@ -1,4 +1,5 @@
 import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 
 /// A member's uid or a pal's id. Pals have their own balance (spec §5.5).
 typedef ParticipantId = String;
@@ -8,10 +9,13 @@ const fullBasisPoints = 10000;
 
 /// One payer's part of a tab, in the tab's currency minor units.
 class Payment {
-  const new(this.payer, this.amountMinor);
+  const new(this.payer, this.amountMinor, {this.method = PaymentMethod.other});
 
   final ParticipantId payer;
   final int amountMinor;
+
+  /// How they paid (spec UC-21). No part of the split maths.
+  final PaymentMethod method;
 }
 
 /// The money facts of one tab: who paid, who shares, and how.
