@@ -16,6 +16,7 @@ jobs:
   app:
     name: App (format, analyze, test)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: app
@@ -37,6 +38,7 @@ jobs:
   backend:
     name: Backend (lint, rules + functions tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: firebase
