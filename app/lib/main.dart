@@ -43,20 +43,26 @@ import 'package:roamio/features/updates/update_checker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-Future<void> main() async {
+Future<void> main() => runRoamio();
+
+/// Starts the app. The journey tests (`integration_test/`) call this again
+/// for each journey, swapping in a scripted connection and share sheet;
+/// everything else is the real app against the Firebase emulators.
+@visibleForTesting
+Future<void> runRoamio({
+  ConnectivityMonitor? connectivity,
+  Future<void> Function(String text)? shareText,
+  Future<void> Function(List<XFile> files, List<String> names)? shareFiles,
+}) async {
   WidgetsFlutterBinding.ensureInitialized();
-  await setUpFirebase();
-  final (:pipeline, :flush) = await startPhotoPipeline(
-    FirebaseFirestore.instance,
-    FirebaseStorage.instance,
-  );
+  final (:pipeline, :flush) = await (_started ??= _start());
   runApp(
     ProviderScope(
       overrides: [
         photoPipelineProvider.overrideWithValue(pipeline),
         photoFlushProvider.overrideWithValue(flush),
         connectivityMonitorProvider.overrideWithValue(
-          DeviceConnectivityMonitor(),
+          connectivity ?? DeviceConnectivityMonitor(),
         ),
         networkSwitchProvider.overrideWithValue(
           FirestoreNetworkSwitch(FirebaseFirestore.instance),
@@ -117,12 +123,14 @@ Future<void> main() async {
           ),
         ),
         shareFilesProvider.overrideWithValue(
-          (files, names) => SharePlus.instance.share(
-            ShareParams(files: files, fileNameOverrides: names),
-          ),
+          shareFiles ??
+              (files, names) => SharePlus.instance.share(
+                ShareParams(files: files, fileNameOverrides: names),
+              ),
         ),
         shareTextProvider.overrideWithValue(
-          (text) => SharePlus.instance.share(ShareParams(text: text)),
+          shareText ??
+              (text) => SharePlus.instance.share(ShareParams(text: text)),
         ),
         consentServiceProvider.overrideWithValue(
           FirebaseConsentService(
@@ -134,6 +142,20 @@ Future<void> main() async {
       ],
       child: const RoamioApp(),
     ),
+  );
+}
+
+typedef _Started = ({PhotoPipeline pipeline, Future<void> Function() flush});
+
+Future<_Started>? _started;
+
+/// Firebase and the photo queue start once per process, however many times
+/// [runRoamio] runs.
+Future<_Started> _start() async {
+  await setUpFirebase();
+  return await startPhotoPipeline(
+    FirebaseFirestore.instance,
+    FirebaseStorage.instance,
   );
 }
 

@@ -1,0 +1,85 @@
+# Nightly end-to-end journey tests (spec §15 Journeys A–F, Task 41): the
+# dev app on an Android emulator against the local Firebase emulators, via
+# tool/e2e.sh. Uses only actions CI already uses, and the Android SDK that
+# GitHub's Ubuntu runners come with; no secrets (the script writes a
+# stand-in google-services.json, since every call goes to the emulators).
+name: E2E journeys
+
+on:
+  schedule:
+    - cron: "30 20 * * *" # 02:00 India time
+  workflow_dispatch:
+
+concurrency:
+  group: e2e
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  journeys:
+    name: Journeys A–F on an Android emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      AVD: e2e
+      FLUTTER: flutter
+      EMULATOR_FLAGS: -gpu swiftshader_indirect -accel on
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read pinned Flutter version
+        id: fvm
+        run: echo "version=$(jq -r .flutter app/.fvmrc)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+      # Java 21 for the Firebase emulators, 17 (the default) for Gradle.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            21
+            17
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            firebase/package-lock.json
+            firebase/functions/package-lock.json
+
+      - name: Install Firebase CLI and backend packages
+        run: |
+          npm install -g firebase-tools
+          npm ci --prefix firebase
+          npm ci --prefix firebase/functions
+
+      - name: Let the emulator use KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Create the Android emulator
+        run: |
+          image="system-images;android-34;google_apis;x86_64"
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null
+          "$sdkmanager" "emulator" "platform-tools" "$image" >/dev/null
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" \
+            create avd -n "$AVD" -k "$image" -d pixel_6
+
+      - name: Run the journeys
+        env:
+          JAVA17_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          JAVA21_HOME: ${{ env.JAVA_HOME_21_X64 }}
+        run: tool/e2e.sh
+
+      - name: Show emulator logs
+        if: failure()
+        run: tail -n 200 app/build/e2e/*.log || true
