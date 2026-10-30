@@ -10,6 +10,7 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 final _goa = Adventure(
   id: 'goa',
@@ -116,6 +117,52 @@ void main() {
       expect(d.tabs.last.description, 'Local Transportation');
       expect(d.tabs.last.sharedBy, 'Ari Chen, Ben Roy (equal)');
       expect(d.tabs.first.location, '15.55, 73.75');
+    });
+
+    test('only approved tabs are listed (spec UC-21a)', () {
+      final waiting = TabEntry(
+        id: 't3',
+        description: 'Not yet',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ben',
+        status: TabStatus.waiting,
+        split: _dinner.split,
+      );
+      final rejected = TabEntry(
+        id: 't4',
+        description: 'Refused',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ben',
+        status: TabStatus.rejected,
+        split: _dinner.split,
+      );
+      final personal = TabEntry(
+        id: 't5',
+        description: 'Just me',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ari',
+        status: TabStatus.personal,
+        split: _dinner.split,
+      );
+      final report = buildReport(
+        tabs: const [],
+        baseCurrency: 'INR',
+        viewerCurrency: 'INR',
+        viewer: 'ari',
+        ratesFor: (date) => FxRates(date: date, usdRates: const {'INR': '84'}),
+      );
+      final data = buildExportData(
+        adventure: _goa,
+        tabs: [_dinner, waiting, rejected, personal],
+        report: report,
+        names: const {},
+        categories: const {},
+        includeLocation: true,
+      );
+      expect(data.tabs.map((t) => t.description), ['Dinner']);
     });
 
     test('a minor’s export never includes location (spec §7.2)', () {

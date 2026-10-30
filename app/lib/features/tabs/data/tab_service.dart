@@ -5,6 +5,7 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// A saved tab as the adventure's tab list shows it.
 class TabEntry {
@@ -19,6 +20,7 @@ class TabEntry {
     this.location,
     this.deleted = false,
     this.updatedAt,
+    this.status = TabStatus.approved,
   });
 
   final String id;
@@ -31,6 +33,9 @@ class TabEntry {
   /// Download links of up to 4 photos (spec UC-21).
   final List<String> memories;
   final MapPoint? location;
+
+  /// Whether it counts yet (spec UC-21a).
+  final TabStatus status;
 
   /// Soft-deleted by a lead; kept for history (spec UC-22).
   final bool deleted;

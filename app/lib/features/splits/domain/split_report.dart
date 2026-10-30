@@ -3,14 +3,21 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/settlement_planner.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// The parts of a tab the split report needs.
 class ReportTab {
-  const new({required this.category, required this.date, required this.split});
+  const new({
+    required this.category,
+    required this.date,
+    required this.split,
+    this.status = TabStatus.approved,
+  });
 
   final String category;
   final DateTime date;
   final TabSplit split;
+  final TabStatus status;
 }
 
 /// A "Mark as settled" payment, in the trip's currency (spec UC-26a).
@@ -44,6 +51,7 @@ class SplitReport {
     required this.byDay,
     required this.totalSpend,
     required this.missingRates,
+    this.waitingCount = 0,
   });
 
   /// The viewer's profile currency, or the trip's when rates are missing.
@@ -58,7 +66,8 @@ class SplitReport {
   /// The viewer's balance in [currency].
   final int mine;
 
-  /// What the viewer's shares of all tabs add up to, in [currency].
+  /// What the viewer's shares of approved tabs and their personal tabs add
+  /// up to, in [currency].
   final int myShare;
   final List<Transfer> transfers;
 
@@ -70,6 +79,9 @@ class SplitReport {
 
   /// Some rates weren't there, so [currency] isn't the viewer's.
   final bool missingRates;
+
+  /// Tabs waiting for an admin; they count towards nothing (spec UC-21a).
+  final int waitingCount;
 }
 
 /// Builds the split for [viewer]. Each tab converts at its own day's rates
@@ -87,12 +99,18 @@ SplitReport buildReport({
   // A tab the server will reject (checkTab soft-deletes it) can sit in the
   // offline cache for a moment; it's left out rather than breaking the
   // whole split (follow-up C5).
+  bool isUsable(ReportTab t) =>
+      problemsWith(t.split).isEmpty &&
+      t.split.amount.minor <= maxTabMinor(t.split.amount.currency);
+  final waitingCount = tabs.where((t) => t.status == TabStatus.waiting).length;
   final usable = [
     for (final t in tabs)
-      if (problemsWith(t.split).isEmpty &&
-          t.split.amount.minor <= maxTabMinor(t.split.amount.currency))
+      if (isUsable(t) &&
+          (t.status == TabStatus.approved || t.status == TabStatus.personal))
         t,
   ];
+  // A personal tab's net is 0, so it doesn't move anyone's balance, but its
+  // rate is still needed for the viewer's share (spec §6).
   final splits = [for (final t in usable) t.split];
 
   // Tabs convert inside the engine; settlements are added here, each at
@@ -137,6 +155,7 @@ SplitReport buildReport({
       byDay: const {},
       totalSpend: 0,
       missingRates: true,
+      waitingCount: waitingCount,
     );
   }
 
@@ -147,10 +166,11 @@ SplitReport buildReport({
     final amount = ratesFor(t.split.fxDate)
         .convert(t.split.amount, currency)
         .minor;
+    myShare += _shareIn(t.split, amount, viewer);
+    if (t.status == TabStatus.personal) continue;
     byCategory.update(t.category, (v) => v + amount, ifAbsent: () => amount);
     final day = DateTime(t.date.year, t.date.month, t.date.day);
     byDay.update(day, (v) => v + amount, ifAbsent: () => amount);
-    myShare += _shareIn(t.split, amount, viewer);
   }
 
   return SplitReport(
@@ -167,6 +187,7 @@ SplitReport buildReport({
     byDay: byDay,
     totalSpend: byCategory.values.fold(0, (a, b) => a + b),
     missingRates: currency != viewerCurrency,
+    waitingCount: waitingCount,
   );
 }
 

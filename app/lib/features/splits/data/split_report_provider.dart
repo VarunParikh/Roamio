@@ -59,7 +59,12 @@ reportInProvider = Provider.family<AsyncValue<SplitReport>, (String, String)>((
     buildReport(
       tabs: [
         for (final t in tabs.value!)
-          ReportTab(category: t.category, date: t.date, split: t.split),
+          ReportTab(
+            category: t.category,
+            date: t.date,
+            split: t.split,
+            status: t.status,
+          ),
       ],
       baseCurrency: adventure.baseCurrency,
       viewerCurrency: viewerCurrency,

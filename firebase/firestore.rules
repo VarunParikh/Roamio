@@ -203,7 +203,8 @@ service cloud.firestore {
           return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
                    'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
-                   'baseUpdatedAt'])
+                   'baseUpdatedAt', 'status'])
+            && t.get('status', 'approved') == 'approved'
             && t.get('baseUpdatedAt', request.time) is timestamp
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))

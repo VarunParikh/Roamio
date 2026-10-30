@@ -6,6 +6,7 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 class FirebaseTabService implements TabService {
   new(this._auth, this._db);
@@ -64,6 +65,8 @@ class FirebaseTabService implements TabService {
       'createdBy': _auth.currentUser!.uid,
       'createdAt': FieldValue.serverTimestamp(),
       'deleted': false,
+      // Task 48 makes new tabs wait for an admin.
+      'status': TabStatus.approved.name,
     }).ignore();
     return doc.id;
   }
@@ -100,6 +103,7 @@ class FirebaseTabService implements TabService {
       date: parseIsoDate(data['date'] as String),
       createdBy: data['createdBy'] as String,
       deleted: data['deleted'] == true,
+      status: TabStatus.fromStored(data['status'] as String?),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       memories: ((data['memories'] as List?) ?? const []).cast<String>(),
       location: switch (data['location']) {

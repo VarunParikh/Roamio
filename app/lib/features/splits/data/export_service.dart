@@ -11,6 +11,7 @@ import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// One tab as a line of the export.
 class ExportTab {
@@ -73,7 +74,10 @@ ExportData buildExportData({
 }) {
   final base = adventure.baseCurrency;
   String who(String id) => names[id] ?? 'Someone who left';
-  final sorted = [...tabs]..sort((a, b) => a.date.compareTo(b.date));
+  final sorted = [
+    for (final t in tabs)
+      if (t.status == TabStatus.approved) t,
+  ]..sort((a, b) => a.date.compareTo(b.date));
   return ExportData(
     title: adventure.name,
     dates: formatDateRange(adventure.startDate, adventure.endDate),

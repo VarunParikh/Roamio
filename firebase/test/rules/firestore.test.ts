@@ -798,6 +798,23 @@ describe("tabs", () => {
     );
   });
 
+  it("a new tab may say it's approved, and no other status yet", async () => {
+    await assertSucceeds(
+      setDoc(
+        doc(as("bob"), fresh("adventures/a1/tabs")),
+        tab("bob", { status: "approved" }),
+      ),
+    );
+    for (const status of ["waiting", "personal", "rejected", "nonsense", 1]) {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          tab("bob", { status }),
+        ),
+      );
+    }
+  });
+
   it("rejects tabs from outsiders, impersonation and bad shapes", async () => {
     await assertFails(
       setDoc(doc(as("dan"), fresh("adventures/a1/tabs")), tab("dan")),
