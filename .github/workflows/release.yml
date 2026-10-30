@@ -19,6 +19,7 @@ jobs:
   build:
     name: Build and sign
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     # Waits for the owner's approval in the "release" environment, whose
     # secrets (signing key, prod config) only this job can read.
     environment: release
@@ -114,6 +115,7 @@ jobs:
     name: Publish the GitHub Release
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
