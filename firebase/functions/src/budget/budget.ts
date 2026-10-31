@@ -93,14 +93,23 @@ export function thresholdsReached(
 }
 
 /** The latest stored rates on or before [date] (Task 28). */
+/**
+ * The rates for [date], falling back to the earliest rates after it when none
+ * are older, exactly as the app does (FirebaseFxRepository.ratesFor), so a tab
+ * dated before any rates still counts.
+ */
 async function ratesOn(date: string): Promise<Record<string, string>> {
-  const q = await db()
+  const older = await db()
     .collection("fx_rates")
     .where("date", "<=", date)
     .orderBy("date", "desc")
     .limit(1)
     .get();
-  return (q.docs[0]?.get("rates") as Record<string, string>) ?? {};
+  const doc =
+    older.docs[0] ??
+    (await db().collection("fx_rates").where("date", ">", date).orderBy("date").limit(1).get())
+      .docs[0];
+  return (doc?.get("rates") as Record<string, string>) ?? {};
 }
 
 /** Tabs that count towards a budget: waiting and rejected ones don't (spec UC-20). */
