@@ -298,9 +298,16 @@ void main() {
           ],
         }),
       );
-      expect(find.text('Ben Roy joined the squad'), findsOneWidget);
+      final row = find.byKey(const ValueKey('hero-activity'));
+      expect(
+        find.descendant(
+          of: row,
+          matching: find.text('Ben Roy joined the squad'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('You recorded a payment'), findsNothing);
-      await _tap(tester, find.text('Ben Roy joined the squad'));
+      await _tap(tester, row);
       expect(find.byType(ActivityScreen), findsOneWidget);
     });
 

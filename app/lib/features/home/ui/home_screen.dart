@@ -9,6 +9,7 @@ import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/home/ui/first_screen_cards.dart';
 import 'package:roamio/features/home/ui/needs_you.dart';
+import 'package:roamio/features/home/ui/other_trips.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/notifications/ui/notification_prompt.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
@@ -99,11 +100,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               icon: const Icon(Icons.add),
               label: const Text('New adventure'),
             ),
+            RecentActivity(
+              trips: [
+                sections.hero!,
+                ...sections.alsoNow,
+                ...sections.upcoming,
+              ],
+            ),
+            if (sections.alsoNow.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Text('Also happening now', style: text.headlineSmall),
+              const SizedBox(height: 8),
+              for (final a in sections.alsoNow)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: OtherTripCard(adventure: a),
+                ),
+            ],
             if (sections.upcoming.isNotEmpty) ...[
               const SizedBox(height: 24),
-              Text('Coming up', style: text.headlineSmall),
+              Text('Upcoming adventures', style: text.headlineSmall),
               const SizedBox(height: 8),
-              for (final a in sections.upcoming) AdventureTile(adventure: a),
+              for (final a in sections.upcoming) UpcomingTrip(adventure: a),
             ],
           ] else ...[
             const InvitesList(),
