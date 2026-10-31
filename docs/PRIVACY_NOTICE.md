@@ -34,14 +34,14 @@ Roamio is an app for splitting travel costs with friends. Roamio is run by Varun
 | Your profile currency | To show amounts in money you know. |
 | Your choices for notifications, location and camera | So the app only does what you allowed. |
 | A code that lets us send notifications to your phone | For alerts when friends join and when you near your budget. Removed when a phone stops using it. |
-| Your adventures, squads, roles, tabs (expenses), who paid, who shares, transfers you marked as settled, and photos added to tabs ("memories") | That's what the app is for: splitting costs fairly. Your squad sees these. |
-| Nicknames of "pals" (people on a trip without the app) | To split costs with them. Nickname only; nothing else about them. |
+| Your adventures, squads, roles, tabs (expenses), who paid and how (cash, card and so on), who shares, whether a tab was approved, and transfers you marked as settled | That's what the app is for: splitting costs fairly. Your squad sees these, except personal tabs, which only you can see. |
+| Nicknames of "pals" (people on a trip without the app), and the character chosen for them | To split costs with them. Nothing else about them. |
 | Your personal budget for an adventure | To warn you privately at 80% and 100%. **Only you can see it.** |
 | Where a tab happened, if you turn Location on and add it | To remember the spot. Stored as a map point only, no address. Your squad can see it. |
 | Invite codes you opened, and activity on your adventures (joins, role changes, deleted or replaced tabs) | So squads can see what changed and why. |
 | A short audit record when your data is downloaded or an account is deleted | To prove we honoured your rights. |
 
-We **don't** collect your phone number or contacts. Every photo is shrunk and its hidden details (including GPS location) are removed **on your phone** before it is uploaded. Reading a bill with "Scan a bill" happens on your phone; the bill image isn't sent anywhere unless you attach it to the tab. Roamio has **no ads** and, today, **no analytics or crash reporting** in the app.
+We **don't** collect your phone number or contacts. You can't upload pictures to Roamio during the pilot. Reading a bill with "Scan a bill" happens on your phone; the bill image isn't sent anywhere or kept. Roamio has **no ads** and, today, **no analytics or crash reporting** in the app.
 
 ### Where it's kept
 On Google's Firebase service, in the **Mumbai (asia-south1)** region in India. Data is encrypted while it travels (TLS) and while stored (Google-managed encryption). Security rules on the server — not just the app screens — decide who can read what.
@@ -62,13 +62,13 @@ Like any website, these services see your phone's internet (IP) address when you
 
 ### How long we keep it
 - **While your account is open**, we keep your data so the app works.
-- **When you delete your account**, your profile, profile photos, budgets, settings, notification codes and sign-in are deleted straight away (and always within 30 days). Tabs you were part of — including photos you added to them — stay with your squad, with your name shown as "Deleted user", so everyone's balances stay right.
+- **When you delete your account**, your profile, budgets, settings, notification codes and sign-in are deleted straight away (and always within 30 days). Tabs you were part of stay with your squad, with your name shown as "Deleted user", so everyone's balances stay right.
 - **Emails we send** (consent requests and account notices) are deleted from our outbox after **30 days**.
 - **Audit records** are deleted after **1 year**.
 - **Parental consent records** (if you are a parent) are kept for the life of the child's account plus **1 year**, as proof of consent.
 
 ### Your rights — all in **You → Privacy centre**
-- **Download your data:** a file of everything we keep about you, plus your photos as zip files.
+- **Download your data:** a file of everything we keep about you.
 - **Correct your data:** change your name, character and description on the You page. To fix your date of birth, write to us (we check it by hand).
 - **Delete your account.** If you lead a squad with others in it, make someone else leader first.
 - **Nominate a person** to use these rights for you if you can't (for example through illness or death). During the pilot, write to our grievance officer (below) with their name and email; choosing one in the app comes in Phase 2.

@@ -315,6 +315,83 @@ Common verification commands:
   - Acceptance: choose one of 47 characters (opaque white, shipped in the app) on You and once from Home; squad list shows it; no display-picture upload or Google photo in the pilot.
   - Verify: `characters_test`, `character_picker_test`, rules allow + deny tests, journeys. Banner and tab-photo uploads are separate work. Not tried on a device.
 
+## Phase 7 — Pilot redesign (owner, 2026-10-31)
+
+Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. One PR per task, in order. `app/` tasks also update `tasks/screen_states.md`, and device checks go on the list in `tasks/HANDOVER.md`.
+
+- [ ] **Task 46: Picture and name building block** — M · Deps: 45 · UC-28, UC-28a
+  - Acceptance: shared picture + name widget; default character from a stable hash of the account ID; Home card "We picked this for you. Change it?"; deleted user grey icon; neutral circle while loading; TalkBack reads the name; adopted on Home greeting, squad and pals, join cards, Activity.
+  - Verify: unit test that the default is stable and covers bad input; widget tests per state.
+
+- [ ] **Task 47: Tab status foundation** — M · Deps: 46 · UC-21a, §6
+  - Acceptance: tabs have `status`; balances, charts, export and `budget.ts` count only approved (and personal for the owner's own share). New tabs are still created approved, so nothing changes yet.
+  - Verify: failing-first split engine, report and budget tests.
+
+- [ ] **Task 48: Approve and Reject** — L · Deps: 47 · UC-21a
+  - Acceptance: buttons on the tab list; new tabs wait; rules stop self-approval and creating a tab approved; only admin auto-approved, including when the second admin leaves; first decision wins; offline reason; works after the 7-day window.
+  - Verify: rules allow + deny tests; functions tests; Journeys C and D updated; new journey for a leader with no co-lead.
+
+- [ ] **Task 49: Personal tabs** — M · Deps: 48 · UC-21a
+  - Acceptance: automatic; visible only to the creator by security rules; the tab queries still work offline; the Activity lookup survives a tab it can't read; export includes them only for their owner.
+  - Verify: rules allow + deny tests; widget and export tests.
+
+- [ ] **Task 50: Rejected tabs and re-approval** — M · Deps: 48 · UC-21a
+  - Acceptance: optional reason; creator can edit and resubmit or delete; money edits return to waiting, description, category and method don't. Own activity type, since `tab_rejected` already means `checkTab` rejected a tab.
+  - Verify: rules tests; journey for reject and resubmit.
+
+- [ ] **Task 51: Approval notifications** — S · Deps: 48 · UC-21a
+  - Acceptance: push to admins for a waiting tab, to the creator on rejection; Home card opens the tab list.
+  - Verify: functions tests (only admins, never the creator).
+
+- [ ] **Task 52: Paid with and the new row** — M · Deps: 47 · UC-21, UC-23
+  - Acceptance: required method per payer, last used remembered on the phone; three-line row; tab details and exports show the name; unknown value shows as Other and `checkTab` ignores it.
+  - Verify: widget tests; export test; `checkTab` test.
+
+- [ ] **Task 53: Pal nickname and character** — M · Deps: 46 · UC-18
+  - Acceptance: one screen from both entry points; Add disabled with a reason; picker title "Choose a character for <nickname>"; used characters dimmed; Edit replaces Rename; member hint on Add tab; adding offline doesn't hang.
+  - Verify: rules allow + deny tests; widget tests; Journeys A and C updated.
+
+- [ ] **Task 54: Pictures on rows and lists** — M · Deps: 52, 53 · UC-23, UC-28a
+  - Acceptance: rows show up to 4 sharers then "+N", you first; Add tab's lists, tab details and invites have pictures; the server copies the leader's character onto invites.
+  - Verify: widget tests incl. a small phone; functions and rules tests for invites.
+
+- [ ] **Task 55: Open Split on an adventure** — S · Deps: none · UC-5, UC-20
+  - Acceptance: Split can be opened on a chosen adventure; the budget alert uses it, fixing the wrong-adventure dead end.
+  - Verify: widget tests.
+
+- [ ] **Task 56: Budget widget** — M · Deps: 47, 55 · UC-19, UC-20
+  - Acceptance: left or over budget, percentage and bar; tap to edit; Remove with confirmation; waiting-for-approval line; plain Set a budget.
+  - Verify: widget tests per state; functions test for an approval crossing a threshold.
+
+- [ ] **Task 57: Split top card and Who pays whom** — L · Deps: 54, 56 · UC-25
+  - Acceptance: spent by you, then owed or owe; "•••" menu; waiting note; rows with pictures, first 4 and View all, arrows only where you can act; every state in UC-25.
+  - Verify: widget tests per state and role.
+
+- [ ] **Task 58: Spend by category and breakdown** — M · Deps: 57 · UC-25
+  - Acceptance: top 3 + Other bar in plain Flutter, integer percentages summing to 100; breakdown with balances, Payments recorded with Undo, all categories, bars by day.
+  - Verify: unit test of the percentages; widget tests; no new dependency.
+
+- [ ] **Task 59: Home card, Needs you and first screen** — L · Deps: 54 · UC-5, UC-6, UC-7
+  - Acceptance: adventure card versions; weather and credit moved; Needs you order, top 2 and See all; image card with a random bundled photo per app open and a gradient meeting contrast on all 10; polaroid card; Sync only when needed.
+  - Verify: widget tests per version; contrast test for all 10; first-screen and past-only tests.
+
+- [ ] **Task 60: Home expanded card** — M · Deps: 56, 58, 59 · UC-5
+  - Acceptance: expand arrow, remembered; budget, daily spend, squad and activity rows, each with a working link; tabs load only when expanded.
+  - Verify: widget tests incl. a long trip and no tabs.
+
+- [ ] **Task 61: Recent activity and other trips** — M · Deps: 59 · UC-5
+  - Acceptance: newest event across current and upcoming trips (one record per trip); "Also happening now"; Upcoming with dates.
+  - Verify: widget tests; two trips at once; private tabs don't leak.
+
+- [ ] **Task 62: Remove the remaining uploads** — M · Deps: 49, 52 · §10
+  - Acceptance: no banner upload or tab photos in the pilot; Scan bill uploads and keeps nothing; Storage rules deny writes; code stays behind `photoUploadsEnabledProvider`.
+  - Verify: rules deny tests; pilot-scope widget tests; journeys.
+
+### ✅ Checkpoint 7 — Redesign
+- [ ] Spec §15 updated criteria pass on the emulators · [ ] Owner's manual test session · [ ] Owner sign-off
+
+---
+
 - [ ] **Task 44: Pilot** — S · Deps: 42, 43 · 👤 owner invites users
   - Acceptance: `v1.0.0` released; pilot guide (install APK, Play Protect note, how to report issues); 10 users onboarded; feedback form; issues triaged into GitHub Issues.
   - Verify: 10 active accounts; spec §15 criteria 1–9 ticked.

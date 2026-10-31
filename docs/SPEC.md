@@ -2,13 +2,13 @@
 
 > **Split bills. Not friendships.** · *Instant peer splits. Zero awkward math.*
 
-Status: **APPROVED 2026-10-27** · Last updated: 2026-10-27 · Source vision: [`docs/vision/roamio-product-vision.rtf`](vision/roamio-product-vision.rtf)
+Status: **APPROVED 2026-10-27** · Last updated: 2026-10-31 · Source vision: [`docs/vision/roamio-product-vision.rtf`](vision/roamio-product-vision.rtf)
 
 ---
 
 ## 1. Objective
 
-Roamio is a travel partner app for young solo, couple and group travellers. It splits shared trip costs fairly, keeps a log of spends with receipts and photos, and tells each traveller privately when they approach their own budget.
+Roamio is a travel partner app for young solo, couple and group travellers. It splits shared trip costs fairly, keeps a log of spends, and tells each traveller privately when they approach their own budget.
 
 **Phase 1 goal:** a working Android app used by a **10-person pilot**, distributed as an APK via GitHub Releases, with every use case below working end to end, online and offline.
 
@@ -28,11 +28,13 @@ Roamio is a travel partner app for young solo, couple and group travellers. It s
 | **Payer** | A squad member who paid (part of) a tab. |
 | **Participant** | A member or pal whose share of a tab they owe. |
 | **Split** | The calculated who-owes-whom for an adventure. |
-| **Memory** | A photo attached to a tab (max 4). |
+| **Admin** | The Squad Leader or a Co-squad Lead. |
+| **Waiting tab** | A tab that an admin has not approved yet. It counts towards nothing. |
+| **Personal tab** | A tab you paid and only you share. It needs no approval and only you can see it. |
 
 ### 1.2 Out of scope for Phase 1
 
-Payment gateway / in-app payments · Explore page · Web app (Phase 2) · iOS app (Phase 3) · Sign in with Apple (Phase 3) · Gamification · Duplicate-tab detection · Multiple languages (English only, built ready for translation).
+Payment gateway / in-app payments · Uploading your own pictures: display pictures, banners and tab photos (next phase) · Explore page · Web app (Phase 2) · iOS app (Phase 3) · Sign in with Apple (Phase 3) · Gamification · Duplicate-tab detection · Multiple languages (English only, built ready for translation).
 
 ---
 
@@ -45,14 +47,14 @@ Payment gateway / in-app payments · Explore page · Web app (Phase 2) · iOS ap
 | Navigation | go_router (handles `roamio://` and `https://<host>/i/<code>` invite links) |
 | Auth | Firebase Authentication — Google, email + password (with email verification) |
 | Database | Cloud Firestore, region **asia-south1 (Mumbai)**, offline persistence on |
-| Files | Cloud Storage for Firebase, asia-south1 |
+| Files | Cloud Storage for Firebase, asia-south1 (for the next phase: no Phase 1 screen uploads a picture) |
 | Server logic | Cloud Functions for Firebase (TypeScript, Node LTS), asia-south1 |
 | Remote settings | Firebase Remote Config |
 | Push | Firebase Cloud Messaging |
 | Crash reporting | Firebase Crashlytics (**disabled for under-18 accounts**, see §7) |
 | Hosting | Firebase Hosting — invite landing page, privacy notice, parental-consent page |
 | OCR | Google ML Kit Text Recognition (on device, offline) |
-| Image compression | `flutter_image_compress` |
+| Image compression | `flutter_image_compress` (next phase, with uploads) |
 | Exports | `pdf` + `excel` packages, generated on device |
 | External APIs | open.er-api.com (FX rates, daily) · Unsplash API (banners) · Open-Meteo (weather) · GitHub Releases API (update check) · Email via a Firebase "Trigger Email" extension or SMTP provider (parental consent mails) |
 
@@ -127,15 +129,22 @@ Each item is written so it can become a test.
 
 ### 5.2 Home (bottom tab: Home)
 
-- **UC-5** Shows "Hey <first name> 👋", then: the **Hero** card (current active adventure, or the next upcoming one), upcoming adventures, past adventures (collapsed), and **Invites** waiting to be accepted.
-- **UC-6 Empty state:** with no adventures and no invites, the only prominent element is a pulsing **New Adventure** button.
-- **UC-7 Weather:** the Hero card shows current weather for the user's location if location permission is granted, otherwise for the adventure's city. Hidden when unavailable — never an error state.
+- **UC-5** Shows "Hey <first name> 👋" with a small picture of you that opens You, then the Sync card (only when needed, UC-31), the **adventure card**, **Needs you**, New adventure, Recent activity, then other trips.
+  - **Adventure card:** the trip happening now (the most recently started, if several) or else the next one. Banner, badge, name, dates, weather, squad pictures (first 4 then "+N", pals included), **Add tab**, an arrow that expands it, and the photographer's credit. Tapping the card opens the adventure.
+  - **Badge and subtitle:** "Current adventure" with "5 days left" ("Last day" on the final day); "Next adventure" with "Starts in 12 days".
+  - **Expanded** (starts collapsed; the phone remembers): your budget (UC-19), daily spend (the 7 days ending today, today in chartreuse, swipe for earlier, fewer bars on a short trip, "No spending yet" with no tabs, none before the trip), squad, recent activity. **See split** and **View all** open Split on this adventure; the squad row opens the adventure's squad.
+  - **Needs you:** the top 2 cards and See all, in this order: tabs to approve, invites, join cards, budget alerts, character prompt, notification prompt.
+  - **New adventure** is a plain outlined button under the adventure card.
+  - **Recent activity:** one row with the newest event across current and upcoming trips, opening that trip's Activity.
+  - **Other trips:** "Also happening now" for other current trips; "Upcoming adventures" for future trips, with the date beside each card; Past adventures (collapsed). Trips that ended stay in Past; Add tab stays on their page for 7 days (UC-11). "Have an invite code?" stays as a small link.
+- **UC-6 Nothing ahead:** with no current or upcoming adventure, the top of Home is an image card, "Plan your next adventure", with a pulsing chartreuse **Create a new adventure**. Its image is chosen at random from the 10 bundled destination photos, a new one each time the app opens, and has a gradient dark enough for the text on all 10. Only invites sit above it; other prompts go below. With no adventures at all, a "No adventures yet" card follows; with past trips, the Past list does.
+- **UC-7 Weather:** the adventure card shows current weather beside the dates, for the user's location if location permission is granted, otherwise for the adventure's city. Hidden when unavailable — never an error state.
 
 ### 5.3 Adventures
 
-- **UC-8 Create adventure** (any adult member or consented minor): step 1 country (searchable list of 195 from `data/`) + optional city; step 2 name (e.g. "College group's Bangkok adventure") + optional description; step 3 start/end dates. Base currency auto-filled from the country, editable. Banner auto-loaded (§9.2), replaceable with a camera/gallery photo. The creator becomes **Squad Leader**.
+- **UC-8 Create adventure** (any adult member or consented minor): step 1 country (searchable list of 195 from `data/`) + optional city; step 2 name (e.g. "College group's Bangkok adventure") + optional description; step 3 start/end dates. Base currency auto-filled from the country, editable. Banner auto-loaded (§9.2). The creator becomes **Squad Leader**.
 - **UC-9 Invite link:** after creation the user sees one button, **Share invite**, which opens the Android share sheet with `https://<host>/i/<CODE>` and a copy button. Codes are 8 characters, valid 14 days, revocable and regenerable by leads.
-- **UC-10 Edit adventure** (leads only): name, description, dates, banner, base currency (base currency locked once a tab exists).
+- **UC-10 Edit adventure** (leads only): name, description, dates, base currency (base currency locked once a tab exists).
 - **UC-11 Archive:** adventures end automatically the day after the end date (move to "Past") and stay readable; leads can still add tabs for 7 days after.
 
 ### 5.4 Joining via invite
@@ -149,12 +158,12 @@ Each item is written so it can become a test.
 - **UC-15** The Squad Leader can promote a member to Co-squad Lead and demote them. Leads show a 🎩 on their avatar within that adventure.
 - **UC-16** Leads can remove a member or pal. If they are a payer or participant on any tab, they are marked **Left** instead of deleted: they keep their history and balance but can't be added to new tabs.
 - **UC-17** The Squad Leader can't leave without first handing leadership to another member. If they are the only member, leaving archives the adventure.
-- **UC-18 Pal:** leads add a pal with a nickname only (no email, phone or photo). Pals appear in tab participant lists and have their own balance row in the split report.
+- **UC-18 Pal:** only leads add a pal, with a nickname and a character, both required, on one screen (from the squad or from Add tab). No real name, email, phone or photo. Add stays disabled, with the reason shown, until both are filled; closing the picker keeps the nickname. The picker dims characters already used in this squad, but they can still be chosen. Leads can edit both later. Members see a hint on Add tab: "Need someone without the app? Ask a squad lead to add them." Pals appear in tab participant lists and have their own balance row in the split report.
 
 ### 5.6 Personal budget
 
-- **UC-19** Each member can set a personal budget for an adventure (amount + currency, default their profile currency). **Only they can read it** — enforced by security rules, not just hidden in the UI.
-- **UC-20** The budget is measured against the user's **own share** of tabs (not what they paid). A push + in-app alert fires once at 80% and once at 100% (thresholds from remote config). Changing the budget resets the alerts.
+- **UC-19** Each member can set a personal budget for an adventure (amount + currency, default their profile currency), at any time, including before and after the trip. **Only they can read it** — enforced by security rules, not just hidden in the UI. It appears as a widget on the expanded Home card and in Split's top card: "₹768 left" or "₹500 over budget", the percentage and a bar. Tapping it opens the edit sheet, which has Save and Remove budget (with a confirmation). With no budget it offers a plain Set a budget. When tabs are waiting: "₹1,200 waiting for approval, not counted".
+- **UC-20** The budget is measured against the user's **own share** of approved tabs plus their personal tabs (not what they paid). A push + in-app alert fires once at 80% and once at 100% (thresholds from remote config), including when an approval crosses a threshold. Changing the budget resets the alerts. An alert opens Split on its adventure.
 
 ### 5.7 Tabs (expenses)
 
@@ -162,28 +171,42 @@ Each item is written so it can become a test.
   - Optional **Scan bill** (camera) → OCR prefills amount, date and description; the user confirms.
   - **Amount** (required, > 0, ≤ 10,000,000 in that currency), **currency** (default adventure base currency), **date** (default today, editable, can't be later than today), **category** (10 categories from `data/`), optional **description**.
   - **Paid by:** defaults to "You · 100%". A "Split payment" link reveals the payer list; payer amounts must total the tab amount exactly.
+  - **Paid with** (required, per payer, set by the tab's creator): 💵 Cash, 💳 Card, 📱 UPI, 📝 Cheque, 🏦 Bank transfer, 🔖 Other. Starts on the method last used on that phone; with none yet, Save stays disabled and says why. It records how someone paid; Roamio moves no money. An unknown value shows as Other and never invalidates a tab.
   - **Split between:** multi-select of active members and pals (all ticked by default). Leads also see **+ Add pal** here to create a pal inline for this tab (the pal then joins the squad); members who aren't leads don't. Mode **Equal** (default) or **Custom %** (creator only); custom percentages must total exactly 100.00%. Save stays disabled with a live "x% of 100% assigned" counter until valid.
-  - Optional up to **4 memories** (camera/gallery), optional **location** (only with location permission; never for under-18 users).
+  - Optional **location** (only with location permission; never for under-18 users). Scan bill reads on the phone and uploads and keeps nothing.
+  - **Split between** shows each person's picture.
+- **UC-21a Approval:** a tab waits for an admin unless it is personal (you paid and only you share; automatic, and it changes if someone else is added).
+  - Admins see **Approve** and **Reject** (plain buttons; Reject confirms and takes an optional reason) on the waiting tab's row in the adventure's tab list, and get a push and a Needs you card. Approving needs a connection; the buttons say why when offline. It stays possible after the 7-day window for adding tabs.
+  - Nobody approves their own tab while another admin exists. With only one admin, their tab is approved automatically; if the second admin leaves, tabs waiting on them are approved. The first decision wins, and a second admin sees "already decided". Tabs of removed or deleted members can still be decided.
+  - A waiting or rejected tab counts towards nothing: balances, charts, budget, export. A rejected tab stays visible to its creator and the admins with its reason; the creator is told, and can edit and resubmit or delete it.
+  - Changing the amount, currency, payers or shares of an approved tab sends it back to waiting. Changing the description, category or payment method does not.
+  - A personal tab is visible only to its creator, enforced by security rules. It counts towards their own budget and "spent by you", not squad totals.
 - **UC-22 Edit / delete tab:** the creator can edit everything; leads can delete any tab (soft delete, shown in activity). Unticking a participant while in Custom % mode resets the split to Equal with a visible notice.
-- **UC-23 Adventure page:** banner header with the tab list as a sheet that scrolls up over it; tabs grouped by day, newest first; each row shows description, amount and the viewer's own share. Tapping opens tab details (payers, shares, memories, map pin).
+- **UC-23 Adventure page:** banner header with the tab list as a sheet that scrolls up over it; tabs grouped by day, newest first; each row shows the category and amount; the description and the viewer's own share; the pictures of people sharing (first 4 then "+N", the viewer first) and the payment emoji; and, for admins on a waiting tab, Approve and Reject. TalkBack reads "Shared by Ari, Cara and 3 others". Tapping opens tab details (payers with how they paid, shares, map pin).
 
 ### 5.8 Split report (bottom tab: Split)
 
 - **UC-24** Defaults to the **active adventure** if there is one, otherwise **Overall** (the user's spend across all adventures, tap an adventure to drill in).
-- **UC-25 Adventure split** shows first a single headline ("You're owed ₹1,240" / "You owe ₹560" / "All square 🎉"), then on request: **who pays whom** (minimum transfers), per-person balances (members and pals), spend by category, spend by day.
-- **UC-26** All amounts appear in the **viewer's profile currency**, converted using each tab's stored FX rate date (§9.1); the base-currency figure is shown on tap.
+- **UC-25 Adventure split:**
+  - **Top card:** "₹14,231 spent by you" (your share, with personal tabs), then "You're owed ₹1,240" / "You owe ₹560" / "All square 🎉", then the budget widget. A "•••" menu holds Export and show in the trip currency. "N tabs waiting, not counted" sits under it and opens the tab list.
+  - **Spend by category:** total spend, and a coloured bar of the top 3 categories plus Other, with percentages that add up to 100 and a 2×2 legend. Every number is also in text.
+  - **Who pays whom** (minimum transfers), with pictures: the first 4, then View all. Only rows the viewer can act on have an arrow, which opens Mark as settled. Settled: "Everyone is square 🎉".
+  - **See detailed breakdown** expands on the same page: balances with pictures (members and pals), Payments recorded with Undo, all categories, and a bar chart by day.
+  - **Other states:** no tabs (top card and Open adventure); only waiting tabs ("2 tabs waiting for approval", opening the tab list); rates missing (a note). "Days left" shows only during the trip.
+- **UC-26** All amounts appear in the **viewer's profile currency**, converted using each tab's stored FX rate date (§9.1); the "•••" menu shows the base-currency figures.
 - **UC-26a Mark as settled:** next to each suggested transfer, **Mark as settled** records that one person paid another outside the app (no money moves). Amount defaults to the suggested transfer and can be lowered for a partial payment. Either member in the transfer can record it; for a pal's transfer, the member involved or any lead records it. The other member gets a notification. Either party or a lead can undo it, and the undo appears in the activity log. Recording works offline and syncs like a tab.
 - **UC-27 Export:** PDF and Excel of the adventure split (summary, transfers, full tab list), shared via the Android share sheet. A minor's export never includes location.
 
 ### 5.9 Profile (bottom tab: You)
 
-- **UC-28** Character (chosen from the 47 in `assets/characters/`, always on opaque white; Home offers it once to a new account; an initial until then; uploading your own picture is Phase 2), name, optional description, profile currency, notification and location toggles.
-- **UC-29 Privacy centre:** download my data (JSON + photos zip), correct my data, delete my account, nominate a person, raise a concern (grievance contact), withdraw individual consents. For parents: **Linked children** (§7).
+- **UC-28** Character, name, optional description, profile currency, notification and location toggles. Everyone has a character: one of the 47 in `assets/characters/`, always on opaque white. A new account gets a default worked out from its ID, and Needs you offers to change it ("We picked this for you. Change it?"). Uploading your own picture is next phase.
+- **UC-28a Picture beside every name:** wherever a person is listed or named on a screen, their picture is beside it: Home greeting, join cards, invites, squad, Activity, invite link screen, Add tab's lists, tab details, Who pays whom, balances, Payments recorded and the settle sheet. Not in pop-up messages, confirmation dialogs, push notifications or exports. A deleted user gets a plain grey icon; a neutral circle shows while loading. TalkBack reads the name, not the character.
+- **UC-29 Privacy centre:** download my data (JSON), correct my data, delete my account, nominate a person, raise a concern (grievance contact), withdraw individual consents. For parents: **Linked children** (§7).
 
 ### 5.10 Offline & sync
 
-- **UC-30** The app works fully offline after first sign-in: browse adventures, add/edit tabs, attach memories (queued).
-- **UC-31** When the device is offline, Roamio switches Firestore to offline mode. When connectivity returns, a **Sync** button appears on Home and the adventure page with the text *"We know the data might be of essence, click here to sync the adventure with your squad"*. Pressing it re-enables the network, uploads queued writes and photos, and shows "Synced ✓" or the error.
+- **UC-30** The app works fully offline after first sign-in: browse adventures, add/edit tabs.
+- **UC-31** When the device is offline, Roamio switches Firestore to offline mode. When connectivity returns, a **Sync** button appears on Home and the adventure page with the text *"We know the data might be of essence, click here to sync the adventure with your squad"*. Pressing it re-enables the network, uploads queued writes, and shows "Synced ✓" or the error.
 - **UC-32 Conflicts:** last write wins per tab. If a synced edit overwrote someone else's newer edit, both users see an activity entry ("Ari's offline edit replaced your change to *Dinner*").
 - **UC-33** Joining, inviting, role changes and account deletion need a connection; their buttons are disabled offline with a short reason.
 
@@ -203,6 +226,7 @@ Each item is written so it can become a test.
 - Per tab: `net_i = paid_i − share_i`. The adventure balance is the sum of nets converted into base currency. **The sum of all balances is always exactly 0** (property-tested).
 - A settlement of amount `s` from A to B adds `s` to A's balance and subtracts `s` from B's, so the zero-sum rule still holds.
 - **Who pays whom:** greedy match of largest debtor to largest creditor, giving at most n−1 transfers.
+- Only approved tabs count towards balances. Personal tabs have no effect: the one person's net is 0.
 - **Worked example:** ₹3,000 paid by Ari ₹2,000 + Ben ₹1,000; shares Ari 50%, Ben 25%, Pal Kiko 25% → Ari +₹500, Ben +₹250, Kiko −₹750 (sums to zero).
 
 ---
@@ -261,9 +285,9 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 |---|---|
 | Notice (§5, Rule 3) | Plain-English notice at sign-up and in the Privacy centre; versioned in `docs/PRIVACY_NOTICE.md`. |
 | Consent per purpose, easy withdrawal (§6) | Separate toggles for location, camera/gallery, notifications; each revocable in one tap. |
-| Minimise data | No phone number or contacts. Pals are a nickname only. **EXIF (including GPS) is stripped from every uploaded photo.** |
+| Minimise data | No phone number or contacts. Pals are a nickname and a character only. No Phase 1 screen uploads a picture. |
 | Rights (§11–14) | Access/export, correction, erasure, nomination, grievance — all in the Privacy centre. Grievances acknowledged within 7 days. |
-| Erasure | Account deletion removes profile, profile photos, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct, and photos added to tabs stay with the squad (owner decision 2026-10-30, review S8). |
+| Erasure | Account deletion removes profile, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct. |
 | Security safeguards (§8(5), Rule 6) | TLS in transit; Google-managed encryption at rest; least-privilege security rules; audit log of data access and changes kept **1 year**. |
 | Breach (§8(6), Rule 7) | `docs/BREACH_RESPONSE.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
 | Data location | All Firebase resources in asia-south1. |
@@ -282,8 +306,8 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 ### 9.2 Banner
 - When an adventure is shown, the app looks up `banners/{countryCode}`. If missing, the `getBanner` function searches Unsplash for the country's landmark (from the dataset), and caches the photo link and photographer credit in `banners/{countryCode}` for everyone.
 - **Unsplash's API terms require photos to stay on Unsplash's CDN**, so instead of re-hosting, Roamio stores Unsplash's link with resize and compression parameters (1600 px, WebP, quality 80). The app caches the image on the device, so it loads instantly after the first time.
-- The photographer is credited on the banner with a link to their Unsplash page.
-- If nothing is found or Unsplash is unreachable, a gradient banner with the flag emoji is shown and the lookup is tried again later. Leads can replace the banner with their own photo (Task 21).
+- The photographer is credited on the banner, bottom-left on Home's adventure card, with a link to their Unsplash page.
+- If nothing is found or Unsplash is unreachable, a gradient banner with the flag emoji is shown and the lookup is tried again later.
 
 ### 9.3 Weather
 - Open-Meteo, cached 30 minutes; hidden on failure.
@@ -292,9 +316,8 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 
 ## 10. Photos
 
-- Every photo (profile, banner, memory, scanned bill) is compressed **on device before upload**: longest side ≤ 1600 px (2048 px for bills, to keep OCR legible), WebP quality 80, EXIF removed. Target: a 12 MB camera photo uploads at ≤ 400 KB.
-- Storage rules reject files > 1 MB or not of type `image/webp`.
-- Max 4 memories per tab; uploads queue offline and retry with backoff.
+- **Phase 1 uploads no pictures** (owner, 2026-10-31). Characters and the 10 destination photos ship in the app; banners come from Unsplash (§9.2); Scan bill reads on the phone and keeps nothing.
+- **Next phase:** own display pictures, banners and tab photos come back, behind the switches in `app/lib/core/config/phase2.dart`. Every photo is then compressed **on device before upload**: longest side ≤ 1600 px, WebP quality 80, EXIF removed, ≤ 400 KB from a 12 MB photo. Storage rules reject files > 1 MB or not of type `image/webp`. Max 4 photos per tab; uploads queue offline and retry with backoff.
 
 ---
 
@@ -356,12 +379,12 @@ Overall app coverage ≥ 70%.
 
 1. **Journey A – Leader:** sign up → create adventure → share invite → promote a joiner to co-lead → add a pal.
 2. **Journey B – Invitee:** open link without the app → install APK → sign up → accept invite → see the squad.
-3. **Journey C – Tabs:** add a ₹ tab with 2 payers and custom % including a pal; add a € tab; split report is correct in the viewer's profile currency; balances sum to 0; marking every suggested transfer as settled shows "All square 🎉" for everyone.
-4. **Journey D – Offline:** in airplane mode add 3 tabs with memories → reconnect → Sync → all squad members see them.
+3. **Journey C – Tabs:** add a ₹ tab with 2 payers and custom % including a pal; add a € tab; an admin approves them; split report is correct in the viewer's profile currency; balances sum to 0; marking every suggested transfer as settled shows "All square 🎉" for everyone.
+4. **Journey D – Offline:** in airplane mode add 3 tabs → reconnect → Sync → all squad members see them, waiting; an admin approves them.
 5. **Journey E – Minor:** 16-year-old signs up → parent consents by email link → child joins an adventure; location tagging unavailable. Decline path deletes the account.
 6. **Journey F – Privacy:** budget alert at 80% reaches only its owner; data export and account deletion complete.
 7. All CI checks green; APK published on GitHub Releases; update popup appears on the previous version.
-8. A 12 MB photo uploads at ≤ 400 KB with no EXIF.
+8. A leader with no co-lead, a rejected and resubmitted tab, and a personal tab each work end to end, with no dead end.
 9. Pilot: 10 users complete a trip (real or simulated) with no data loss and zero crashes blocking a journey.
 
 ---
@@ -384,3 +407,4 @@ Overall app coverage ≥ 70%.
 6. **Minimum age:** 13+. Ages 13–17 need parental consent (§7).
 7. **Accounts:** the owner creates Google/Firebase (Blaze), Unsplash and email-provider accounts with step-by-step guidance in the setup tasks.
 8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/ROADMAP.md`). Supersedes item 6 for the pilot.
+9. **Pilot redesign (2026-10-31):** tab approval, personal tabs, payment method, pal characters, a picture beside every name, the budget widget, and the Split and Home redesigns, as written in §5. Uploading your own pictures, including tab photos, moves to the next phase; `docs/ROADMAP.md`.
