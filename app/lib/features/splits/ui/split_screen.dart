@@ -15,15 +15,16 @@ import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
+import 'package:roamio/features/splits/domain/category_shares.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/splits/ui/settle_sheet.dart';
+import 'package:roamio/features/splits/ui/split_charts.dart';
 import 'package:roamio/features/splits/ui/who_pays_whom.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
-import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// The Split tab (spec UC-24 to UC-26): the active adventure's split, or
@@ -321,6 +322,15 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             child: const Text('Open adventure'),
           ),
         ] else ...[
+          if (r.totalSpend > 0) ...[
+            SpendByCategory(
+              total: _money(ref, r.totalSpend, r.currency),
+              shares: topCategories(r.byCategory),
+              nameOf: _categoryName,
+              moneyOf: (m) => _money(ref, m, r.currency),
+            ),
+            const SizedBox(height: 24),
+          ],
           WhoPaysWhom(
             transfers: r.transfers,
             people: people,
@@ -331,71 +341,173 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             onAct: (t) => _settle(r, t.from, t.to),
           ),
           const SizedBox(height: 16),
-          if (!_details)
-            OutlinedButton(
-              onPressed: () => setState(() => _details = true),
-              child: const Text('See detailed breakdown'),
-            )
-          else ...[
-            const SizedBox(height: 4),
-            if (settled.isNotEmpty) ...[
-              Text('Payments recorded', style: text.titleMedium),
-              const SizedBox(height: 4),
-              for (final p in settled)
-                Row(
+          OutlinedButton.icon(
+            onPressed: () => setState(() => _details = !_details),
+            icon: const Icon(Icons.bar_chart),
+            label: Text(_details ? 'Hide breakdown' : 'See detailed breakdown'),
+          ),
+          if (_details) ...[
+            const SizedBox(height: 24),
+            const _Heading('Balances'),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_paid(p.from, p.to), style: text.bodyLarge),
-                          Text(
-                            '${formatDay(parseIsoDate(p.date))} · '
-                            '${_money(ref, p.amountMinor, p.currency)}',
-                            style: slate,
+                    for (final MapEntry(:key, :value) in r.balances.entries)
+                      Padding(
+                        key: ValueKey('balance-$key'),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 6,
+                        ),
+                        child: MergeSemantics(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: PersonName(
+                                    uid: key,
+                                    person: people[key],
+                                    name: key == myUid ? 'You' : who(key),
+                                    style: text.bodyLarge,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _money(ref, value, r.currency, sign: true),
+                                style: text.bodyLarge?.copyWith(
+                                  color: value > 0
+                                      ? RoamioColors.mintText
+                                      : value < 0
+                                      ? RoamioColors.coralText
+                                      : null,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    if (_maySettle(p.from, p.to))
-                      IconButton(
-                        tooltip: 'Undo',
-                        icon: const Icon(Icons.undo),
-                        onPressed: () => _undo(p),
+                        ),
                       ),
                   ],
                 ),
-              const SizedBox(height: 20),
+              ),
+            ),
+            if (settled.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const _Heading('Payments recorded'),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+                  child: Column(
+                    children: [
+                      for (final p in settled)
+                        Row(
+                          children: [
+                            PersonAvatar(
+                              uid: p.from,
+                              person: people[p.from],
+                              radius: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            PersonAvatar(
+                              uid: p.to,
+                              person: people[p.to],
+                              radius: 14,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: MergeSemantics(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _paid(p.from, p.to),
+                                      style: text.bodyLarge,
+                                    ),
+                                    Text(
+                                      [
+                                        formatDay(parseIsoDate(p.date)),
+                                        _money(ref, p.amountMinor, p.currency),
+                                      ].join(' · '),
+                                      style: slate,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: _maySettle(p.from, p.to)
+                                  ? IconButton(
+                                      tooltip: 'Undo',
+                                      icon: const Icon(Icons.undo),
+                                      onPressed: () => _undo(p),
+                                    )
+                                  : null,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             ],
-            _Section(
-              title: 'Balances',
-              rows: [
-                for (final MapEntry(:key, :value) in r.balances.entries)
-                  (
-                    key == myUid ? 'You' : who(key),
-                    _money(ref, value, r.currency, sign: true),
+            if (r.totalSpend > 0) ...[
+              const SizedBox(height: 24),
+              const _Heading('All categories'),
+              Card(
+                child: Padding(
+                  key: const ValueKey('all-categories'),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-              ],
-            ),
-            _Section(
-              title: 'By category',
-              rows: [
-                ('Total spend', _money(ref, r.totalSpend, r.currency)),
-                for (final MapEntry(:key, :value) in _sorted(r.byCategory))
-                  (_categoryLabel(key), _money(ref, value, r.currency)),
-              ],
-            ),
-            _Section(
-              title: 'By day',
-              rows: [
-                for (final day
-                    in r.byDay.keys.toList()..sort((x, y) => y.compareTo(x)))
-                  (
-                    dayLabel(day, ref.watch(todayProvider)),
-                    _money(ref, r.byDay[day]!, r.currency),
+                  child: Column(
+                    children: [
+                      for (final MapEntry(:key, :value) in _sorted(
+                        r.byCategory,
+                      ))
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: MergeSemantics(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _categoryLabel(key),
+                                    style: text.bodyLarge,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _money(ref, value, r.currency),
+                                  style: text.bodyLarge,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
-            ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const _Heading('Spend by day'),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: DayBars(
+                    days: allDays(r.byDay),
+                    amountOf: (d) => r.byDay[d] ?? 0,
+                    dayName: formatDay,
+                    moneyOf: (m) => _money(ref, m, r.currency),
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ],
@@ -494,10 +606,15 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
   List<MapEntry<String, int>> _sorted(Map<String, int> m) =>
       m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
+  Category? _category(String id) =>
+      (ref.watch(categoriesProvider).value ?? const <Category>[])
+          .where((c) => c.id == id)
+          .firstOrNull;
+
+  String _categoryName(String id) => _category(id)?.name ?? id;
+
   String _categoryLabel(String id) {
-    final c = (ref.watch(categoriesProvider).value ?? const <Category>[])
-        .where((c) => c.id == id)
-        .firstOrNull;
+    final c = _category(id);
     return c == null ? id : '${c.emoji} ${c.name}';
   }
 }
@@ -534,36 +651,16 @@ class _SettlePeople extends ConsumerWidget {
   }
 }
 
-class _Section extends StatelessWidget {
-  const new({required this.title, required this.rows});
+class _Heading extends StatelessWidget {
+  const new(this.title);
 
   final String title;
-  final List<(String, String)> rows;
 
   @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(title, style: text.titleMedium),
-          const SizedBox(height: 4),
-          for (final (label, value) in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  Expanded(child: Text(label, style: text.bodyLarge)),
-                  Text(value, style: text.bodyLarge),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+  );
 }
 
 /// Overall (UC-24): the viewer's share of spending across adventures; tap

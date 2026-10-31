@@ -367,7 +367,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: spent by you, then owed or owe; "•••" menu; waiting note; rows with pictures, first 4 and View all, arrows only where you can act; every state in UC-25.
   - Verify: widget tests per state and role.
 
-- [ ] **Task 58: Spend by category and breakdown** — M · Deps: 57 · UC-25
+- [x] **Task 58: Spend by category and breakdown** — M · Deps: 57 · UC-25
   - Acceptance: top 3 + Other bar in plain Flutter, integer percentages summing to 100; breakdown with balances, Payments recorded with Undo, all categories, bars by day.
   - Verify: unit test of the percentages; widget tests; no new dependency.
 
