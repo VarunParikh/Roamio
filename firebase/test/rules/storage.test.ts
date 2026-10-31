@@ -8,6 +8,7 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 import { deleteObject, getBytes, ref, uploadBytes } from "firebase/storage";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { clearFirestore } from "../support/clear";
 
 /**
  * The rules for when uploads come back, with their one switch on; the pilot's
@@ -57,7 +58,7 @@ beforeAll(async () => {
 afterAll(() => env.cleanup());
 
 beforeEach(async () => {
-  await env.clearFirestore();
+  await clearFirestore(env);
   await env.clearStorage();
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
