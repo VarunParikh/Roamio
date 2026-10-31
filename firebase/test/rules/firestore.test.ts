@@ -24,6 +24,7 @@ import {
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { RULES_PROJECT } from "../support/rules-project";
+import { clearFirestore } from "../support/clear";
 
 /**
  * Cast (spec §5): alice leads adventure a1, cara is co-lead, bob and mia
@@ -109,7 +110,7 @@ beforeAll(async () => {
 afterAll(() => env.cleanup());
 
 beforeEach(async () => {
-  await env.clearFirestore();
+  await clearFirestore(env);
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
     for (const [uid, ageStatus] of Object.entries(accounts)) {
