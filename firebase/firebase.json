@@ -75,5 +75,8 @@
         "destination": "/i/index.html"
       }
     ]
+  },
+  "remoteconfig": {
+    "template": "remoteconfig.template.json"
   }
 }
