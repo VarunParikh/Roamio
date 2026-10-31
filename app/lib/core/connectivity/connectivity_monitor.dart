@@ -41,6 +41,7 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
     this.timeout = const Duration(seconds: 5),
     this.offlineAfter = 3,
     this.lookup = InternetAddress.lookup,
+    this.reachOverHttps,
   });
 
   final String host;
@@ -48,6 +49,10 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
   final Duration timeout;
   final int offlineAfter;
   final Future<List<InternetAddress>> Function(String host) lookup;
+
+  /// The second opinion when DNS fails (item 18): whether Google's
+  /// connectivity page answers. Only asked when DNS has failed.
+  final Future<bool> Function()? reachOverHttps;
 
   @override
   Stream<bool> get changes {
@@ -90,13 +95,39 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
     return controller.stream;
   }
 
+  /// Online if DNS answers, or, when it doesn't, if the HTTPS check does.
+  /// Some networks answer DNS wrongly while the internet works.
   @override
   Future<bool> check() async {
+    if (await _dnsAnswers()) return true;
+    final reach = reachOverHttps ?? _reachesOverHttps;
+    return await reach().timeout(timeout, onTimeout: () => false);
+  }
+
+  Future<bool> _dnsAnswers() async {
     try {
       final found = await lookup(host).timeout(timeout);
       return found.isNotEmpty && found.first.rawAddress.isNotEmpty;
     } on Exception {
       return false;
+    }
+  }
+
+  /// Google's connectivity page answers 204 with an empty body, so it costs
+  /// almost no data.
+  Future<bool> _reachesOverHttps() async {
+    final client = HttpClient()..connectionTimeout = timeout;
+    try {
+      final request = await client
+          .getUrl(Uri.parse('https://www.gstatic.com/generate_204'))
+          .timeout(timeout);
+      final response = await request.close().timeout(timeout);
+      await response.drain<void>();
+      return response.statusCode == 204;
+    } on Exception {
+      return false;
+    } finally {
+      client.close(force: true);
     }
   }
 }

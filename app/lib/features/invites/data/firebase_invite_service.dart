@@ -40,6 +40,10 @@ class FirebaseInviteService implements InviteService {
       countryCode: data['countryCode'] as String,
       startDate: parseIsoDate(data['startDate'] as String),
       endDate: parseIsoDate(data['endDate'] as String),
+      expiresAt: switch (data['expiresAt']) {
+        final int ms => DateTime.fromMillisecondsSinceEpoch(ms),
+        _ => null,
+      },
     );
   }
 

@@ -61,6 +61,31 @@ Future<FakeTabNoticeService> _home(
 }
 
 void main() {
+  testWidgets(
+    'a tab the server removed says so, with one next action (item 2)',
+    (tester) async {
+      final service = await _home(
+        tester,
+        as: 'bob',
+        notices: const [
+          TabNotice(
+            id: 'bkk_removed_t1',
+            kind: TabNoticeKind.removed,
+            adventureId: 'bkk',
+            tabId: 't1',
+            description: 'Dinner',
+          ),
+        ],
+      );
+      expect(find.text('A tab couldn’t be saved'), findsOneWidget);
+      expect(find.textContaining('Dinner'), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      expect(find.text('A tab couldn’t be saved'), findsNothing);
+      expect(service.dismissed, ['bkk_removed_t1']);
+    },
+  );
+
   group('waiting tabs on Home (spec UC-21a)', () {
     testWidgets('counts them per adventure, in the singular too', (
       tester,

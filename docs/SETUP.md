@@ -153,7 +153,7 @@ during the pilot. To enforce later (owner, after the app is on the Play Store):
    project `roamio-prod-varun`.
 2. Firebase console → roamio-prod-varun → App Check → Apps → Roamio Android →
    register with **Play Integrity** and the release key's SHA-256.
-3. Watch App Check → APIs → *Verified requests* for a week. When almost all
+3. Install the prod APK, use it, and confirm its requests count as verified. Watch App Check → APIs → *Verified requests* for a week. When almost all
    are verified, press **Enforce** for Cloud Firestore, Cloud Storage and
    Cloud Functions, one at a time.
 
