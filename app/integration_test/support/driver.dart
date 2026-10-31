@@ -150,13 +150,16 @@ Future<void> scrollAndTapText(WidgetTester tester, String text) async {
 
 /// Scrolls the screen's main list until [finder] is built.
 Future<void> scrollTo(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 30 && finder.evaluate().isEmpty; i++) {
-    await tester.drag(
-      find.byType(Scrollable).last,
-      const Offset(0, -250),
-      warnIfMissed: false,
-    );
-    await settle(tester, const Duration(milliseconds: 200));
+  // Down first, then back up: it may be above where the list has got to.
+  for (final (steps, by) in const [(15, -250.0), (30, 250.0)]) {
+    for (var i = 0; i < steps && finder.evaluate().isEmpty; i++) {
+      await tester.drag(
+        find.byType(Scrollable).last,
+        Offset(0, by),
+        warnIfMissed: false,
+      );
+      await settle(tester, const Duration(milliseconds: 200));
+    }
   }
   await waitFor(tester, finder);
   await tester.ensureVisible(finder.first);
