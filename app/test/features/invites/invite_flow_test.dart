@@ -122,6 +122,12 @@ void main() {
         invites: invites,
       );
 
+      await tester.scrollUntilVisible(
+        find.text('Have an invite code?'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Have an invite code?'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'nope');
@@ -152,6 +158,12 @@ void main() {
         FakeAuthService(initial: readyFacts),
         invites: invites,
       );
+      await tester.scrollUntilVisible(
+        find.text('Have an invite code?'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Have an invite code?'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'ABCDEFGH');

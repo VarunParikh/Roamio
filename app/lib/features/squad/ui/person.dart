@@ -71,8 +71,12 @@ class PeoplePictures extends StatelessWidget {
     required this.firstUid,
     this.max = 4,
     this.radius = 12,
+    this.label,
     super.key,
   });
+
+  /// What TalkBack reads, if not "Shared by …".
+  final String? label;
 
   final List<String> ids;
   final Map<String, SquadPerson> people;
@@ -108,10 +112,12 @@ class PeoplePictures extends StatelessWidget {
     final diameter = radius * 2;
     final slots = shown.length + (extra > 0 ? 1 : 0);
     return Semantics(
-      label: sharedByLabel([
-        for (final id in inOrder)
-          if (id == firstUid) 'you' else people[id]?.name ?? 'someone',
-      ]),
+      label:
+          label ??
+          sharedByLabel([
+            for (final id in inOrder)
+              if (id == firstUid) 'you' else people[id]?.name ?? 'someone',
+          ]),
       excludeSemantics: true,
       child: SizedBox(
         width: slots == 0 ? 0 : step * (slots - 1) + diameter,

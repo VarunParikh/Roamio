@@ -94,7 +94,15 @@ void main() {
       );
 
       expect(
-        find.byWidgetPredicate((w) => w is PersonAvatar && w.uid == 'bob'),
+        find.descendant(
+          of: find.ancestor(
+            of: find.text('Bob Lee joined your squad'),
+            matching: find.byType(Card),
+          ),
+          matching: find.byWidgetPredicate(
+            (w) => w is PersonAvatar && w.uid == 'bob',
+          ),
+        ),
         findsOneWidget,
       );
     });

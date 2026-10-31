@@ -57,3 +57,21 @@ String? daysLeftLabel(Adventure adventure, DateTime today) {
     _ => '$days days left',
   };
 }
+
+/// The badge on Home's adventure card (spec UC-5).
+String heroBadge(Adventure a, DateTime today) =>
+    a.statusOn(today) == AdventureStatus.active
+    ? 'Current adventure'
+    : 'Next adventure';
+
+/// "5 days left", "Last day", "Starts in 12 days" or "Starts tomorrow".
+String heroCountdown(Adventure a, DateTime today) {
+  final left = daysLeftLabel(a, today);
+  if (left != null) return left;
+  final days = DateTime.utc(
+    a.startDate.year,
+    a.startDate.month,
+    a.startDate.day,
+  ).difference(DateTime.utc(today.year, today.month, today.day)).inDays;
+  return days == 1 ? 'Starts tomorrow' : 'Starts in $days days';
+}

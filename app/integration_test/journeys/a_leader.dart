@@ -20,7 +20,7 @@ void journeyA() {
     expect(account.containsKey('dob'), isFalse);
 
     // Create an adventure in Thailand happening now.
-    await tapText(tester, 'New Adventure');
+    await tapText(tester, 'Create a new adventure');
     await tapText(tester, 'Choose a country');
     await tester.enterText(find.byType(TextField).last, 'thai');
     await tapText(tester, 'Thailand');

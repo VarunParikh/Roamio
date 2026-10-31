@@ -8,9 +8,11 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/banners/ui/adventure_banner.dart';
 import 'package:roamio/features/home/data/weather_provider.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 
-/// The big card for the current or next adventure (UC-5). Until banners
-/// arrive (Task 16) it shows the country's flag on a dark gradient.
+/// The big card for the current or next adventure (spec UC-5): tap it to
+/// open the adventure. It grows with its text, so nothing overflows.
 class HeroAdventureCard extends ConsumerWidget {
   const new({required this.adventure, super.key});
 
@@ -20,97 +22,160 @@ class HeroAdventureCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final today = ref.watch(todayProvider);
+    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final country = ref
         .watch(countriesProvider)
         .value
         ?.byCode(adventure.countryCode);
-    final place = [
-      if (adventure.city.isNotEmpty) adventure.city,
-      ?country?.name,
-    ].join(', ');
+    // Looked up here rather than with squadPeople, which reads the tabs.
+    final members =
+        ref.watch(squadPeopleProvider(adventure.memberUids.join(','))).value ??
+        const <String, SquadPerson>{};
+    final pals = ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[];
+    final badge = heroBadge(adventure, today);
+    final countdown = heroCountdown(adventure, today);
     return Semantics(
       button: true,
-      label: '${adventure.name}, ${statusLabel(adventure, today)}',
+      label: '${adventure.name}, $badge, $countdown',
       child: ClipRRect(
         borderRadius: BorderRadius.circular(RoamioRadii.lg),
-        child: SizedBox(
-          height: 220,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 260),
           child: Stack(
-            fit: StackFit.expand,
+            alignment: Alignment.bottomLeft,
             children: [
-              AdventureBanner(
-                countryCode: adventure.countryCode,
-                flag: country?.flag ?? '🌍',
-                customUrl: adventure.bannerUrl,
-              ),
-              Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  onTap: () => context.push('/adventures/${adventure.id}'),
+              Positioned.fill(
+                child: AdventureBanner(
+                  countryCode: adventure.countryCode,
+                  flag: country?.flag ?? '🌍',
+                  customUrl: adventure.bannerUrl,
                 ),
               ),
-              IgnorePointer(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: RoamioColors.chartreuse,
-                          borderRadius: BorderRadius.circular(RoamioRadii.full),
-                        ),
-                        child: Text(
-                          statusLabel(adventure, today).toUpperCase(),
-                          style: text.labelSmall,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        adventure.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: text.headlineLarge?.copyWith(
-                          color: RoamioColors.surface,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        [
-                          formatDateRange(
-                            adventure.startDate,
-                            adventure.endDate,
-                          ),
-                          if (place.isNotEmpty) place,
-                        ].join(' · '),
-                        style: text.bodyMedium?.copyWith(
-                          color: RoamioColors.muted,
-                        ),
-                      ),
-                    ],
+              Positioned.fill(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    onTap: () => context.push('/adventures/${adventure.id}'),
                   ),
                 ),
               ),
               Positioned(
-                top: 16,
-                right: 16,
-                child: _HeroWeather(
-                  city: adventure.city.isNotEmpty
-                      ? adventure.city
-                      : country?.name ?? '',
-                  countryCode: adventure.countryCode,
+                top: 20,
+                left: 20,
+                right: 20,
+                child: IgnorePointer(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: RoamioColors.chartreuse,
+                        borderRadius: BorderRadius.circular(RoamioRadii.full),
+                      ),
+                      child: Text(badge.toUpperCase(), style: text.labelSmall),
+                    ),
+                  ),
                 ),
               ),
-              Positioned(
-                right: 12,
-                bottom: 8,
-                child: BannerCredit(
-                  countryCode: adventure.countryCode,
-                  customUrl: adventure.bannerUrl,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 64, 20, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IgnorePointer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            adventure.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.headlineLarge?.copyWith(
+                              color: RoamioColors.surface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Text(
+                                [
+                                  formatDateRange(
+                                    adventure.startDate,
+                                    adventure.endDate,
+                                  ),
+                                  countdown,
+                                ].join(' · '),
+                                style: text.bodyMedium?.copyWith(
+                                  color: RoamioColors.surface,
+                                ),
+                              ),
+                              _HeroWeather(
+                                city: adventure.city.isNotEmpty
+                                    ? adventure.city
+                                    : country?.name ?? '',
+                                countryCode: adventure.countryCode,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: IgnorePointer(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: PeoplePictures(
+                                ids: [
+                                  ...adventure.memberUids,
+                                  for (final p in pals) p.id,
+                                ],
+                                people: {
+                                  ...members,
+                                  for (final p in pals)
+                                    p.id: SquadPerson(
+                                      name: p.nickname,
+                                      characterId: p.characterId,
+                                    ),
+                                },
+                                firstUid: myUid,
+                                radius: 16,
+                                label: 'Your squad',
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // White, so Home keeps a single chartreuse primary.
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                            backgroundColor: RoamioColors.surface,
+                            foregroundColor: RoamioColors.ink,
+                          ),
+                          onPressed: () => context.push(
+                            '/adventures/${adventure.id}/tabs/new',
+                          ),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add tab'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    BannerCredit(
+                      countryCode: adventure.countryCode,
+                      customUrl: adventure.bannerUrl,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -155,7 +220,7 @@ class AdventureTile extends ConsumerWidget {
   }
 }
 
-/// "☀️ 30°C" in the Hero card's corner; nothing while loading or when the
+/// "☀️ 30°C" beside the Hero card's dates; nothing while loading or when the
 /// weather is unavailable (spec UC-7).
 class _HeroWeather extends ConsumerWidget {
   const new({required this.city, required this.countryCode});

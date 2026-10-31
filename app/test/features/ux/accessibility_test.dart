@@ -50,7 +50,7 @@ Future<void> _open(
 
 void main() {
   final screens = <String, (String, List<Adventure>, String)>{
-    'Home, empty': ('/', const [], 'New Adventure'),
+    'Home, empty': ('/', const [], 'Create a new adventure'),
     'Home, with an adventure': ('/', [_goa], 'Goa trip'),
     'Adventure page': ('/adventures/bkk', [_goa], 'Add tab'),
     'Add tab': ('/adventures/bkk/tabs/new', [_goa], 'Amount'),

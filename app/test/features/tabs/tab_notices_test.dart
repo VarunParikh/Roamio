@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/home/ui/needs_you.dart';
 import 'package:roamio/features/tabs/data/tab_notice_service.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
-import 'package:roamio/features/tabs/ui/tab_notice_cards.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
@@ -114,7 +114,7 @@ void main() {
       await _home(tester, as: 'ari', notices: [_waiting('t1')]);
       expect(
         find.descendant(
-          of: find.byType(TabNoticeCards),
+          of: find.byType(NeedsYou),
           matching: find.byIcon(Icons.close),
         ),
         findsNothing,

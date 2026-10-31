@@ -17,7 +17,7 @@ Tests:
 | Sign in / Email sign-in / Create account / Verify email / Complete profile / Confirm adult | the screen's one action | `AuthScaffold.primary` |
 | Waiting for parent | Send request, *or* Send the email again | two states, never both at once |
 | Parent consent (link) | Agree | decline is secondary |
-| Home | New Adventure (pulses when empty) | |
+| Home | Create a new adventure (pulses), only with nothing ahead | with an adventure ahead, New adventure is a plain outlined button and Add tab is white |
 | Create / Edit adventure, Add / Edit tab | Save | |
 | Adventure page | Share invite | Add tab floats as an ink button with a chartreuse icon, not a second primary |
 | Split | none on the screen | Save budget and Mark as settled are primaries inside their own sheets |
@@ -29,7 +29,9 @@ Tests:
 
 | Screen | State | Next action | Test |
 |---|---|---|---|
-| Home | empty | New Adventure (pulsing primary) | `home_and_create_test`: empty: greeting and one pulsing New Adventure button |
+| Home | nothing ahead, no adventures | Create a new adventure (pulsing primary) | `first_screen_test`: no adventures |
+| Home | nothing ahead, past trips only | Create a new adventure, then the Past list | `first_screen_test`: past trips only |
+| Home | prompts waiting | Needs you: top 2, then See all | `needs_you_test` |
 | Home | can't load | Try again | `screen_states_test`: Home: adventures can't load → Try again |
 | Home | offline / back online | banner; Sync when back | `offline_ui_test` |
 | Invites on Home | expired or bad code | explains; nothing saved | `invite_flow_test`: an expired code explains itself… |

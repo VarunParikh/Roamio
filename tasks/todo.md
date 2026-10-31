@@ -371,7 +371,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: top 3 + Other bar in plain Flutter, integer percentages summing to 100; breakdown with balances, Payments recorded with Undo, all categories, bars by day.
   - Verify: unit test of the percentages; widget tests; no new dependency.
 
-- [ ] **Task 59: Home card, Needs you and first screen** — L · Deps: 54 · UC-5, UC-6, UC-7
+- [x] **Task 59: Home card, Needs you and first screen** — L · Deps: 54 · UC-5, UC-6, UC-7
   - Acceptance: adventure card versions; weather and credit moved; Needs you order, top 2 and See all; image card with a random bundled photo per app open and a gradient meeting contrast on all 10; polaroid card; Sync only when needed.
   - Verify: widget tests per version; contrast test for all 10; first-screen and past-only tests.
 
