@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 
 enum _PalAction { rename, remove }
@@ -26,11 +27,7 @@ class PalTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => ListTile(
     contentPadding: EdgeInsets.zero,
-    leading: CircleAvatar(
-      backgroundColor: RoamioColors.hairline,
-      foregroundColor: RoamioColors.ink,
-      child: Text(pal.nickname.characters.first),
-    ),
+    leading: CharacterAvatar(uid: pal.id),
     title: Text(pal.nickname),
     subtitle: const Text('Pal', style: TextStyle(color: RoamioColors.slate)),
     trailing: canManage

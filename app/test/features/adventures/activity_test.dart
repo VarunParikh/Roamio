@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 
 import '../../support/fake_activity_service.dart';
 import '../../support/fake_adventure_service.dart';
@@ -143,6 +144,25 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Bob Lee joined the squad'), findsOneWidget);
+    });
+
+    testWidgets('each line shows the picture of who did it', (tester) async {
+      await open(
+        tester,
+        FakeActivityService({
+          'goa': [_e('member_joined', subject: 'bob')],
+        }),
+      );
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Bob Lee joined the squad'),
+          matching: find.byWidgetPredicate(
+            (w) => w is PersonAvatar && w.uid == 'bob',
+          ),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('empty: says so', (tester) async {

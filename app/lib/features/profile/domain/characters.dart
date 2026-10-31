@@ -78,8 +78,26 @@ const List<Character> characters = [
   Character('tiger', 'Tiger', _a),
 ];
 
+/// How many characters a default can be. Fixed, so adding characters to the
+/// list never changes anyone's default.
+const _defaultPool = 47;
+
+/// The character someone has until they choose: always the same for an id.
+/// Not Dart's `hashCode`, which can differ between runs.
+Character defaultCharacterFor(String uid) {
+  var hash = 0;
+  for (final unit in uid.codeUnits) {
+    hash = (hash * 31 + unit) & 0x3fffffff;
+  }
+  return characters[hash % _defaultPool];
+}
+
+/// Who [uid] appears as: their chosen character, or else their default.
+Character characterFor(String uid, String? chosenId) =>
+    characterById(chosenId) ?? defaultCharacterFor(uid);
+
 /// The character with this id; null when there's none or this version of the
-/// app doesn't know it (the person's initial is shown instead).
+/// app doesn't know it (their default is shown instead).
 Character? characterById(String? id) {
   for (final c in characters) {
     if (c.id == id) return c;

@@ -83,7 +83,7 @@ Since the previous handover:
 - UX: TalkBack reading order and wording; the pulse's feel.
 - Remote Config: set the keys in the console and see the flags change.
 - Releases: the release workflow on the first tag; the update popup on the previous version.
-- **Added 2026-10-31, characters:** pick a character on You and from the Home card; it looks sharp and on white on a real screen; a squadmate sees it in the squad list; Google sign-up doesn't bring your Google photo.
+- **Added 2026-10-31, characters:** a new account shows its default character and the Home card offers a change; pick one on You; pictures look sharp and on white on a real screen; a squadmate sees yours in the squad list and Activity; a deleted account shows the grey icon; Google sign-up doesn't bring your Google photo.
 - **Added 2026-10-30:**
   - Exchange-rate day: a foreign-currency tab added before 06:00 India time keeps its total after that day's rates arrive. The tab screen shows *Converted at exchange rates from …*.
   - Profiles are private: a new member sees the squad's names right after joining; someone outside the squad can't see them.

@@ -67,6 +67,7 @@ class FakeSquadService implements SquadService {
         uid: SquadPerson(
           name: deleted.contains(uid) ? deletedUserName : names[uid] ?? uid,
           characterId: characters[uid],
+          deleted: deleted.contains(uid),
         ),
     };
   }

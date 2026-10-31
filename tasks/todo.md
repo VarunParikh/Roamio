@@ -319,7 +319,7 @@ Common verification commands:
 
 Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. One PR per task, in order. `app/` tasks also update `tasks/screen_states.md`, and device checks go on the list in `tasks/HANDOVER.md`.
 
-- [ ] **Task 46: Picture and name building block** — M · Deps: 45 · UC-28, UC-28a
+- [x] **Task 46: Picture and name building block** — M · Deps: 45 · UC-28, UC-28a
   - Acceptance: shared picture + name widget; default character from a stable hash of the account ID; Home card "We picked this for you. Change it?"; deleted user grey icon; neutral circle while loading; TalkBack reads the name; adopted on Home greeting, squad and pals, join cards, Activity.
   - Verify: unit test that the default is stable and covers bad input; widget tests per state.
 

@@ -81,16 +81,18 @@ void main() {
           (w) =>
               w is CharacterAvatar &&
               w.characterId == 'panda' &&
-              w.name == 'Bob Lee',
+              w.uid == 'bob',
         ),
       ),
       findsOneWidget,
     );
-    // Someone who hasn't chosen keeps their initial.
+    // Someone who hasn't chosen has their default, never a blank.
     expect(
       find.descendant(
         of: find.widgetWithText(ListTile, 'Cara Diaz'),
-        matching: find.text('C'),
+        matching: find.byWidgetPredicate(
+          (w) => w is CharacterAvatar && w.uid == 'cara' && !w.loading,
+        ),
       ),
       findsOneWidget,
     );

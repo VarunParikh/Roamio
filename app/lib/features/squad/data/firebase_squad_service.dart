@@ -77,6 +77,7 @@ class FirebaseSquadService implements SquadService {
           d.id: SquadPerson(
             name: nameFromProfile(d.data()),
             characterId: d.data()?['characterId'] as String?,
+            deleted: !d.exists,
           ),
     };
   }

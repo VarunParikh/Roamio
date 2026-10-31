@@ -14,6 +14,7 @@ import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/profile/domain/characters.dart';
 import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/profile/ui/character_picker.dart';
 import 'package:roamio/features/profile/ui/consent_switches.dart';
@@ -135,6 +136,7 @@ class _YouScreenState extends ConsumerState<YouScreen> {
       currency,
     }.toList()..sort();
     final uploads = ref.watch(photoUploadsEnabledProvider);
+    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
 
     return SafeArea(
       child: ListView(
@@ -150,10 +152,11 @@ class _YouScreenState extends ConsumerState<YouScreen> {
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: CharacterAvatar(
-                    name: _name.text,
+                    uid: myUid,
                     characterId: profile?.characterId,
                     photoUrl: uploads ? profile?.photoUrl : null,
                     radius: 48,
+                    loading: profile == null,
                   ),
                 ),
                 Positioned(
@@ -162,7 +165,9 @@ class _YouScreenState extends ConsumerState<YouScreen> {
                   child: IconButton.filledTonal(
                     tooltip: 'Choose your character',
                     icon: const Icon(Icons.edit_outlined),
-                    onPressed: () => _chooseCharacter(profile?.characterId),
+                    onPressed: () => _chooseCharacter(
+                      characterFor(myUid, profile?.characterId).id,
+                    ),
                   ),
                 ),
                 if (uploads)

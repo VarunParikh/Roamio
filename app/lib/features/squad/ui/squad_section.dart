@@ -5,9 +5,9 @@ import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
-import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
@@ -64,7 +64,8 @@ class SquadSection extends ConsumerWidget {
         for (final uid in uids)
           _MemberTile(
             name: uid == myUid ? '${nameOf(uid)} (you)' : nameOf(uid),
-            characterId: people[uid]?.characterId,
+            uid: uid,
+            person: people[uid],
             role: _role(uid),
             isLead: adventure.isLead(uid),
             actions: offline ? const [] : _actionsOn(uid),
@@ -234,7 +235,8 @@ class SquadSection extends ConsumerWidget {
 class _MemberTile extends StatelessWidget {
   const new({
     required this.name,
-    required this.characterId,
+    required this.uid,
+    required this.person,
     required this.role,
     required this.isLead,
     required this.actions,
@@ -242,7 +244,8 @@ class _MemberTile extends StatelessWidget {
   });
 
   final String name;
-  final String? characterId;
+  final String uid;
+  final SquadPerson? person;
   final String role;
   final bool isLead;
   final List<_Action> actions;
@@ -261,7 +264,7 @@ class _MemberTile extends StatelessWidget {
     leading: Stack(
       clipBehavior: Clip.none,
       children: [
-        CharacterAvatar(name: name, characterId: characterId),
+        PersonAvatar(uid: uid, person: person),
         if (isLead)
           const Positioned(
             right: -6,
