@@ -22,9 +22,13 @@ class SpendByCategory extends StatelessWidget {
     required this.shares,
     required this.nameOf,
     required this.moneyOf,
+    this.title = 'Spend by category',
+    this.totalLabel = 'Total spend',
     super.key,
   });
 
+  final String title;
+  final String totalLabel;
   final String total;
   final List<CategoryShare> shares;
 
@@ -60,10 +64,10 @@ class SpendByCategory extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Spend by category', style: text.headlineSmall),
+        Text(title, style: text.headlineSmall),
         const SizedBox(height: 2),
         Text(
-          'Total spend $total',
+          '$totalLabel $total',
           style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
         ),
         const SizedBox(height: 8),

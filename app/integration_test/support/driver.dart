@@ -12,7 +12,7 @@ import 'emulators.dart' as emulators;
 
 /// A connection the test switches on and off. The app reacts exactly as it
 /// does to the real one: the sync controller turns Firestore's network off
-/// (`disableNetwork`) and offers Sync when it comes back.
+/// (`disableNetwork`) and syncs when it comes back.
 class ScriptedConnection implements ConnectivityMonitor {
   final _changes = StreamController<bool>.broadcast();
   bool online = true;
@@ -200,12 +200,21 @@ String usDate(DateTime d) =>
     '${d.month.toString().padLeft(2, '0')}/'
     '${d.day.toString().padLeft(2, '0')}/${d.year}';
 
+/// The pilot's "18 or older" tick on the first page; Phase 2 has none.
+Future<void> _tickFirstPage(WidgetTester tester) async {
+  await waitFor(tester, find.text('Sign in with email'));
+  final tick = find.byType(Checkbox);
+  if (tick.evaluate().isEmpty) return;
+  if (tester.widget<Checkbox>(tick).value != true) await tapOn(tester, tick);
+}
+
 /// Signs in through "Sign in with email".
 Future<void> signInWithEmail(
   WidgetTester tester,
   String email,
   String password,
 ) async {
+  await _tickFirstPage(tester);
   await tapText(tester, 'Sign in with email');
   await typeInto(tester, 'Email', email);
   await typeInto(tester, 'Password', password);
@@ -223,6 +232,7 @@ Future<String> signUpWithEmail(
   required String email,
   DateTime? dob,
 }) async {
+  await _tickFirstPage(tester);
   await tapText(tester, 'New here? Create an account');
   await typeInto(tester, 'Your name', name);
   await typeInto(tester, 'Email', email);
@@ -231,11 +241,9 @@ Future<String> signUpWithEmail(
     await tapText(tester, 'Choose a date');
     await tester.enterText(find.byType(TextField).last, usDate(dob));
     await tapText(tester, 'OK');
-  } else {
-    await waitFor(tester, find.text('I’m 18 or older and I’ve read the '));
+    await tapOn(tester, find.byType(Checkbox));
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
   }
-  await tapOn(tester, find.byType(Checkbox));
-  expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
   await tapText(tester, 'Create account');
 
   await waitFor(tester, find.text('I’ve verified my email'));

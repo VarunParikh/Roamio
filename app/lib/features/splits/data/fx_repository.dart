@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 final _plainDecimal = RegExp(r'^\d+(\.\d+)?$');
 
@@ -31,11 +32,13 @@ final fxRepositoryProvider = Provider<FxRepository>(
   (ref) => FirebaseFxRepository(FirebaseFirestore.instance),
 );
 
-/// Rates for one day, read once and kept for the session.
+/// Rates for one day, kept for the session, and read again on coming back
+/// online: a read while offline only finds what's on the phone.
 final FutureProviderFamily<FxRates?, String> fxRatesProvider =
-    FutureProvider.family<FxRates?, String>(
-      (ref, date) => ref.watch(fxRepositoryProvider).ratesFor(date),
-    );
+    FutureProvider.family<FxRates?, String>((ref, date) {
+      ref.watch(isOfflineProvider);
+      return ref.watch(fxRepositoryProvider).ratesFor(date);
+    });
 
 /// Reads `fx_rates`. Firestore keeps what it has read on the phone, so
 /// rates already seen still work offline.

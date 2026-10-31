@@ -53,8 +53,18 @@ void main() {
     await pumpBar(tester);
 
     expect(
-      tester.getSize(find.byType(AnimatedContainer).first).height,
+      tester.getSize(find.text('Home')).height == 0
+          ? 0
+          : tester.getSize(find.byType(GestureDetector).first).height,
       greaterThanOrEqualTo(48),
     );
+  });
+
+  testWidgets('the highlight slides to the selected tab', (tester) async {
+    await pumpBar(tester);
+    final highlight = find.byKey(const ValueKey('bottom-bar-highlight'));
+    final align = tester.widget<AnimatedAlign>(highlight);
+    expect(align.duration, greaterThan(Duration.zero));
+    expect(align.alignment, Alignment.centerLeft);
   });
 }

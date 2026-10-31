@@ -26,9 +26,6 @@ class HeroDetails extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final a = adventure;
-    final text = Theme.of(context).textTheme;
-    final started =
-        a.statusOn(ref.watch(todayProvider)) != AdventureStatus.upcoming;
     void openSplit() => context.go(Routes.splitFor(a.id));
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -44,21 +41,7 @@ class HeroDetails extends ConsumerWidget {
               child: const Text('See split'),
             ),
           ),
-          if (started) ...[
-            const Divider(color: RoamioColors.hairline),
-            Row(
-              children: [
-                Expanded(child: Text('Daily spend', style: text.titleMedium)),
-                TextButton(
-                  style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                  onPressed: openSplit,
-                  child: const Text('View all'),
-                ),
-              ],
-            ),
-            _DailySpend(adventure: a),
-            const SizedBox(height: 8),
-          ],
+          _DailySpend(adventure: a, onViewAll: openSplit),
           const Divider(color: RoamioColors.hairline),
           _SquadRow(adventure: a),
           _ActivityRow(adventure: a),
@@ -68,38 +51,71 @@ class HeroDetails extends ConsumerWidget {
   }
 }
 
+/// Daily spend: the squad's, or the viewer's own when they only have personal
+/// tabs. Before the trip it shows only if something has been spent already.
 class _DailySpend extends ConsumerWidget {
-  const new({required this.adventure});
+  const new({required this.adventure, required this.onViewAll});
 
   final Adventure adventure;
+  final VoidCallback onViewAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final slate = Theme.of(context).textTheme.bodyMedium
-        ?.copyWith(color: RoamioColors.slate);
+    final text = Theme.of(context).textTheme;
+    final slate = text.bodyMedium?.copyWith(color: RoamioColors.slate);
+    final today = ref.watch(todayProvider);
+    final started = adventure.statusOn(today) != AdventureStatus.upcoming;
     final report = ref.watch(splitReportProvider(adventure.id));
     final r = report.value;
-    if (r == null) {
-      return report.hasError
-          ? Text('We couldn’t load the spending.', style: slate)
-          : const LinearProgressIndicator();
+    final spend = r == null
+        ? const <DateTime, int>{}
+        : r.byDay.isNotEmpty
+        ? r.byDay
+        : r.myByDay;
+    if (!started && spend.isEmpty) return const SizedBox.shrink();
+
+    Widget body() {
+      if (r == null) {
+        return report.hasError
+            ? Text('We couldn’t load the spending.', style: slate)
+            : const LinearProgressIndicator();
+      }
+      if (r.missingRates && r.balances.isEmpty) {
+        return Text('Exchange rates aren’t available yet.', style: slate);
+      }
+      if (spend.isEmpty) return Text('No spending yet', style: slate);
+      final end = adventure.endDate.isBefore(today) ? adventure.endDate : today;
+      final start = adventure.startDate;
+      return DayBars(
+        days: allDays({
+          ...spend,
+          if (started) DateTime(start.year, start.month, start.day): 0,
+          DateTime(end.year, end.month, end.day): 0,
+        }),
+        amountOf: (d) => spend[d] ?? 0,
+        dayName: (d) => dayLabel(d, today),
+        moneyOf: (m) => formatWithSymbol(ref, Money(m, r.currency)),
+        visibleDays: 7,
+      );
     }
-    if (r.missingRates && r.balances.isEmpty) {
-      return Text('Exchange rates aren’t available yet.', style: slate);
-    }
-    if (r.totalSpend == 0) return Text('No spending yet', style: slate);
-    final today = ref.watch(todayProvider);
-    final end = adventure.endDate.isBefore(today) ? adventure.endDate : today;
-    final start = adventure.startDate;
-    return DayBars(
-      days: allDays({
-        DateTime(start.year, start.month, start.day): 0,
-        DateTime(end.year, end.month, end.day): 0,
-      }),
-      amountOf: (d) => r.byDay[d] ?? 0,
-      dayName: (d) => dayLabel(d, today),
-      moneyOf: (m) => formatWithSymbol(ref, Money(m, r.currency)),
-      visibleDays: 7,
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(color: RoamioColors.hairline),
+        Row(
+          children: [
+            Expanded(child: Text('Daily spend', style: text.titleMedium)),
+            TextButton(
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+              onPressed: onViewAll,
+              child: const Text('View all'),
+            ),
+          ],
+        ),
+        body(),
+        const SizedBox(height: 8),
+      ],
     );
   }
 }

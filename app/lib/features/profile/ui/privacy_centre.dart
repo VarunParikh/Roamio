@@ -211,8 +211,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
           ),
           section(
             'Correct your data',
-            'Change your name, photo and description on the You page. '
-                'Your date of birth can only be fixed by writing to us.',
+            'Change your name, character and description on the You page.',
           ),
           if (ref.watch(nomineeEnabledProvider)) const _NomineeSection(),
           section(
@@ -236,7 +235,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
           ),
           section(
             'Delete your account',
-            'Removes your profile, photos and budgets. If you lead a squad '
+            'Removes your profile and budgets. If you lead a squad '
                 'with others in it, make someone else leader first.',
             [
               if (_deleteError != null) ...[

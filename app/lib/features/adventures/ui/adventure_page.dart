@@ -9,6 +9,7 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/ui/adventure_banner.dart';
+import 'package:roamio/features/budget/ui/budget_widget.dart';
 import 'package:roamio/features/invites/ui/invite_section.dart';
 import 'package:roamio/features/squad/ui/squad_section.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
@@ -56,6 +57,8 @@ class AdventurePage extends ConsumerWidget {
           DraggableScrollableSheet(
             initialChildSize: 0.66,
             minChildSize: 0.66,
+            // Stops below the back and edit buttons, which float over it.
+            maxChildSize: 0.86,
             snap: true,
             builder: (context, controller) => DecoratedBox(
               decoration: const BoxDecoration(
@@ -76,6 +79,13 @@ class AdventurePage extends ConsumerWidget {
                   const _Handle(),
                   const SyncBanner(),
                   _TripHeader(adventure: adventure),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: BudgetWidget(adventure: adventure),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   TabsSection(adventure: adventure, myUid: myUid),
                   const SizedBox(height: 32),

@@ -53,6 +53,8 @@ class SplitReport {
     required this.missingRates,
     this.waitingCount = 0,
     this.waitingMyShare = 0,
+    this.myByCategory = const {},
+    this.myByDay = const {},
   });
 
   /// The viewer's profile currency, or the trip's when rates are missing.
@@ -87,6 +89,11 @@ class SplitReport {
   /// What the viewer's share of those would be, in [currency]; left out for a
   /// tab whose rate is missing.
   final int waitingMyShare;
+
+  /// [myShare] split by category and by day, personal tabs included. Only the
+  /// viewer sees these; [byCategory] and [byDay] are the squad's.
+  final Map<String, int> myByCategory;
+  final Map<DateTime, int> myByDay;
 }
 
 /// Builds the split for [viewer]. Each tab converts at its own day's rates
@@ -166,6 +173,8 @@ SplitReport buildReport({
 
   final byCategory = <String, int>{};
   final byDay = <DateTime, int>{};
+  final myByCategory = <String, int>{};
+  final myByDay = <DateTime, int>{};
   var myShare = 0;
   var waitingMyShare = 0;
   for (final t in tabs) {
@@ -183,10 +192,15 @@ SplitReport buildReport({
     final amount = ratesFor(t.split.fxDate)
         .convert(t.split.amount, currency)
         .minor;
-    myShare += _shareIn(t.split, amount, viewer);
+    final share = _shareIn(t.split, amount, viewer);
+    final day = DateTime(t.date.year, t.date.month, t.date.day);
+    myShare += share;
+    if (share != 0) {
+      myByCategory.update(t.category, (v) => v + share, ifAbsent: () => share);
+      myByDay.update(day, (v) => v + share, ifAbsent: () => share);
+    }
     if (t.status == TabStatus.personal) continue;
     byCategory.update(t.category, (v) => v + amount, ifAbsent: () => amount);
-    final day = DateTime(t.date.year, t.date.month, t.date.day);
     byDay.update(day, (v) => v + amount, ifAbsent: () => amount);
   }
 
@@ -206,6 +220,8 @@ SplitReport buildReport({
     missingRates: currency != viewerCurrency,
     waitingCount: waitingCount,
     waitingMyShare: waitingMyShare,
+    myByCategory: myByCategory,
+    myByDay: myByDay,
   );
 }
 

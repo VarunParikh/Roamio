@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
-import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 
@@ -102,15 +103,20 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
         ],
       );
     }
-    if (!allowed) {
-      return Text(
-        'Location is off. Turn it on in You to tag where tabs happen.',
-        style: Theme.of(context).textTheme.bodyMedium
-            ?.copyWith(color: RoamioColors.slate),
-      );
-    }
     return OutlinedButton.icon(
-      onPressed: _busy ? null : _locate,
+      // Choosing to add one is what turns the setting on (spec UC-21).
+      onPressed: _busy
+          ? null
+          : () {
+              if (!allowed) {
+                unawaited(
+                  ref
+                      .read(profileServiceProvider)
+                      .setLocationAllowed(allowed: true),
+                );
+              }
+              unawaited(_locate());
+            },
       icon: _busy
           ? const SizedBox.square(
               dimension: 18,

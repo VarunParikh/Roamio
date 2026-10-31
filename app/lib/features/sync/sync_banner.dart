@@ -5,11 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
-/// Spec UC-31, word for word.
-const syncPrompt =
-    'We know the data might be of essence, click here to sync the '
-    'adventure with your squad';
-
 /// Why a button is switched off while offline (UC-33).
 const needsConnectionNote = 'Needs a connection. Available once you’re back.';
 
@@ -66,11 +61,10 @@ class _SyncBannerState extends ConsumerState<SyncBanner> {
       SyncPhase.online => (null, null, null),
       SyncPhase.offline => (
         Icons.cloud_off_rounded,
-        'You’re offline. Tabs, settlements and photos are saved on this '
-            'phone and go up when you sync.',
+        'You’re offline. Your changes are saved on this phone and sync by '
+            'themselves when you’re back.',
         null,
       ),
-      SyncPhase.needsSync => (Icons.sync_rounded, syncPrompt, 'Sync'),
       SyncPhase.syncing => (Icons.sync_rounded, 'Syncing…', null),
       SyncPhase.synced => (Icons.cloud_done_rounded, 'Synced ✓', null),
       SyncPhase.failed => (

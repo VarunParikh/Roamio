@@ -104,6 +104,9 @@ void main() {
         find.descendant(of: date, matching: find.text('WED')),
         findsOneWidget,
       );
+      // The date is beside the card, so it isn't on it as well.
+      expect(find.text('Starts in 6 days'), findsOneWidget);
+      expect(find.textContaining('4 – 9 Nov'), findsNothing);
       expect(
         tester.getTopRight(date).dx,
         lessThanOrEqualTo(tester.getTopLeft(find.text('Trip next')).dx),

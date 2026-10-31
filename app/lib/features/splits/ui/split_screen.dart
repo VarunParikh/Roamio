@@ -306,12 +306,44 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             onPressed: openTabs,
             child: Text('${_tabCount(r.waitingCount)} waiting for approval'),
           )
-        else if (nothingShared) ...[
+        else if (nothingShared && r.myShare > 0 && !unmeasured) ...[
+          // Only personal tabs: nothing to split, but they're still your spend.
+          SpendByCategory(
+            title: 'Your spend by category',
+            totalLabel: 'Your spend',
+            total: _money(ref, r.myShare, r.currency),
+            shares: topCategories(r.myByCategory),
+            nameOf: _categoryName,
+            moneyOf: (m) => _money(ref, m, r.currency),
+          ),
+          const SizedBox(height: 24),
+          const _Heading('Your spend by day'),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DayBars(
+                days: allDays(r.myByDay),
+                amountOf: (d) => r.myByDay[d] ?? 0,
+                dayName: formatDay,
+                moneyOf: (m) => _money(ref, m, r.currency),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Only your personal tabs so far.',
+            style: slate,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: openTabs,
+            child: const Text('Open adventure'),
+          ),
+        ] else if (nothingShared) ...[
           if (!unmeasured) ...[
             Text(
-              r.myShare > 0
-                  ? 'Only your personal tabs so far.'
-                  : 'No tabs yet in ${a.name}.',
+              'No tabs yet in ${a.name}.',
               style: slate,
               textAlign: TextAlign.center,
             ),
@@ -710,7 +742,13 @@ class _Overall extends ConsumerWidget {
               children: [
                 Text('Your share across adventures', style: slate),
                 const SizedBox(height: 8),
-                Text(_money(ref, total, currency), style: text.headlineMedium),
+                if (someMissing && total == 0)
+                  Text('Not available yet', style: text.headlineMedium)
+                else
+                  Text(
+                    _money(ref, total, currency),
+                    style: text.headlineMedium,
+                  ),
                 if (someMissing) ...[
                   const SizedBox(height: 8),
                   Text(

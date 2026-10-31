@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
@@ -19,24 +21,28 @@ class FirebaseAdventureService implements AdventureService {
       .snapshots()
       .map((q) => q.docs.map(_fromDoc).toList());
 
+  // Not awaited: the server's answer never comes offline, and the stream
+  // shows the new adventure at once. It goes up with the next sync.
   @override
   Future<String> create(AdventureDraft draft) async {
     final doc = _db.collection('adventures').doc();
-    await doc.set({
-      'name': draft.name.trim(),
-      'description': draft.description.trim(),
-      'countryCode': draft.countryCode,
-      'city': draft.city.trim(),
-      'startDate': isoDate(draft.startDate),
-      'endDate': isoDate(draft.endDate),
-      'baseCurrency': draft.baseCurrency,
-      'bannerUrl': null,
-      'createdBy': _uid,
-      'createdAt': FieldValue.serverTimestamp(),
-      'leaderUid': _uid,
-      'coLeadUids': <String>[],
-      'memberUids': [_uid],
-    });
+    unawaited(
+      doc.set({
+        'name': draft.name.trim(),
+        'description': draft.description.trim(),
+        'countryCode': draft.countryCode,
+        'city': draft.city.trim(),
+        'startDate': isoDate(draft.startDate),
+        'endDate': isoDate(draft.endDate),
+        'baseCurrency': draft.baseCurrency,
+        'bannerUrl': null,
+        'createdBy': _uid,
+        'createdAt': FieldValue.serverTimestamp(),
+        'leaderUid': _uid,
+        'coLeadUids': <String>[],
+        'memberUids': [_uid],
+      }),
+    );
     return doc.id;
   }
 

@@ -13,15 +13,18 @@ import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// A banner card for a trip that isn't the big one on Home (spec UC-5).
 class OtherTripCard extends ConsumerWidget {
-  const new({required this.adventure, super.key});
+  const new({required this.adventure, this.showDates = true, super.key});
 
   final Adventure adventure;
+
+  /// Off when the date already sits beside the card.
+  final bool showDates;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final dates = [
-      formatDateRange(adventure.startDate, adventure.endDate),
+      if (showDates) formatDateRange(adventure.startDate, adventure.endDate),
       heroCountdown(adventure, ref.watch(todayProvider)),
     ].join(' · ');
     final flag = ref
@@ -135,7 +138,9 @@ class UpcomingTrip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(child: OtherTripCard(adventure: adventure)),
+          Expanded(
+            child: OtherTripCard(adventure: adventure, showDates: false),
+          ),
         ],
       ),
     );

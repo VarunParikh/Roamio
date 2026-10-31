@@ -8,10 +8,6 @@ import '../../support/fake_auth_service.dart';
 import '../../support/fake_squad_service.dart';
 import '../../support/fake_sync.dart';
 
-const _syncText =
-    'We know the data might be of essence, click here to sync the '
-    'adventure with your squad';
-
 final _bangkok = Adventure(
   id: 'bkk',
   name: 'Bangkok trip',
@@ -33,7 +29,8 @@ void main() {
     testWidgets('online: no banner', (tester) async {
       await pumpRoamio(tester, FakeAuthService(initial: readyFacts));
       expect(find.textContaining('offline'), findsNothing);
-      expect(find.text(_syncText), findsNothing);
+      expect(find.textContaining('You’re offline'), findsNothing);
+      expect(find.text('Sync'), findsNothing);
     });
 
     testWidgets('offline: says changes are kept, with one next step', (
@@ -48,7 +45,9 @@ void main() {
       expect(find.text('Sync'), findsNothing);
     });
 
-    testWidgets('back online: the spec text and a Sync button', (tester) async {
+    testWidgets('back online: syncs by itself, with no button to press', (
+      tester,
+    ) async {
       final connectivity = FakeConnectivity(online: false);
       final network = FakeNetworkSwitch();
       await pumpRoamio(
@@ -59,13 +58,11 @@ void main() {
       );
 
       connectivity.set(online: true);
-      await tester.pumpAndSettle();
-      expect(find.text(_syncText), findsOneWidget);
-
-      await tester.tap(find.text('Sync'));
       await tester.pump();
       await tester.pump();
 
+      expect(find.textContaining('You’re offline'), findsNothing);
+      expect(find.text('Sync'), findsNothing);
       expect(find.text('Synced ✓'), findsOneWidget);
       expect(network.calls, ['disable', 'enable', 'writes']);
 
@@ -82,11 +79,8 @@ void main() {
         connectivity: connectivity,
         network: network,
       );
-      connectivity.set(online: true);
-      await tester.pumpAndSettle();
       network.failWrites = Exception('permission-denied');
-
-      await tester.tap(find.text('Sync'));
+      connectivity.set(online: true);
       await tester.pumpAndSettle();
 
       expect(find.textContaining('permission-denied'), findsOneWidget);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/config/phase2.dart';
@@ -6,6 +8,7 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
+import 'package:roamio/features/auth/ui/login_screen.dart';
 import 'package:roamio/features/auth/ui/privacy_notice_check.dart';
 
 /// Google sign-ups give their date of birth once (UC-3). An under-13 is
@@ -23,6 +26,18 @@ class _CompleteProfileScreenState extends ConsumerState<CompleteProfileScreen> {
   bool _accepted = false;
   bool _submitted = false;
   bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ticked on the first page: nothing more to ask. If saving fails, this
+    // screen stays, with its own tick and a way to try again.
+    _accepted = ref.read(termsAcceptedProvider);
+    if (_accepted && !ref.read(minorsEnabledProvider)) {
+      _busy = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_submit()));
+    }
+  }
 
   Future<void> _submit() async {
     final today = ref.read(todayProvider);

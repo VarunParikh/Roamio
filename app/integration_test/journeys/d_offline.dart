@@ -5,7 +5,7 @@ import '../support/driver.dart';
 import '../support/emulators.dart';
 
 /// Journey D – Offline (spec §15.4): offline, add 3 tabs and a pal →
-/// reconnect → Sync → every squad member sees them.
+/// reconnect → every squad member sees them.
 ///
 /// The test switches the app's connection off and on; the app then does
 /// what it does for a real outage (Firestore `disableNetwork`, then
@@ -47,9 +47,8 @@ void journeyD() {
     expect(await sharedTabs(aid, as: bob), isEmpty);
     expect(await listDocs('adventures/$aid/pals', as: bob), isEmpty);
 
-    // Back online: Sync sends everything.
+    // Back online: everything goes up by itself.
     connection.set(online: true);
-    await tapOn(tester, find.text('Sync'));
     await waitFor(tester, find.text('Synced ✓'));
     await eventually('Bob sees the 3 tabs', () async {
       final tabs = await sharedTabs(aid, as: bob);

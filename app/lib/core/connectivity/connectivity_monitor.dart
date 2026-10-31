@@ -31,17 +31,23 @@ final connectivityMonitorProvider = Provider<ConnectivityMonitor>(
 
 /// Asks DNS for Google's servers every few seconds, and when the app comes
 /// back to the front. A phone on Wi-Fi with no internet counts as offline,
-/// which a "connected to a network" flag would miss.
+/// which a "connected to a network" flag would miss. Mobile data often misses
+/// a lookup, so going offline takes [offlineAfter] failures in a row; one good
+/// answer means back online.
 class DeviceConnectivityMonitor implements ConnectivityMonitor {
   new({
     this.host = 'firestore.googleapis.com',
     this.every = const Duration(seconds: 5),
-    this.timeout = const Duration(seconds: 3),
+    this.timeout = const Duration(seconds: 5),
+    this.offlineAfter = 3,
+    this.lookup = InternetAddress.lookup,
   });
 
   final String host;
   final Duration every;
   final Duration timeout;
+  final int offlineAfter;
+  final Future<List<InternetAddress>> Function(String host) lookup;
 
   @override
   Stream<bool> get changes {
@@ -49,12 +55,16 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
     Timer? timer;
     AppLifecycleListener? lifecycle;
     bool? last;
+    var failures = 0;
 
     Future<void> poll() async {
-      final now = await check();
-      if (controller.isClosed || now == last) return;
-      last = now;
-      controller.add(now);
+      final found = await check();
+      if (controller.isClosed) return;
+      failures = found ? 0 : failures + 1;
+      if (!found && failures < offlineAfter) return;
+      if (found == last) return;
+      last = found;
+      controller.add(found);
     }
 
     controller = StreamController<bool>(
@@ -74,7 +84,7 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
   @override
   Future<bool> check() async {
     try {
-      final found = await InternetAddress.lookup(host).timeout(timeout);
+      final found = await lookup(host).timeout(timeout);
       return found.isNotEmpty && found.first.rawAddress.isNotEmpty;
     } on Exception {
       return false;
