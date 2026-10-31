@@ -107,6 +107,39 @@ describe("revokeInvite", () => {
   });
 });
 
+describe("the leader's picture on an invite (spec UC-28a)", () => {
+  it("goes to a signed-in invitee, not the public preview", async () => {
+    const ari = await person("Ari");
+    await getFirestore().doc(`users/${ari.uid}`).update({ characterId: "panda" });
+    const id = await adventure(ari);
+    const made = await call("createInvite", { adventureId: id }, ari);
+    const code = (made.result as { code: string }).code;
+
+    const stored = (await getFirestore().doc(`invites/${code}`).get()).data();
+    expect(stored?.leaderCharacterId).toBe("panda");
+    expect(stored?.leaderUid).toBe(ari.uid);
+
+    const zed = await person("Zed");
+    const seen = await call("lookupInvite", { code }, zed);
+    expect(seen.result?.leaderCharacterId).toBe("panda");
+    expect(seen.result?.leaderUid).toBe(ari.uid);
+
+    const res = await fetch(`${FUNCTIONS}/invitePreview?code=${code}`);
+    const preview = (await res.json()) as Record<string, unknown>;
+    expect(preview.leaderName).toBe("Ari");
+    expect(preview.leaderCharacterId).toBeUndefined();
+    expect(preview.leaderUid).toBeUndefined();
+  });
+
+  it("a leader with no character leaves it empty", async () => {
+    const ari = await person("Ari");
+    const id = await adventure(ari);
+    const made = await call("createInvite", { adventureId: id }, ari);
+    const code = (made.result as { code: string }).code;
+    expect((await getFirestore().doc(`invites/${code}`).get()).get("leaderCharacterId")).toBeNull();
+  });
+});
+
 describe("lookupInvite", () => {
   it("describes a valid invite, however the code is typed", async () => {
     const ari = await person("Ari");

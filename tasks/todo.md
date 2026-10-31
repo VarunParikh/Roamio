@@ -351,7 +351,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: one screen from both entry points; Add disabled with a reason; picker title "Choose a character for <nickname>"; used characters dimmed; Edit replaces Rename; member hint on Add tab; adding offline doesn't hang.
   - Verify: rules allow + deny tests; widget tests; Journeys A and C updated.
 
-- [ ] **Task 54: Pictures on rows and lists** — M · Deps: 52, 53 · UC-23, UC-28a
+- [x] **Task 54: Pictures on rows and lists** — M · Deps: 52, 53 · UC-23, UC-28a
   - Acceptance: rows show up to 4 sharers then "+N", you first; Add tab's lists, tab details and invites have pictures; the server copies the leader's character onto invites.
   - Verify: widget tests incl. a small phone; functions and rules tests for invites.
 

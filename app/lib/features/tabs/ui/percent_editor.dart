@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 
 /// Custom % (spec UC-21): each participant's share, with a live
@@ -11,12 +13,14 @@ class PercentEditor extends StatelessWidget {
     required this.fields,
     required this.labels,
     required this.onChanged,
+    this.people = const {},
     super.key,
   });
 
   /// One percentage field per participant id, in list order.
   final Map<String, TextEditingController> fields;
   final Map<String, String> labels;
+  final Map<String, SquadPerson> people;
   final VoidCallback onChanged;
 
   @override
@@ -43,6 +47,10 @@ class PercentEditor extends StatelessWidget {
               ],
               decoration: InputDecoration(
                 labelText: labels[id],
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: PersonAvatar(uid: id, person: people[id], radius: 14),
+                ),
                 suffixText: '%',
               ),
               onChanged: (_) => onChanged(),

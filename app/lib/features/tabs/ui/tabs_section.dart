@@ -10,6 +10,7 @@ import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
@@ -90,6 +91,8 @@ class TabsSection extends ConsumerWidget {
         c.id: c,
     };
 
+    final people = squadPeople(ref, adventure);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -136,6 +139,7 @@ class TabsSection extends ConsumerWidget {
                         category: categories[t.category],
                         myUid: myUid,
                         adventure: adventure,
+                        people: people,
                         onTap: () => context.push(
                           '/adventures/${adventure.id}/tabs/${t.id}',
                         ),
@@ -154,9 +158,11 @@ class _TabRow extends ConsumerWidget {
     required this.category,
     required this.myUid,
     required this.adventure,
+    required this.people,
     required this.onTap,
   });
 
+  final Map<String, SquadPerson> people;
   final Adventure adventure;
   final TabEntry tab;
   final Category? category;
@@ -230,10 +236,13 @@ class _TabRow extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // The start of this line is for the pictures of the
-                        // people sharing (Task 54).
                         Row(
                           children: [
+                            PeoplePictures(
+                              ids: tab.split.participants,
+                              people: people,
+                              firstUid: myUid,
+                            ),
                             const Spacer(),
                             Text(
                               methods.map((m) => m.emoji).join(),

@@ -7,6 +7,7 @@ import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
 import 'package:roamio/features/invites/domain/invite_code.dart';
+import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
 /// Looks up [input] and, if it's a live invite, saves it to the person's
@@ -118,10 +119,24 @@ class _InviteCardState extends ConsumerState<_InviteCard> {
                   style: text.headlineSmall,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  'From ${d.leaderName} · '
-                  '${formatDateRange(d.startDate, d.endDate)}',
-                  style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+                Row(
+                  children: [
+                    CharacterAvatar(
+                      uid: d.leaderUid,
+                      characterId: d.leaderCharacterId,
+                      radius: 12,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'From ${d.leaderName} · '
+                        '${formatDateRange(d.startDate, d.endDate)}',
+                        style: text.bodyMedium?.copyWith(
+                          color: RoamioColors.slate,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Row(

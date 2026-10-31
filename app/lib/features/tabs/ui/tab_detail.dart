@@ -13,6 +13,8 @@ import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_engine.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
 import 'package:roamio/features/tabs/domain/payment_method.dart';
@@ -124,6 +126,7 @@ class _Details extends ConsumerWidget {
         .where((c) => c.id == tab.category)
         .firstOrNull;
     final labels = squadLabels(ref, adventure);
+    final people = squadPeople(ref, adventure);
     String who(String id) =>
         id == myUid ? '${labels[id] ?? 'You'} (you)' : labels[id] ?? 'Left';
     String money(int minor) =>
@@ -165,6 +168,8 @@ class _Details extends ConsumerWidget {
         Text('Paid by', style: text.titleMedium),
         for (final p in tab.split.payers)
           _Line(
+            uid: p.payer,
+            person: people[p.payer],
             label: who(p.payer),
             value: money(p.amountMinor),
             method: p.method,
@@ -176,6 +181,8 @@ class _Details extends ConsumerWidget {
         ),
         for (final id in tab.split.participants)
           _Line(
+            uid: id,
+            person: people[id],
             label: who(id),
             value: percent == null
                 ? money(shares[id] ?? 0)
@@ -239,8 +246,16 @@ class _Details extends ConsumerWidget {
 }
 
 class _Line extends StatelessWidget {
-  const new({required this.label, required this.value, this.method});
+  const new({
+    required this.uid,
+    required this.person,
+    required this.label,
+    required this.value,
+    this.method,
+  });
 
+  final String uid;
+  final SquadPerson? person;
   final String label;
   final String value;
 
@@ -257,6 +272,8 @@ class _Line extends StatelessWidget {
         children: [
           Row(
             children: [
+              PersonAvatar(uid: uid, person: person, radius: 14),
+              const SizedBox(width: 8),
               Expanded(child: Text(label, style: text.bodyLarge)),
               Text(value, style: text.bodyLarge),
             ],
