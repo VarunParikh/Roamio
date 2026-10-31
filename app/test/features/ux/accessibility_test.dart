@@ -9,6 +9,7 @@ import 'package:roamio/features/tabs/data/tab_service.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
+import '../../support/fake_home_card_memory.dart';
 import '../../support/fake_tab_service.dart';
 
 /// Spec §12: touch targets ≥ 48 dp, labels on every control, text
@@ -110,6 +111,19 @@ void main() {
     await tester.tap(open);
     await tester.pumpAndSettle();
     expect(find.text('Spend by day'), findsOneWidget);
+    await _meetsGuidelines(tester);
+    semantics.dispose();
+  });
+
+  testWidgets('Home with the card expanded', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pumpRoamio(
+      tester,
+      FakeAuthService(initial: readyFacts),
+      adventures: FakeAdventureService([_goa]),
+      homeCardMemory: FakeHomeCardMemory(expanded: true),
+    );
+    expect(find.text('Daily spend'), findsOneWidget);
     await _meetsGuidelines(tester);
     semantics.dispose();
   });

@@ -21,6 +21,7 @@ import 'package:roamio/features/profile/ui/privacy_centre.dart';
 import 'package:roamio/features/profile/ui/you_screen.dart';
 import 'package:roamio/features/splash/ui/splash_screen.dart';
 import 'package:roamio/features/splits/ui/split_screen.dart';
+import 'package:roamio/features/squad/ui/adventure_squad_screen.dart';
 import 'package:roamio/features/tabs/ui/add_tab_screen.dart';
 import 'package:roamio/features/tabs/ui/tab_detail.dart';
 import 'package:roamio/features/updates/update_gate.dart';
@@ -109,6 +110,11 @@ final _routes = <RouteBase>[
         path: 'edit',
         builder: (_, state) =>
             EditAdventureScreen(adventureId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: 'squad',
+        builder: (_, state) =>
+            AdventureSquadScreen(adventureId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: 'activity',
