@@ -26,10 +26,76 @@ final destinationPhotoProvider = Provider<String>(
   (ref) => destinationPhotos[Random().nextInt(destinationPhotos.length)],
 );
 
+/// The first page's photo: another pick each app open, and never the same as
+/// the plan card's, so the two screens don't repeat each other.
+final splashPhotoProvider = Provider<String>((ref) {
+  final others = [
+    for (final p in destinationPhotos)
+      if (p != ref.watch(destinationPhotoProvider)) p,
+  ];
+  return others[Random().nextInt(others.length)];
+});
+
 /// How dark the scrim is, at its lightest, wherever text sits. Checked against
 /// every pixel of the 10 photos in `first_screen_test`, so white text keeps
 /// 4.5:1 whichever photo comes up and however it's cropped.
 const planCardTextScrimAlpha = 0.58;
+
+/// A photo drifting very slowly from left to right, then back so it never
+/// jumps. It holds still for people who ask for reduced motion.
+class PanningPhoto extends StatefulWidget {
+  const new({required this.photo, super.key});
+
+  final String photo;
+
+  /// One crossing of the screen.
+  static const sweep = Duration(minutes: 2);
+
+  @override
+  State<PanningPhoto> createState() => _PanningPhotoState();
+}
+
+class _PanningPhotoState extends State<PanningPhoto>
+    with SingleTickerProviderStateMixin {
+  late final _pan = AnimationController(
+    vsync: this,
+    duration: PanningPhoto.sweep,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pan.stop();
+    } else if (!_pan.isAnimating) {
+      _pan.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pan.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: AnimatedBuilder(
+      animation: _pan,
+      builder: (context, _) => Image.asset(
+        widget.photo,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        alignment: Alignment(
+          MediaQuery.disableAnimationsOf(context) ? 0 : -1 + 2 * _pan.value,
+          0,
+        ),
+        errorBuilder: (_, _, _) => const ColoredBox(color: RoamioColors.ink),
+      ),
+    ),
+  );
+}
 
 /// "Plan your next adventure", shown with nothing ahead (spec UC-6). The photo
 /// is decoration, so TalkBack skips it.

@@ -96,7 +96,7 @@ class BudgetWidget extends ConsumerWidget {
                 value: (percent / 100).clamp(0, 1).toDouble(),
                 color: percent >= 100
                     ? RoamioColors.coral
-                    : RoamioColors.chartreuse,
+                    : RoamioColors.cobalt,
                 backgroundColor: RoamioColors.hairline,
               ),
               const SizedBox(height: 6),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
@@ -109,6 +110,17 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
 
 void main() {
   group('personal budget (spec UC-19, UC-20)', () {
+    testWidgets('the bar is blue, and coral once over', (tester) async {
+      await _openSplit(
+        tester,
+        budgets: const {'bkk': Budget(amountMinor: 1000000, currency: 'INR')},
+      );
+      final bar = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator),
+      );
+      expect(bar.color, RoamioColors.cobalt);
+    });
+
     testWidgets('set a budget, private, in your currency by default', (
       tester,
     ) async {

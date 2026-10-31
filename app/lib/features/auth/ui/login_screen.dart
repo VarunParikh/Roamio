@@ -28,9 +28,12 @@ class TermsAccepted extends Notifier<bool> {
   void set({required bool accepted}) => state = accepted;
 }
 
-/// Sign in (UC-2): a destination photo under a gradient dark enough for the
-/// text, then the tick and the ways in. Google's button keeps its own white
-/// style, as Google's branding asks.
+/// Whether the first page's photo drifts. Off in tests, so screens can settle.
+final panSplashPhotoProvider = Provider<bool>((ref) => true);
+
+/// Sign in (UC-2): a slowly moving destination photo under a gradient dark
+/// enough for the text, then the tick and the ways in. Google's button keeps
+/// its own white style, as Google's branding asks.
 class LoginScreen extends ConsumerStatefulWidget {
   const new({super.key});
 
@@ -91,14 +94,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: ExcludeSemantics(
-              child: Image.asset(
-                ref.watch(destinationPhotoProvider),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>
-                    const ColoredBox(color: RoamioColors.ink),
-              ),
-            ),
+            child: ref.watch(panSplashPhotoProvider)
+                ? PanningPhoto(photo: ref.watch(splashPhotoProvider))
+                : ExcludeSemantics(
+                    child: Image.asset(
+                      ref.watch(splashPhotoProvider),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const ColoredBox(color: RoamioColors.ink),
+                    ),
+                  ),
           ),
           Positioned.fill(
             child: DecoratedBox(

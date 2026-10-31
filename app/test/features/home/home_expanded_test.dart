@@ -160,7 +160,7 @@ void main() {
       expect(find.text('₹8,500.00 left'), findsOneWidget);
     });
 
-    testWidgets('daily spend: today is in chartreuse and says its amount', (
+    testWidgets('daily spend: today stands out in blue and says its amount', (
       tester,
     ) async {
       await _home(tester, tabs: [_tab(27, 300000), _tab(29, 50000)]);
@@ -179,8 +179,8 @@ void main() {
         return (bar.decoration! as BoxDecoration).color;
       }
 
-      expect(barColor('2026-10-29'), RoamioColors.chartreuse);
-      expect(barColor('2026-10-27'), isNot(RoamioColors.chartreuse));
+      expect(barColor('2026-10-29'), RoamioColors.cobalt);
+      expect(barColor('2026-10-27'), RoamioColors.muted);
     });
 
     testWidgets('a short trip has fewer bars', (tester) async {

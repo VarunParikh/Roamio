@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/router/app_router.dart';
+import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/budget/ui/budget_widget.dart';
@@ -110,6 +111,30 @@ void main() {
     await _go(tester, '/split');
     expect(find.text('Not available yet'), findsOneWidget);
     expect(find.textContaining('exchange rates'), findsOneWidget);
+  });
+
+  testWidgets('no graph uses lime green', (tester) async {
+    await _pump(tester, tabs: [_personal]);
+    await _go(tester, Routes.splitFor('bkk'));
+    final fills = tester
+        .widgetList<ColoredBox>(
+          find.descendant(
+            of: find.byKey(const ValueKey('category-bar')),
+            matching: find.byType(ColoredBox),
+          ),
+        )
+        .map((b) => b.color);
+    expect(fills, isNotEmpty);
+    expect(fills, isNot(contains(RoamioColors.chartreuse)));
+    final bar = tester.widget<Container>(
+      find
+          .descendant(
+            of: find.byKey(const ValueKey('day-2026-10-29')),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect((bar.decoration! as BoxDecoration).color, RoamioColors.cobalt);
   });
 
   group('the switches', () {

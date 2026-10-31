@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +35,8 @@ double _luminance(double r, double g, double b) =>
     0.2126 * _channel(r) + 0.7152 * _channel(g) + 0.0722 * _channel(b);
 
 void main() {
+  splashPhoto();
+
   group('the destination photos (spec UC-6)', () {
     test('there are 10 and each one is bundled', () async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -169,6 +172,62 @@ void main() {
         ..devicePixelRatio = 1;
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+  });
+}
+
+void splashPhoto() {
+  test('the splash photo never matches the plan card’s', () {
+    final seen = <String>{};
+    for (var i = 0; i < 200; i++) {
+      final open = ProviderContainer();
+      addTearDown(open.dispose);
+      final splash = open.read(splashPhotoProvider);
+      expect(splash, isNot(open.read(destinationPhotoProvider)));
+      expect(destinationPhotos, contains(splash));
+      expect(open.read(splashPhotoProvider), splash);
+      seen.add(splash);
+    }
+    expect(seen.length, greaterThan(1));
+  });
+
+  group('the splash photo’s pan', () {
+    Future<void> pump(WidgetTester tester, {bool reduced = false}) =>
+        tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: MediaQuery(
+                data: MediaQueryData(disableAnimations: reduced),
+                child: const PanningPhoto(
+                  photo: 'assets/destinations/paris.webp',
+                ),
+              ),
+            ),
+          ),
+        );
+
+    double alignment(WidgetTester tester) =>
+        (tester.widget<Image>(find.byType(Image)).alignment as Alignment).x;
+
+    testWidgets('moves slowly from left to right', (tester) async {
+      await pump(tester);
+      expect(alignment(tester), -1);
+
+      await tester.pump(const Duration(seconds: 12));
+      final later = alignment(tester);
+      expect(later, greaterThan(-1));
+      expect(later, lessThan(-0.7)); // Very slow: a tenth of the way.
+
+      await tester.pump(PanningPhoto.sweep - const Duration(seconds: 12));
+      expect(alignment(tester), closeTo(1, 0.01));
+    });
+
+    testWidgets('holds still for people who ask for reduced motion', (
+      tester,
+    ) async {
+      await pump(tester, reduced: true);
+      await tester.pump(const Duration(seconds: 30));
+      expect(alignment(tester), 0);
     });
   });
 }

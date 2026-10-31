@@ -16,6 +16,7 @@ import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/auth/ui/login_screen.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
@@ -295,6 +296,7 @@ Future<void> pumpRoamio(
         minorsEnabledProvider.overrideWithValue(phase2),
         nomineeEnabledProvider.overrideWithValue(phase2),
         grievanceEnabledProvider.overrideWithValue(phase2),
+        panSplashPhotoProvider.overrideWithValue(false),
         photoUploadsEnabledProvider.overrideWithValue(phase2),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),
