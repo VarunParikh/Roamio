@@ -99,6 +99,15 @@ void main() {
       expect(await monitor.check(), isFalse);
     });
 
+    test('a stuck HTTPS check counts as failed, within the timeout', () async {
+      final monitor = DeviceConnectivityMonitor(
+        lookup: dnsDown,
+        timeout: const Duration(milliseconds: 5),
+        reachOverHttps: () => Completer<bool>().future,
+      );
+      expect(await monitor.check(), isFalse);
+    });
+
     test('the HTTPS check is not needed when DNS answers', () async {
       var probes = 0;
       final monitor = DeviceConnectivityMonitor(

@@ -74,6 +74,19 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
     expect(log.docs.map((d) => d.get("type"))).toEqual(["tab_rejected"]);
   });
 
+  it("tells the creator when it removes their tab (item 2)", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { amountMinor: 1, description: "Dinner" }));
+
+    await eventually(async () => {
+      const notice = await db().doc(`users/${ari.uid}/notifications/${id}_removed_${ref.id}`).get();
+      expect(notice.get("type")).toBe("tab_removed");
+      expect(notice.get("description")).toBe("Dinner");
+      expect(notice.get("adventureId")).toBe(id);
+    });
+  });
+
   it("rejects outsiders as payers or participants, and pals as payers", async () => {
     const { ari, id } = await squad();
     const eve = await person("Eve");

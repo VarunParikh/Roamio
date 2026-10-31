@@ -118,15 +118,16 @@ class FirebaseSquadService implements SquadService {
     String nickname,
     String characterId,
   ) async {
-    _pals(adventureId)
-        .add({
+    final doc = _pals(adventureId).doc();
+    doc
+        .set({
           'nickname': nickname,
           'characterId': characterId,
           'addedBy': _auth.currentUser!.uid,
           'status': 'active',
           'createdAt': FieldValue.serverTimestamp(),
         })
-        .keepOrReport('a pal');
+        .keepOrReport('the pal “$nickname”', path: doc.path);
   }
 
   @override
@@ -136,18 +137,27 @@ class FirebaseSquadService implements SquadService {
     String nickname,
     String characterId,
   ) async {
-    _pals(adventureId)
-        .doc(palId)
-        .update({'nickname': nickname, 'characterId': characterId})
-        .keepOrReport('a pal');
+    final doc = _pals(adventureId).doc(palId);
+    final fields = {'nickname': nickname, 'characterId': characterId};
+    doc
+        .update(fields)
+        .keepOrReport(
+          'your change to the pal “$nickname”',
+          path: doc.path,
+          fields: fields,
+        );
   }
 
   @override
   Future<void> removePal(String adventureId, String palId) async {
-    _pals(adventureId)
-        .doc(palId)
+    final doc = _pals(adventureId).doc(palId);
+    doc
         .update({'status': 'left'})
-        .keepOrReport('a pal');
+        .keepOrReport(
+          'a pal you removed',
+          path: doc.path,
+          fields: const {'status': 'left'},
+        );
   }
 
   Future<void> _call(String name, String adventureId, String? memberUid) async {

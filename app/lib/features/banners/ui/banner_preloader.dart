@@ -9,14 +9,21 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
+/// Loads [image] into the phone's cache. Throws if it can't be loaded:
+/// Flutter's own [precacheImage] never fails, it only logs an app error.
+Future<void> saveImage(ImageProvider image, BuildContext context) async {
+  Object? failure;
+  await precacheImage(image, context, onError: (error, _) => failure = error);
+  if (failure case final error?) throw Exception('Couldn’t load it: $error');
+}
+
 /// Saves a banner on the phone, in the cache the adventure banner reads from.
-/// Completes with an error when the photo can't be fetched, so it's tried
-/// again (see [BannerPreloader]).
+/// Throws when the photo can't be fetched, so it's tried again (see
+/// [BannerPreloader]).
 final saveBannerProvider =
     Provider<Future<void> Function(BuildContext, String url)>(
       (ref) =>
-          (context, url) =>
-              precacheImage(CachedNetworkImageProvider(url), context),
+          (context, url) => saveImage(CachedNetworkImageProvider(url), context),
     );
 
 /// Saves the banner of every current and upcoming trip while there's a

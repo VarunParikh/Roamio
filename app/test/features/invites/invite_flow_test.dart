@@ -149,6 +149,41 @@ void main() {
     });
 
     testWidgets(
+      'a saved invite is checked again the moment it expires (item 14)',
+      (tester) async {
+        final soon = InviteDetails(
+          code: '7KQ2M9XA',
+          adventureId: _goaInvite.adventureId,
+          adventureName: _goaInvite.adventureName,
+          leaderName: _goaInvite.leaderName,
+          countryCode: _goaInvite.countryCode,
+          startDate: _goaInvite.startDate,
+          endDate: _goaInvite.endDate,
+          expiresAt: DateTime.now().add(const Duration(hours: 1)),
+        );
+        final invites = FakeInviteService(valid: {'7KQ2M9XA': soon});
+        await invites.saveCode('7KQ2M9XA');
+        await pumpRoamio(
+          tester,
+          FakeAuthService(initial: readyFacts),
+          invites: invites,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('🇮🇳  Goa getaway'), findsOneWidget);
+
+        invites.valid.remove('7KQ2M9XA');
+        await tester.pump(const Duration(minutes: 59));
+        await tester.pump();
+        expect(find.text('🇮🇳  Goa getaway'), findsOneWidget);
+
+        await tester.pump(const Duration(minutes: 2));
+        await tester.pumpAndSettle();
+        expect(find.text('🇮🇳  Goa getaway'), findsNothing);
+        expect(find.text(invites.unknownMessage), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'an expired saved invite is checked again on coming back (item 14)',
       (tester) async {
         final invites = FakeInviteService(valid: {'7KQ2M9XA': _goaInvite});

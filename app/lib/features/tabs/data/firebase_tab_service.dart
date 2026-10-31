@@ -96,6 +96,11 @@ class FirebaseTabService implements TabService {
       },
   };
 
+  static String _named(NewTab tab) {
+    final name = tab.description.trim();
+    return name.isEmpty ? 'a tab' : 'the tab “$name”';
+  }
+
   // Writes aren't awaited: they're queued offline and streams show them now.
   @override
   Future<String> addTab(String adventureId, NewTab tab) async {
@@ -108,7 +113,7 @@ class FirebaseTabService implements TabService {
           'createdAt': FieldValue.serverTimestamp(),
           'deleted': false,
         })
-        .keepOrReport('a tab');
+        .keepOrReport(_named(tab), path: doc.path);
     return doc.id;
   }
 
@@ -145,22 +150,32 @@ class FirebaseTabService implements TabService {
 
   @override
   Future<void> updateTab(String adventureId, String tabId, NewTab tab) async {
-    _tabs(adventureId)
-        .doc(tabId)
-        .update(_fields(tab, isNew: false))
-        .keepOrReport('a tab change');
+    final doc = _tabs(adventureId).doc(tabId);
+    final fields = _fields(tab, isNew: false);
+    doc
+        .update(fields)
+        .keepOrReport(
+          'your change to ${_named(tab)}',
+          path: doc.path,
+          // An approval or a money edit moves the status on by itself.
+          fields: {...fields}..remove('status'),
+        );
   }
 
   @override
   Future<void> deleteTab(String adventureId, String tabId) async {
-    _tabs(adventureId)
-        .doc(tabId)
+    final doc = _tabs(adventureId).doc(tabId);
+    doc
         .update({
           'deleted': true,
           'deletedBy': _auth.currentUser!.uid,
           'updatedAt': FieldValue.serverTimestamp(),
         })
-        .keepOrReport('a tab deletion');
+        .keepOrReport(
+          'a tab you deleted',
+          path: doc.path,
+          fields: const {'deleted': true},
+        );
   }
 
   static TabEntry _fromDoc(DocumentSnapshot<Map<String, dynamic>> d) {

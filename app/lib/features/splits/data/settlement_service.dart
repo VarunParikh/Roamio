@@ -95,8 +95,9 @@ class FirebaseSettlementService implements SettlementService {
     required String currency,
     required String date,
   }) async {
-    _col(adventureId)
-        .add({
+    final doc = _col(adventureId).doc();
+    doc
+        .set({
           'from': from,
           'to': to,
           'amountMinor': amountMinor,
@@ -106,14 +107,18 @@ class FirebaseSettlementService implements SettlementService {
           'createdAt': FieldValue.serverTimestamp(),
           'undone': false,
         })
-        .keepOrReport('a payment');
+        .keepOrReport('a payment you marked as settled', path: doc.path);
   }
 
   @override
   Future<void> undo(String adventureId, String settlementId) async {
-    _col(adventureId)
-        .doc(settlementId)
+    final doc = _col(adventureId).doc(settlementId);
+    doc
         .update({'undone': true, 'undoneBy': _auth.currentUser!.uid})
-        .keepOrReport('an undo of a payment');
+        .keepOrReport(
+          'a payment you undid',
+          path: doc.path,
+          fields: const {'undone': true},
+        );
   }
 }

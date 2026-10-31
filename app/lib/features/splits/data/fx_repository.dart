@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
@@ -55,9 +56,14 @@ final FutureProviderFamily<FxRates?, String> fxRatesProvider =
     });
 
 /// The newest rates day, live. One listener on the newest `fx_rates` document.
-final StreamProvider<String?> latestRatesDayProvider = StreamProvider<String?>(
-  (ref) => ref.watch(fxRepositoryProvider).watchLatestDay(),
-);
+final StreamProvider<String?> latestRatesDayProvider = StreamProvider<String?>((
+  ref,
+) {
+  // Rates can only be read when signed in, and a refused listener stays dead.
+  final uid = ref.watch(sessionFactsProvider.select((s) => s.value?.uid));
+  if (uid == null) return Stream.value(null);
+  return ref.watch(fxRepositoryProvider).watchLatestDay();
+});
 
 /// Reads `fx_rates`. Firestore keeps what it has read on the phone, so
 /// rates already seen still work offline.

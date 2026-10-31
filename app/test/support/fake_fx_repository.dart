@@ -20,6 +20,9 @@ class FakeFxRepository implements FxRepository {
 
   final _days = StreamController<String?>.broadcast();
 
+  /// How many times the newest day was listened to.
+  int listeners = 0;
+
   /// Makes [day] the newest rates day, as the live listener would see it.
   void arrive(String day, Map<String, String> newRates) {
     rates = newRates;
@@ -28,6 +31,7 @@ class FakeFxRepository implements FxRepository {
 
   @override
   Stream<String?> watchLatestDay() async* {
+    listeners++;
     yield rates.isEmpty ? null : '2026-10-29';
     yield* _days.stream;
   }

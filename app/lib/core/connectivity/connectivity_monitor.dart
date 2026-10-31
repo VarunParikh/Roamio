@@ -101,7 +101,7 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
   Future<bool> check() async {
     if (await _dnsAnswers()) return true;
     final reach = reachOverHttps ?? _reachesOverHttps;
-    return await reach();
+    return await reach().timeout(timeout, onTimeout: () => false);
   }
 
   Future<bool> _dnsAnswers() async {

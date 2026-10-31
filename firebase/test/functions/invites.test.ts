@@ -162,6 +162,7 @@ describe("lookupInvite", () => {
       countryCode: "TH",
       startDate: "2026-12-01",
       endDate: "2026-12-08",
+      expiresAt: expect.any(Number),
     });
   });
 

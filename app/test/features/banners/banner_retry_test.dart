@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,6 +20,29 @@ final _trip = Adventure(
 );
 
 void main() {
+  testWidgets('saving an image that can’t load reports the failure (item 15)', (
+    tester,
+  ) async {
+    final reported = <FlutterErrorDetails>[];
+    final before = FlutterError.onError;
+    FlutterError.onError = reported.add;
+    addTearDown(() => FlutterError.onError = before);
+    await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+    final context = tester.element(find.byType(SizedBox));
+
+    final outcome = await tester.runAsync(() async {
+      try {
+        await saveImage(MemoryImage(Uint8List.fromList([0, 1, 2])), context);
+        return 'saved';
+      } on Object {
+        return 'failed';
+      }
+    });
+
+    expect(outcome, 'failed');
+    expect(reported, isEmpty, reason: 'a failed banner isn’t an app error');
+  });
+
   testWidgets('a banner that fails to save is tried again later (item 15)', (
     tester,
   ) async {

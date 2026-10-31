@@ -153,6 +153,7 @@ export const lookupInvite = onCall(async (request) => {
     countryCode: invite.get("countryCode"),
     startDate: invite.get("startDate"),
     endDate: invite.get("endDate"),
+    expiresAt: (invite.get("expiresAt") as Timestamp).toMillis(),
   };
 });
 

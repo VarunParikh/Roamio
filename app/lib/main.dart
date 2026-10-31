@@ -15,6 +15,7 @@ import 'package:roamio/core/crash/crash_reporter.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
 import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
@@ -79,6 +80,7 @@ Future<void> runRoamio({
         connectivityMonitorProvider.overrideWithValue(
           connectivity ?? DeviceConnectivityMonitor(),
         ),
+        queuedWriteCheckProvider.overrideWithValue(_queuedWriteApplied),
         networkSwitchProvider.overrideWithValue(
           FirestoreNetworkSwitch(FirebaseFirestore.instance),
         ),
@@ -170,11 +172,31 @@ Future<_Started>? _started;
 /// [runRoamio] runs.
 Future<_Started> _start() async {
   await setUpFirebase();
+  // Whoever's signed in is known before last run's writes are looked at.
+  await FirebaseAuth.instance.authStateChanges().first;
+  await refusedWrites.load(
+    FileQueuedWriteStore(),
+    uid: () => FirebaseAuth.instance.currentUser?.uid,
+  );
   return await startPhotoPipeline(
     FirebaseFirestore.instance,
     FirebaseStorage.instance,
     FirebaseAuth.instance.authStateChanges().map((user) => user?.uid),
   );
+}
+
+/// Reads the record from the server: the phone's copy may still show the
+/// write. Null if it can't be read yet.
+Future<bool?> _queuedWriteApplied(QueuedWrite write) async {
+  try {
+    final saved = await FirebaseFirestore.instance
+        .doc(write.path)
+        .get(const GetOptions(source: Source.server));
+    return writeApplied(write, saved.data());
+  } on FirebaseException catch (e) {
+    // Not theirs to read any more, so the write can't have gone through.
+    return e.code == 'permission-denied' ? false : null;
+  }
 }
 
 class RoamioApp extends ConsumerStatefulWidget {

@@ -43,7 +43,8 @@ class FirebaseAdventureService implements AdventureService {
         'coLeadUids': <String>[],
         'memberUids': [_uid],
       }),
-      'the new adventure',
+      'the adventure “${draft.name.trim()}”',
+      path: doc.path,
     );
     return doc.id;
   }
@@ -51,17 +52,22 @@ class FirebaseAdventureService implements AdventureService {
   // Not awaited: the edit is queued offline and the stream shows it at once.
   @override
   Future<void> update(String adventureId, AdventureEdit edit) async {
-    _db
-        .doc('adventures/$adventureId')
-        .update({
-          'name': edit.name.trim(),
-          'description': edit.description.trim(),
-          'city': edit.city.trim(),
-          'startDate': isoDate(edit.startDate),
-          'endDate': isoDate(edit.endDate),
-          'baseCurrency': ?edit.baseCurrency,
-        })
-        .keepOrReport('the adventure changes');
+    final doc = _db.doc('adventures/$adventureId');
+    final fields = {
+      'name': edit.name.trim(),
+      'description': edit.description.trim(),
+      'city': edit.city.trim(),
+      'startDate': isoDate(edit.startDate),
+      'endDate': isoDate(edit.endDate),
+      'baseCurrency': ?edit.baseCurrency,
+    };
+    doc
+        .update(fields)
+        .keepOrReport(
+          'your change to “${edit.name.trim()}”',
+          path: doc.path,
+          fields: fields,
+        );
   }
 
   @override
