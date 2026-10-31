@@ -24,7 +24,7 @@ export { approveStrandedTabs } from "./squad/approvals";
 export { profileReadersOnAdventure } from "./squad/profileReaders";
 export { budgetOnChange, budgetOnTab } from "./budget/budget";
 export { deleteMyAccount } from "./privacy/deleteAccount";
-export { dailyFxRates } from "./fx/rates";
+export { dailyFxRates, updateFxRates } from "./fx/rates";
 export { exportMyData } from "./privacy/exportData";
 export { settlementActivity } from "./splits/settlements";
 export {

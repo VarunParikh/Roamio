@@ -21,6 +21,7 @@ import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/splits/ui/settle_sheet.dart';
 import 'package:roamio/features/splits/ui/split_charts.dart';
+import 'package:roamio/features/splits/ui/update_rates_button.dart';
 import 'package:roamio/features/splits/ui/who_pays_whom.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
@@ -289,6 +290,8 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
                     ),
                   ],
                 ],
+                if (r.missingRates || myCurrency != a.baseCurrency)
+                  const UpdateRatesButton(),
                 const SizedBox(height: 8),
                 BudgetWidget(adventure: a),
               ],
@@ -758,6 +761,7 @@ class _Overall extends ConsumerWidget {
                       color: RoamioColors.coralText,
                     ),
                   ),
+                  const UpdateRatesButton(),
                 ],
               ],
             ),

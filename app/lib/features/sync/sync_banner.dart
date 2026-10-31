@@ -25,35 +25,12 @@ class NeedsConnectionNote extends StatelessWidget {
 
 /// The offline notice and Sync button on Home and the adventure page.
 /// Nothing shows while online.
-class SyncBanner extends ConsumerStatefulWidget {
+class SyncBanner extends ConsumerWidget {
   const new({super.key});
 
   @override
-  ConsumerState<SyncBanner> createState() => _SyncBannerState();
-}
-
-class _SyncBannerState extends ConsumerState<SyncBanner> {
-  Timer? _hide;
-
-  @override
-  void dispose() {
-    _hide?.cancel();
-    super.dispose();
-  }
-
-  void _sync() => unawaited(ref.read(syncControllerProvider.notifier).sync());
-
-  @override
-  Widget build(BuildContext context) {
-    ref.listen(syncControllerProvider, (_, next) {
-      _hide?.cancel();
-      if (next.phase == SyncPhase.synced) {
-        _hide = Timer(
-          const Duration(seconds: 3),
-          ref.read(syncControllerProvider.notifier).dismissSynced,
-        );
-      }
-    });
+  Widget build(BuildContext context, WidgetRef ref) {
+    void sync() => unawaited(ref.read(syncControllerProvider.notifier).sync());
     final state = ref.watch(syncControllerProvider);
     final text = Theme.of(context).textTheme;
 
@@ -98,7 +75,7 @@ class _SyncBannerState extends ConsumerState<SyncBanner> {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(88, 48),
                   ),
-                  onPressed: _sync,
+                  onPressed: sync,
                   child: Text(action),
                 ),
               ],

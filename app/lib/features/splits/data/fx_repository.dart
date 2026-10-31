@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
@@ -24,12 +26,17 @@ FxRates? ratesFromDoc(String date, Map<String, dynamic> data) {
 /// Exchange rates for converting tabs (spec §9.1).
 abstract interface class FxRepository {
   /// The rates of [date], or of the latest earlier day when that day has
-  /// none (the provider was down); null if there are none at all yet.
+  /// none (the provider was down), or the earliest there is for a tab older
+  /// than all of them; null if there are none at all yet.
   Future<FxRates?> ratesFor(String date);
+
+  /// Asks the server for the latest rates; the latest day there is, or null
+  /// if there are none yet. Throws if the server can't be reached.
+  Future<String?> refreshLatest();
 }
 
 final fxRepositoryProvider = Provider<FxRepository>(
-  (ref) => FirebaseFxRepository(FirebaseFirestore.instance),
+  (ref) => FirebaseFxRepository(FirebaseFirestore.instance, roamioFunctions),
 );
 
 /// Rates for one day, kept for the session, and read again on coming back
@@ -43,9 +50,10 @@ final FutureProviderFamily<FxRates?, String> fxRatesProvider =
 /// Reads `fx_rates`. Firestore keeps what it has read on the phone, so
 /// rates already seen still work offline.
 class FirebaseFxRepository implements FxRepository {
-  new(this._db);
+  new(this._db, this._functions);
 
   final FirebaseFirestore _db;
+  final FirebaseFunctions _functions;
 
   @override
   Future<FxRates?> ratesFor(String date) async {
@@ -55,8 +63,24 @@ class FirebaseFxRepository implements FxRepository {
         .orderBy('date', descending: true)
         .limit(1)
         .get();
-    if (latest.docs.isEmpty) return null;
-    final doc = latest.docs.single;
-    return ratesFromDoc(doc.id, doc.data());
+    final docs = latest.docs.isNotEmpty
+        ? latest.docs
+        : (await _db
+                  .collection('fx_rates')
+                  .where('date', isGreaterThan: date)
+                  .orderBy('date')
+                  .limit(1)
+                  .get())
+              .docs;
+    if (docs.isEmpty) return null;
+    return ratesFromDoc(docs.single.id, docs.single.data());
+  }
+
+  @override
+  Future<String?> refreshLatest() async {
+    final result = await _functions
+        .httpsCallable('updateFxRates')
+        .call<Object?>();
+    return (result.data as Map?)?['date'] as String?;
   }
 }
