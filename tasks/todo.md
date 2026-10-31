@@ -343,7 +343,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: push to admins for a waiting tab, to the creator on rejection; Home card opens the tab list.
   - Verify: functions tests (only admins, never the creator).
 
-- [ ] **Task 52: Paid with and the new row** — M · Deps: 47 · UC-21, UC-23
+- [x] **Task 52: Paid with and the new row** — M · Deps: 47 · UC-21, UC-23
   - Acceptance: required method per payer, last used remembered on the phone; three-line row; tab details and exports show the name; unknown value shows as Other and `checkTab` ignores it.
   - Verify: widget tests; export test; `checkTab` test.
 
