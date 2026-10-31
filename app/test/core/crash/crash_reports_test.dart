@@ -127,6 +127,7 @@ void main() {
       addTearDown(container.dispose);
       container.listen(crashCollectionProvider, (_, _) {});
       await container.read(sessionFactsProvider.future);
+      await Future<void>.delayed(Duration.zero);
       expect(reporter.enabled, isFalse);
     });
   });
