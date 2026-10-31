@@ -14,7 +14,6 @@ import 'package:roamio/features/notifications/ui/notification_prompt.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
-import 'package:roamio/features/tabs/ui/tab_notice_cards.dart';
 
 const newAdventureRoute = '/adventures/new';
 
