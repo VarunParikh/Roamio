@@ -13,6 +13,9 @@ final minorsEnabledProvider = Provider<bool>((ref) => false);
 /// Nominate a person in the Privacy centre (spec UC-29, DPDP §14).
 final nomineeEnabledProvider = Provider<bool>((ref) => false);
 
-/// Uploading your own display picture. Off (the pilot): people choose a
-/// character instead (owner, 2026-10-30).
+/// Uploading pictures: your display picture, an adventure's banner and photos
+/// on tabs, with Scan bill attaching the bill to its tab. Off (the pilot):
+/// people choose a character, adventures keep their country photo and Scan bill
+/// keeps nothing (owner, 2026-10-30, 2026-10-31). Turning it on also needs
+/// `uploadsOpen` in `firebase/storage.rules`; see docs/ROADMAP.md.
 final photoUploadsEnabledProvider = Provider<bool>((ref) => false);

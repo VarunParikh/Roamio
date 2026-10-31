@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
@@ -416,7 +417,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   /// person checks it before saving (spec UC-21).
   Future<void> _scanBill() async {
     _doneTyping();
-    final path = await ref.read(photoPipelineProvider).pick(camera: true);
+    final photos = ref.read(photoPipelineProvider);
+    final path = await photos.pick(camera: true);
     if (path == null || !mounted) return;
     setState(() => _scanning = true);
     ReceiptGuess guess;
@@ -430,7 +432,14 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     } on Exception {
       guess = const ReceiptGuess();
     }
-    if (!mounted) return;
+    final keep =
+        ref.read(photoUploadsEnabledProvider) &&
+        !guess.isEmpty &&
+        _memories.length < maxMemories;
+    if (!mounted) {
+      await photos.discard(path);
+      return;
+    }
     setState(() {
       _scanning = false;
       _scanNote = guess.isEmpty
@@ -443,11 +452,13 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       if (guess.merchant case final name? when _description.text.isEmpty) {
         _description.text = name;
       }
-      if (!guess.isEmpty && _memories.length < maxMemories) {
+      if (keep) {
         _memories.add(path);
         _billPaths.add(path);
       }
     });
+    // Read on the phone, and kept only if it'll go up with the tab (spec §10).
+    if (!keep) await photos.discard(path);
   }
 
   Future<void> _addPhoto(bool camera) async {
@@ -635,15 +646,17 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             textCapitalization: TextCapitalization.sentences,
             maxLength: 200,
           ),
-          Text('Photos', style: text.titleMedium),
-          const SizedBox(height: 8),
-          MemoriesPicker(
-            paths: _memories,
-            alreadySaved: _old?.memories.length ?? 0,
-            onAdd: _addPhoto,
-            onRemove: (i) => setState(() => _memories.removeAt(i)),
-          ),
-          const SizedBox(height: 16),
+          if (ref.watch(photoUploadsEnabledProvider)) ...[
+            Text('Photos', style: text.titleMedium),
+            const SizedBox(height: 8),
+            MemoriesPicker(
+              paths: _memories,
+              alreadySaved: _old?.memories.length ?? 0,
+              onAdd: _addPhoto,
+              onRemove: (i) => setState(() => _memories.removeAt(i)),
+            ),
+            const SizedBox(height: 16),
+          ],
           LocationPicker(
             point: _location,
             onChanged: (p) => setState(() => _location = p),

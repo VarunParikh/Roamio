@@ -10,12 +10,23 @@ import { deleteObject, getBytes, ref, uploadBytes } from "firebase/storage";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 
 /**
+ * The rules for when uploads come back, with their one switch on; the pilot's
+ * rules, which deny every write, are checked in storage-pilot.test.ts.
+ *
  * Photos (spec §10): only compressed WebP up to 1 MB, only into places the
  * uploader may write, readable by the squad. Cast as in firestore.test.ts:
  * alice leads a1, cara co-leads, bob is a member, dan is outside, pete is
  * a minor waiting for consent. Bob created tab t1.
  */
 let env: RulesTestEnvironment;
+
+const switchOff = "function uploadsOpen() { return false; }";
+const shipped = readFileSync("storage.rules", "utf8");
+if (!shipped.includes(switchOff)) throw new Error("storage.rules: no switch");
+const reopened = shipped.replace(
+  switchOff,
+  "function uploadsOpen() { return true; }",
+);
 
 const storage = (uid?: string) =>
   (uid
@@ -39,7 +50,7 @@ beforeAll(async () => {
     // these stay on it; the bill trigger can't affect what they check.
     projectId: "demo-roamio",
     firestore: { rules: readFileSync("firestore.rules", "utf8") },
-    storage: { rules: readFileSync("storage.rules", "utf8") },
+    storage: { rules: reopened },
   });
 });
 

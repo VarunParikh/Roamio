@@ -6,6 +6,9 @@ class FakePhotoPipeline implements PhotoPipeline {
   final List<bool> picks = [];
   final List<String> queued = [];
 
+  /// Picked files thrown away without being uploaded.
+  final List<String> discarded = [];
+
   /// The size class of each queued photo, in the same order as [queued].
   final List<PhotoKind> kinds = [];
 
@@ -24,6 +27,9 @@ class FakePhotoPipeline implements PhotoPipeline {
     }
     return '/photos/${picks.length}.jpg';
   }
+
+  @override
+  Future<void> discard(String path) async => discarded.add(path);
 
   @override
   Future<void> queueUpload({
