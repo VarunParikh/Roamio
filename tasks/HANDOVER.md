@@ -7,9 +7,8 @@ The owner works **remotely from a phone** (Remote Control) and does **one manual
 
 The older "Where things stand" below is out of date. Audit items are numbered as in the owner's brief.
 
-- **In three group PRs, in merge order:** offline and reporting (2, 3, 9, 14, 15, 18 HTTPS check, 23), squad and forms (4, 5, 6, 13, 16, 17), rates and server (7 part, 11, 19). Merged already: 1 (#97), 18 poll overlap (#108).
+- **In three group PRs, in merge order:** offline and reporting (2, 3, 9, 14, 15, 18 HTTPS check, 23), squad and forms (4, 5, 6, 13, 16, 17), rates and server (7, 11, 19). Merged already: 1 (#97), 18 poll overlap (#108).
 - **Deferred to phase 2 by the owner:** 8 (payments recorded twice: trust the person), 10 (approved tabs skipping re-approval), 12 (stale stored names).
-- **Waiting on an owner decision:** item 7's recheck when new rates arrive, which needs a stored flag and a small read cost.
 - **Remote Config (19):** functions read the *server* template. `firebase deploy --only remoteconfig` publishes the *app* template, so don't use it for this. Defaults are safe and the warning is now once per 10 minutes, so a server template is only needed to change values without a deploy: Firebase console → Remote Config → Server tab → add `budget_alert_thresholds` `[80, 100]`, `invite_validity_days` `14`, `consent_link_validity_days` `7`, then publish. On dev, the app-side template now holds those three unused values, which is harmless.
 - **App Check (20):** confirmed on the phone: the dev app, which never starts App Check, makes the server log "Decoding App Check token failed" on its calls, so these warnings on dev are expected. Before anyone enforces on prod: App Check → APIs must show almost all requests verified for a week, from the installed prod APK (see `docs/SETUP.md`).
 - **Burst after deploy (21):** at 11:39 UTC each function's new revision got unauthenticated requests just after it rolled out. Source not found and it hasn't been seen since. All callables require sign-in; `health` and `invitePreview` are public by design and show nothing private.

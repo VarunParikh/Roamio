@@ -158,6 +158,33 @@ describe("checkBudget (spec UC-20)", () => {
     });
   });
 
+  it("a tab added before its rate exists still alerts once the rate arrives (item 7)", async () => {
+    const { ari, ben, id } = await trip(1);
+    // ฿-style tab in a currency with no rate yet: Ari's half is ₹8,400 once known.
+    await db().collection(`adventures/${id}/tabs`).add({
+      amountMinor: 20_000,
+      currency: "XXX",
+      date: "2019-03-01",
+      fxDate: "2019-03-01",
+      payers: [{ id: ben.uid, amountMinor: 20_000 }],
+      participants: [ari.uid, ben.uid],
+      percentBp: null,
+      createdBy: ben.uid,
+      deleted: false,
+    });
+    const flag = db().doc(`rate_rechecks/${id}_${ari.uid}`);
+    await eventually(async () => {
+      expect((await flag.get()).exists).toBe(true);
+    });
+    expect(await sent(id, ari.uid)).toEqual([]);
+
+    await db().doc("fx_rates/2019-03-01").set({ date: "2019-03-01", rates: { INR: "84", XXX: "1" } });
+    await eventually(async () => {
+      expect(await sent(id, ari.uid)).toEqual([80]);
+      expect((await flag.get()).exists).toBe(false);
+    });
+  });
+
   it("waiting and rejected tabs don't count", async () => {
     for (const status of ["waiting", "rejected"]) {
       const { ari, id } = await trip(16_000, false, status);

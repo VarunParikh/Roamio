@@ -22,7 +22,7 @@ export { checkTab } from "./tabs/checkTab";
 export { tabApprovalNotices, waitingCardsForNewAdmins } from "./tabs/approvalNotices";
 export { approveStrandedTabs } from "./squad/approvals";
 export { profileReadersOnAdventure } from "./squad/profileReaders";
-export { budgetOnChange, budgetOnTab } from "./budget/budget";
+export { budgetOnChange, budgetOnRates, budgetOnTab } from "./budget/budget";
 export { deleteMyAccount } from "./privacy/deleteAccount";
 export { dailyFxRates, updateFxRates } from "./fx/rates";
 export { exportMyData } from "./privacy/exportData";
