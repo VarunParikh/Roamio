@@ -11,6 +11,9 @@ Read [docs/SPEC.md](docs/SPEC.md) before changing behaviour; it is the source of
 - One primary (chartreuse) button per screen; every empty/error/offline state has one next action.
 - Visual style comes from `design/DESIGN.md`; the `design/*` screens are style references, not feature specs.
 
+## Chores
+Pushing, opening or merging PRs, updating PR branches, pulling data, test runs, test builds, wide searches, screenshots, docs upkeep, mechanical edits and log summaries go to a cheaper session: follow [.claude/skills/delegate-chores/SKILL.md](.claude/skills/delegate-chores/SKILL.md).
+
 ## Ask the owner first
 New dependencies · data-model changes after first deploy · anything that adds Firebase cost · CI changes · pushing to GitHub · publishing a release.
 
