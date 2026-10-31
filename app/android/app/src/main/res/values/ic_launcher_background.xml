@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Roamio blue behind the launcher icon: keeps the white R and lime dot in contrast. -->
-    <color name="ic_launcher_background">#316BF3</color>
+    <!-- Roamio lime behind the launcher icon. -->
+    <color name="ic_launcher_background">#D4FF00</color>
 </resources>
