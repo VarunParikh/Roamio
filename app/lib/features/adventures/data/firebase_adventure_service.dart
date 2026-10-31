@@ -49,12 +49,14 @@ class FirebaseAdventureService implements AdventureService {
   // Not awaited: the edit is queued offline and the stream shows it at once.
   @override
   Future<void> update(String adventureId, AdventureEdit edit) async {
+    final start = edit.startDate;
+    final end = edit.endDate;
     _db.doc('adventures/$adventureId').update({
-      'name': edit.name.trim(),
-      'description': edit.description.trim(),
-      'city': edit.city.trim(),
-      'startDate': isoDate(edit.startDate),
-      'endDate': isoDate(edit.endDate),
+      'name': ?edit.name?.trim(),
+      'description': ?edit.description?.trim(),
+      'city': ?edit.city?.trim(),
+      'startDate': ?(start == null ? null : isoDate(start)),
+      'endDate': ?(end == null ? null : isoDate(end)),
       'baseCurrency': ?edit.baseCurrency,
     }).ignore();
   }
