@@ -41,3 +41,19 @@ String statusLabel(Adventure a, DateTime today) {
       return days == 1 ? 'Starts tomorrow' : 'In $days days';
   }
 }
+
+/// "5 days left" or "Last day" during [adventure]; null outside it.
+String? daysLeftLabel(Adventure adventure, DateTime today) {
+  if (adventure.statusOn(today) != AdventureStatus.active) return null;
+  final end = adventure.endDate;
+  final days = DateTime.utc(
+    end.year,
+    end.month,
+    end.day,
+  ).difference(DateTime.utc(today.year, today.month, today.day)).inDays;
+  return switch (days) {
+    0 => 'Last day',
+    1 => '1 day left',
+    _ => '$days days left',
+  };
+}

@@ -359,7 +359,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: Split can be opened on a chosen adventure; the budget alert uses it, fixing the wrong-adventure dead end.
   - Verify: widget tests.
 
-- [ ] **Task 56: Budget widget** — M · Deps: 47, 55 · UC-19, UC-20
+- [x] **Task 56: Budget widget** — M · Deps: 47, 55 · UC-19, UC-20
   - Acceptance: left or over budget, percentage and bar; tap to edit; Remove with confirmation; waiting-for-approval line; plain Set a budget.
   - Verify: widget tests per state; functions test for an approval crossing a threshold.
 

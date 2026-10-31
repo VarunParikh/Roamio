@@ -52,6 +52,7 @@ class SplitReport {
     required this.totalSpend,
     required this.missingRates,
     this.waitingCount = 0,
+    this.waitingMyShare = 0,
   });
 
   /// The viewer's profile currency, or the trip's when rates are missing.
@@ -82,6 +83,10 @@ class SplitReport {
 
   /// Tabs waiting for an admin; they count towards nothing (spec UC-21a).
   final int waitingCount;
+
+  /// What the viewer's share of those would be, in [currency]; left out for a
+  /// tab whose rate is missing.
+  final int waitingMyShare;
 }
 
 /// Builds the split for [viewer]. Each tab converts at its own day's rates
@@ -162,6 +167,18 @@ SplitReport buildReport({
   final byCategory = <String, int>{};
   final byDay = <DateTime, int>{};
   var myShare = 0;
+  var waitingMyShare = 0;
+  for (final t in tabs) {
+    if (t.status != TabStatus.waiting || !isUsable(t)) continue;
+    try {
+      final amount = ratesFor(t.split.fxDate)
+          .convert(t.split.amount, currency)
+          .minor;
+      waitingMyShare += _shareIn(t.split, amount, viewer);
+    } on MissingRateException {
+      continue;
+    }
+  }
   for (final t in usable) {
     final amount = ratesFor(t.split.fxDate)
         .convert(t.split.amount, currency)
@@ -188,6 +205,7 @@ SplitReport buildReport({
     totalSpend: byCategory.values.fold(0, (a, b) => a + b),
     missingRates: currency != viewerCurrency,
     waitingCount: waitingCount,
+    waitingMyShare: waitingMyShare,
   );
 }
 
