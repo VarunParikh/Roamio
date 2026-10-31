@@ -327,15 +327,15 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: tabs have `status`; balances, charts, export and `budget.ts` count only approved (and personal for the owner's own share). New tabs are still created approved, so nothing changes yet.
   - Verify: failing-first split engine, report and budget tests.
 
-- [ ] **Task 48: Approve and Reject** — L · Deps: 47 · UC-21a
+- [x] **Task 48: Approve and Reject** — L · Deps: 47 · UC-21a
   - Acceptance: buttons on the tab list; new tabs wait; rules stop self-approval and creating a tab approved; only admin auto-approved, including when the second admin leaves; first decision wins; offline reason; works after the 7-day window.
   - Verify: rules allow + deny tests; functions tests; Journeys C and D updated; new journey for a leader with no co-lead.
 
-- [ ] **Task 49: Personal tabs** — M · Deps: 48 · UC-21a
+- [x] **Task 49: Personal tabs** — M · Deps: 48 · UC-21a
   - Acceptance: automatic; visible only to the creator by security rules; the tab queries still work offline; the Activity lookup survives a tab it can't read; export includes them only for their owner.
   - Verify: rules allow + deny tests; widget and export tests.
 
-- [ ] **Task 50: Rejected tabs and re-approval** — M · Deps: 48 · UC-21a
+- [x] **Task 50: Rejected tabs and re-approval** — M · Deps: 48 · UC-21a
   - Acceptance: optional reason; creator can edit and resubmit or delete; money edits return to waiting, description, category and method don't. Own activity type, since `tab_rejected` already means `checkTab` rejected a tab.
   - Verify: rules tests; journey for reject and resubmit.
 
