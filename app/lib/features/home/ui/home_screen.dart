@@ -28,6 +28,15 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// The first name on the greeting: the profile's name, so a rename shows at
+/// once; the sign-in name until the profile loads.
+final greetingNameProvider = Provider<String?>((ref) {
+  final name =
+      ref.watch(profileStreamProvider).value?.name ??
+      ref.watch(authServiceProvider).displayName;
+  return name?.trim().split(' ').first;
+});
+
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
@@ -40,12 +49,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final first = ref
-        .read(authServiceProvider)
-        .displayName
-        ?.trim()
-        .split(' ')
-        .first;
+    final first = ref.watch(greetingNameProvider);
     final greeting = first == null || first.isEmpty
         ? 'Hey there 👋'
         : 'Hey $first 👋';
