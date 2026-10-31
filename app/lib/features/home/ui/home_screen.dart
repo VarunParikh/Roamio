@@ -7,6 +7,7 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/banners/ui/banner_preloader.dart';
 import 'package:roamio/features/home/ui/first_screen_cards.dart';
 import 'package:roamio/features/home/ui/needs_you.dart';
 import 'package:roamio/features/home/ui/other_trips.dart';
@@ -78,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(height: 24),
           const SyncBanner(),
           const PushIdRefresher(),
+          const BannerPreloader(),
           if (adventures.hasError) ...[
             Text(
               'We couldn’t load your adventures.',

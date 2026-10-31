@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 /// A country's default banner photo and its required credit (spec §9.2).
 class BannerPhoto {
@@ -25,12 +26,13 @@ final bannerServiceProvider = Provider<BannerService>(
   (ref) => throw UnimplementedError('bannerServiceProvider must be overridden'),
 );
 
-/// Kept for the session, so each country is looked up at most once.
+/// Kept for the session, so each country is looked up at most once, and read
+/// again on coming back online: while offline it only finds what's saved.
 final FutureProviderFamily<BannerPhoto?, String> bannerProvider =
-    FutureProvider.family<BannerPhoto?, String>(
-      (ref, countryCode) =>
-          ref.watch(bannerServiceProvider).bannerFor(countryCode),
-    );
+    FutureProvider.family<BannerPhoto?, String>((ref, countryCode) {
+      ref.watch(isOfflineProvider);
+      return ref.watch(bannerServiceProvider).bannerFor(countryCode);
+    });
 
 /// Opens a link outside the app; overridden in tests.
 final openLinkProvider = Provider<Future<void> Function(Uri)>(

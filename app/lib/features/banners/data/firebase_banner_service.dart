@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
@@ -21,6 +23,17 @@ class FirebaseBannerService implements BannerService {
                       as Map? ??
                   const {},
             );
+      // The function's answer isn't kept on the phone; reading the record it
+      // wrote is what makes this banner available offline next time.
+      if (!cached.exists) {
+        unawaited(
+          _db
+              .doc('banners/$countryCode')
+              .get()
+              .then<void>((_) {})
+              .catchError((Object _) {}),
+        );
+      }
       final url = data['url'] as String?;
       if (url == null) return null;
       return BannerPhoto(
