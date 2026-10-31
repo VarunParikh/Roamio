@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 
 /// A recorded "Mark as settled" payment (spec UC-26a), in the trip's
 /// currency.
@@ -94,23 +95,30 @@ class FirebaseSettlementService implements SettlementService {
     required String currency,
     required String date,
   }) async {
-    _col(adventureId).add({
-      'from': from,
-      'to': to,
-      'amountMinor': amountMinor,
-      'currency': currency,
-      'date': date,
-      'recordedBy': _auth.currentUser!.uid,
-      'createdAt': FieldValue.serverTimestamp(),
-      'undone': false,
-    }).ignore();
+    final doc = _col(adventureId).doc();
+    doc
+        .set({
+          'from': from,
+          'to': to,
+          'amountMinor': amountMinor,
+          'currency': currency,
+          'date': date,
+          'recordedBy': _auth.currentUser!.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+          'undone': false,
+        })
+        .keepOrReport('a payment you marked as settled', path: doc.path);
   }
 
   @override
   Future<void> undo(String adventureId, String settlementId) async {
-    _col(adventureId)
-        .doc(settlementId)
+    final doc = _col(adventureId).doc(settlementId);
+    doc
         .update({'undone': true, 'undoneBy': _auth.currentUser!.uid})
-        .ignore();
+        .keepOrReport(
+          'a payment you undid',
+          path: doc.path,
+          fields: const {'undone': true},
+        );
   }
 }

@@ -3,6 +3,20 @@
 Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`, `docs/ROADMAP.md`.
 The owner works **remotely from a phone** (Remote Control) and does **one manual test session at the end**: never ask for device checks; add them to the list below. Ask before merging (**the owner must name the PR numbers**, e.g. "merge #66"; blanket approvals are refused by the permission check), before adding a dependency, before anything that adds Firebase cost, and before changing the data model.
 
+## Code audit, 2026-10-31 (read this first)
+
+The older "Where things stand" below is out of date. Audit items are numbered as in the owner's brief.
+
+- **In three group PRs, in merge order:** offline and reporting (2, 3, 9, 14, 15, 18 HTTPS check, 23), squad and forms (4, 5, 6, 13, 16, 17), rates and server (7 part, 11, 19). Merged already: 1 (#97), 18 poll overlap (#108).
+- **Deferred to phase 2 by the owner:** 8 (payments recorded twice: trust the person), 10 (approved tabs skipping re-approval), 12 (stale stored names).
+- **Waiting on an owner decision:** item 7's recheck when new rates arrive, which needs a stored flag and a small read cost.
+- **Remote Config (19):** functions read the *server* template. `firebase deploy --only remoteconfig` publishes the *app* template, so don't use it for this. Defaults are safe and the warning is now once per 10 minutes, so a server template is only needed to change values without a deploy: Firebase console → Remote Config → Server tab → add `budget_alert_thresholds` `[80, 100]`, `invite_validity_days` `14`, `consent_link_validity_days` `7`, then publish. On dev, the app-side template now holds those three unused values, which is harmless.
+- **App Check (20):** confirmed on the phone: the dev app, which never starts App Check, makes the server log "Decoding App Check token failed" on its calls, so these warnings on dev are expected. Before anyone enforces on prod: App Check → APIs must show almost all requests verified for a week, from the installed prod APK (see `docs/SETUP.md`).
+- **Burst after deploy (21):** at 11:39 UTC each function's new revision got unauthenticated requests just after it rolled out. Source not found and it hasn't been seen since. All callables require sign-in; `health` and `invitePreview` are public by design and show nothing private.
+- **Item 22:** `updateFxRates` is proven on dev: pressing Update rates on the phone stored 165 rates dated 2026-10-31 at 18:30 UTC. Still unproven: the scheduled `dailyFxRates` (first look after 00:30 UTC), and `joinAdventure` and `settlementActivity`, which need the two-phone checks below.
+- **Prod logs (24):** prod has no functions deployed, so its logs can't be proven readable until the first deploy. Check straight after it.
+- **Backend changes aren't live** until functions are deployed to dev.
+
 ## Where things stand
 
 **Merged into `main`: everything through #65. No open PRs** (apart from the PR carrying this handover). CI and the nightly journey tests are green.
@@ -109,6 +123,19 @@ Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then
 - **Added 2026-10-31, Home card and first screen:** the adventure card looks right over real banner photos, with the weather beside the dates and the credit bottom-left; Add tab opens straight away; squad pictures include pals; Needs you shows two cards and See all; a new account sees the image card with a different photo after reopening the app, white text is readable on all 10, and the polaroid looks right; a past-trips-only account sees the image card then the Past list; Home fits a 320dp phone, bottom bar included.
 - **Added 2026-10-31, Split top card:** the top card reads well with a long adventure name and a big amount; "•••" shows Export and switches the figures to the trip's currency and back; Who pays whom looks right with pictures on a small phone and TalkBack reads each row as one sentence; only your own rows, or pals' rows for a lead, have an arrow and open Mark as settled; the settle sheet shows both pictures; the waiting note opens the tab list.
 - **Added 2026-10-31, Spend by category and breakdown:** the coloured bar and 2×2 legend read well, and chartreuse is easy to see on a real screen; a very small category still shows a slice; See detailed breakdown opens in place; bars by day swipe to earlier days and tapping one says its day and amount; TalkBack reads each legend entry and each bar; a recorded payment can be undone from the breakdown.
+- **Added 2026-10-31, audit fixes (none of these has run on a real phone while signed in):**
+  - Two phones, join: an invite joins from the second phone, and the names appear on both right after.
+  - Two phones, settle: mark a transfer settled and undo it; both phones agree. (Both marking it twice is a known phase 2 item.)
+  - Who pays whom shows the same pairs on both phones, and what you pay adds up to "You owe".
+  - Update rates clears "Can't measure yet" on the Thailand trip, and new rates appear with the app left open.
+  - Refused changes: remove a member on one phone while the other adds a tab for them offline. On syncing, a message says what wasn't saved, with OK. Repeat, closing the app before coming back online.
+  - Connection drop during "Syncing…" shows offline, then recovers by itself.
+  - Rename yourself: Home's greeting and tab rows on both phones change without a restart. A squadmate never shows as a deleted user while offline.
+  - Leave the app open past midnight: days left and the tab date move on.
+  - Crash reports: switch on Crashlytics in the Firebase console, then confirm a report appears for an adult account only.
+  - Add tab: remove someone from the squad on another phone while the form is open; a message appears and saving works.
+  - A member can't add a tab the day after the trip, a lead can for 7 days, and a member can still resubmit a rejected tab.
+  - Offline banners: a banner that failed to save appears after about five minutes back online.
 - **Added 2026-10-31, pictures:** tab rows show who's sharing with "+N" past four; Add tab's lists and tab details show pictures; an invite shows the leader's picture; TalkBack reads names on a row.
 - **Added 2026-10-31, approvals:** a member's tab shows Waiting for approval and an admin's Approve puts it in the split; Reject asks first; a leader with no co-lead has their tab counted at once; two admins pressing at once, the second is told it's decided.
 - **Added 2026-10-31, Paid with:** on a fresh install Save stays disabled and says why until a method is chosen; the next tab starts on that method, also after a restart; Split payment shows one menu per person who paid; a tab row reads category and amount, description and your share, then the emoji, and looks right on a small phone; TalkBack says "Paid with Cash" on the row, on tab details and in the menu; the emoji shows on the phone's font; an exported PDF and Excel show the method's name.

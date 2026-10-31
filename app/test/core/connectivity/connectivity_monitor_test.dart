@@ -73,4 +73,52 @@ void main() {
     await sub.cancel();
     expect(mostAtOnce, 1);
   });
+
+  group('when DNS fails but the internet works (item 18)', () {
+    Future<List<InternetAddress>> dnsDown(String _) async =>
+        throw const SocketException('no answer');
+
+    test('online when the HTTPS check gets through', () async {
+      var probes = 0;
+      final monitor = DeviceConnectivityMonitor(
+        lookup: dnsDown,
+        reachOverHttps: () async {
+          probes++;
+          return true;
+        },
+      );
+      expect(await monitor.check(), isTrue);
+      expect(probes, 1);
+    });
+
+    test('offline only when both checks fail', () async {
+      final monitor = DeviceConnectivityMonitor(
+        lookup: dnsDown,
+        reachOverHttps: () async => false,
+      );
+      expect(await monitor.check(), isFalse);
+    });
+
+    test('a stuck HTTPS check counts as failed, within the timeout', () async {
+      final monitor = DeviceConnectivityMonitor(
+        lookup: dnsDown,
+        timeout: const Duration(milliseconds: 5),
+        reachOverHttps: () => Completer<bool>().future,
+      );
+      expect(await monitor.check(), isFalse);
+    });
+
+    test('the HTTPS check is not needed when DNS answers', () async {
+      var probes = 0;
+      final monitor = DeviceConnectivityMonitor(
+        lookup: (_) async => [InternetAddress('142.250.0.1')],
+        reachOverHttps: () async {
+          probes++;
+          return false;
+        },
+      );
+      expect(await monitor.check(), isTrue);
+      expect(probes, 0);
+    });
+  });
 }

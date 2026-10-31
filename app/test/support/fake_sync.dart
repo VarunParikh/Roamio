@@ -30,6 +30,10 @@ class FakeNetworkSwitch implements NetworkSwitch {
   /// When set, the next [waitForPendingWrites] fails with this.
   Exception? failWrites;
 
+  /// When set, [waitForPendingWrites] waits for this, as it does while the
+  /// connection is down.
+  Completer<void>? hold;
+
   @override
   Future<void> disable() async => calls.add('disable');
 
@@ -39,6 +43,7 @@ class FakeNetworkSwitch implements NetworkSwitch {
   @override
   Future<void> waitForPendingWrites() async {
     calls.add('writes');
+    await hold?.future;
     if (failWrites case final error?) {
       failWrites = null;
       throw error;

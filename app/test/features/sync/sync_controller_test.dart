@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
 import '../../support/fake_sync.dart';
@@ -30,6 +33,88 @@ void main() {
   }
 
   SyncPhase phase() => container.read(syncControllerProvider).phase;
+
+  test(
+    'a drop mid-sync shows offline, and coming back online recovers (item 9)',
+    () async {
+      await start(online: true);
+      network.hold = Completer<void>(); // the writes never finish while offline
+      unawaited(container.read(syncControllerProvider.notifier).sync());
+      await Future<void>.delayed(Duration.zero);
+      expect(phase(), SyncPhase.syncing);
+
+      connectivity.set(online: false);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(phase(), SyncPhase.offline);
+
+      network.hold = null;
+      connectivity.set(online: true);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(phase(), SyncPhase.synced);
+    },
+  );
+
+  setUp(refusedWrites.clear);
+
+  group('changes the server refused (item 2)', () {
+    test('show at once, even when no sync runs', () async {
+      await start(online: true);
+      refusedWrites.add('a pal');
+      expect(phase(), SyncPhase.refused);
+      expect(container.read(syncControllerProvider).error, contains('a pal'));
+    });
+
+    test('a sync never calls them synced, however often it runs', () async {
+      await start(online: true);
+      refusedWrites.add('a tab');
+      final sync = container.read(syncControllerProvider.notifier);
+      await sync.sync();
+      expect(phase(), SyncPhase.refused);
+      await sync.sync();
+      expect(phase(), SyncPhase.refused);
+      expect(container.read(syncControllerProvider).error, contains('a tab'));
+    });
+
+    test('OK clears them, and the app carries on', () async {
+      await start(online: true);
+      refusedWrites.add('a tab');
+      container.read(syncControllerProvider.notifier).dismissRefused();
+      expect(phase(), SyncPhase.online);
+      expect(refusedWrites.pending, isEmpty);
+    });
+
+    test('don’t count as being offline', () async {
+      await start(online: true);
+      refusedWrites.add('a tab');
+      expect(container.read(syncControllerProvider).isOffline, isFalse);
+    });
+
+    test('a refusal during a sync is shown when it ends', () async {
+      await start(online: true);
+      network.hold = Completer<void>();
+      final sync = container.read(syncControllerProvider.notifier).sync();
+      await Future<void>.delayed(Duration.zero);
+      refusedWrites.add('a tab');
+      expect(phase(), SyncPhase.syncing);
+      network.hold!.complete();
+      await sync;
+      expect(phase(), SyncPhase.refused);
+    });
+  });
+
+  test('writes that never finish while online stop showing Syncing', () async {
+    final normal = SyncController.writesTimeout;
+    SyncController.writesTimeout = const Duration(milliseconds: 5);
+    addTearDown(() => SyncController.writesTimeout = normal);
+    await start(online: true);
+    network.hold = Completer<void>();
+    await container.read(syncControllerProvider.notifier).sync();
+    expect(phase(), SyncPhase.failed);
+    expect(
+      container.read(syncControllerProvider).error,
+      contains('safe on this phone'),
+    );
+  });
 
   test('online at start: normal, and the network is switched on', () async {
     await start(online: true);

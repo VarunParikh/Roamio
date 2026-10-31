@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,10 +63,49 @@ class _InviteCard extends ConsumerStatefulWidget {
   ConsumerState<_InviteCard> createState() => _InviteCardState();
 }
 
-class _InviteCardState extends ConsumerState<_InviteCard> {
+class _InviteCardState extends ConsumerState<_InviteCard>
+    with WidgetsBindingObserver {
   bool _joining = false;
+  Timer? _expiry;
+  DateTime? _expiresAt;
 
   String get code => widget.code;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _expiry?.cancel();
+    super.dispose();
+  }
+
+  /// Looks the invite up again the moment it runs out (item 14).
+  void _checkAgainAt(DateTime? expiresAt) {
+    if (expiresAt == _expiresAt) return;
+    _expiresAt = expiresAt;
+    _expiry?.cancel();
+    if (expiresAt == null) return;
+    _expiry = Timer(
+      expiresAt.difference(DateTime.now()) + const Duration(seconds: 1),
+      () {
+        if (mounted) ref.invalidate(inviteDetailsProvider(code));
+      },
+    );
+  }
+
+  /// An invite can run out while the app is in the background, so it's looked
+  /// up again on coming back (item 14).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(inviteDetailsProvider(code));
+    }
+  }
 
   Future<void> _join(InviteDetails d) async {
     setState(() => _joining = true);
@@ -88,6 +129,7 @@ class _InviteCardState extends ConsumerState<_InviteCard> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final details = ref.watch(inviteDetailsProvider(code));
+    _checkAgainAt(details.value?.expiresAt);
     final forget = TextButton(
       onPressed: _joining
           ? null

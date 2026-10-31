@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 
 class FirebaseSquadService implements SquadService {
@@ -116,13 +117,16 @@ class FirebaseSquadService implements SquadService {
     String nickname,
     String characterId,
   ) async {
-    _pals(adventureId).add({
-      'nickname': nickname,
-      'characterId': characterId,
-      'addedBy': _auth.currentUser!.uid,
-      'status': 'active',
-      'createdAt': FieldValue.serverTimestamp(),
-    }).ignore();
+    final doc = _pals(adventureId).doc();
+    doc
+        .set({
+          'nickname': nickname,
+          'characterId': characterId,
+          'addedBy': _auth.currentUser!.uid,
+          'status': 'active',
+          'createdAt': FieldValue.serverTimestamp(),
+        })
+        .keepOrReport('the pal “$nickname”', path: doc.path);
   }
 
   @override
@@ -132,15 +136,27 @@ class FirebaseSquadService implements SquadService {
     String nickname,
     String characterId,
   ) async {
-    _pals(adventureId)
-        .doc(palId)
-        .update({'nickname': nickname, 'characterId': characterId})
-        .ignore();
+    final doc = _pals(adventureId).doc(palId);
+    final fields = {'nickname': nickname, 'characterId': characterId};
+    doc
+        .update(fields)
+        .keepOrReport(
+          'your change to the pal “$nickname”',
+          path: doc.path,
+          fields: fields,
+        );
   }
 
   @override
   Future<void> removePal(String adventureId, String palId) async {
-    _pals(adventureId).doc(palId).update({'status': 'left'}).ignore();
+    final doc = _pals(adventureId).doc(palId);
+    doc
+        .update({'status': 'left'})
+        .keepOrReport(
+          'a pal you removed',
+          path: doc.path,
+          fields: const {'status': 'left'},
+        );
   }
 
   Future<void> _call(String name, String adventureId, String? memberUid) async {

@@ -144,7 +144,7 @@ fi
 
 # 2. An Android device: the first one connected, or a headless emulator.
 first_device() {
-  limited 30 "$ADB" devices | awk 'NR > 1 && $2 == "device" { print $1; exit }' || true
+  limited 30 "$ADB" devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^emulator-/ { print $1; exit }' || true
 }
 
 boot_property() {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/age.dart';
@@ -26,7 +27,7 @@ class FirebaseAdventureService implements AdventureService {
   @override
   Future<String> create(AdventureDraft draft) async {
     final doc = _db.collection('adventures').doc();
-    unawaited(
+    keepWrite(
       doc.set({
         'name': draft.name.trim(),
         'description': draft.description.trim(),
@@ -42,6 +43,8 @@ class FirebaseAdventureService implements AdventureService {
         'coLeadUids': <String>[],
         'memberUids': [_uid],
       }),
+      'the adventure “${draft.name.trim()}”',
+      path: doc.path,
     );
     return doc.id;
   }
@@ -51,19 +54,30 @@ class FirebaseAdventureService implements AdventureService {
   Future<void> update(String adventureId, AdventureEdit edit) async {
     final start = edit.startDate;
     final end = edit.endDate;
-    _db.doc('adventures/$adventureId').update({
+    final doc = _db.doc('adventures/$adventureId');
+    final fields = {
       'name': ?edit.name?.trim(),
       'description': ?edit.description?.trim(),
       'city': ?edit.city?.trim(),
       'startDate': ?(start == null ? null : isoDate(start)),
       'endDate': ?(end == null ? null : isoDate(end)),
       'baseCurrency': ?edit.baseCurrency,
-    }).ignore();
+    };
+    doc
+        .update(fields)
+        .keepOrReport(
+          'your change to the adventure',
+          path: doc.path,
+          fields: fields,
+        );
   }
 
   @override
   Future<void> resetBanner(String adventureId) async {
-    _db.doc('adventures/$adventureId').update({'bannerUrl': null}).ignore();
+    _db
+        .doc('adventures/$adventureId')
+        .update({'bannerUrl': null})
+        .keepOrReport('the banner reset');
   }
 
   static Adventure _fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> d) {

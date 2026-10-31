@@ -146,7 +146,7 @@ Each item is written so it can become a test.
 - **UC-8 Create adventure** (any adult member or consented minor): step 1 country (searchable list of 195 from `data/`) + optional city; step 2 name (e.g. "College group's Bangkok adventure") + optional description; step 3 start/end dates. Base currency auto-filled from the country, editable. Banner auto-loaded (§9.2). The creator becomes **Squad Leader**.
 - **UC-9 Invite link:** after creation the user sees one button, **Share invite**, which opens the Android share sheet with `https://<host>/i/<CODE>` and a copy button. Codes are 8 characters, valid 14 days, revocable and regenerable by leads.
 - **UC-10 Edit adventure** (leads only): name, description, dates, base currency (base currency locked once a tab exists).
-- **UC-11 Archive:** adventures end automatically the day after the end date (move to "Past") and stay readable; leads can still add tabs for 7 days after.
+- **UC-11 Archive:** adventures end automatically the day after the end date (move to "Past") and stay readable; leads can still add tabs for 7 days after. Members can add tabs up to the last day, and can still fix or resubmit their own tab during those 7 days (owner, 2026-10-31). The server goes by the tab's own date, so a tab added offline is never removed for reaching it late.
 
 ### 5.4 Joining via invite
 
@@ -208,7 +208,7 @@ Each item is written so it can become a test.
 ### 5.10 Offline & sync
 
 - **UC-30** The app works fully offline after first sign-in: browse adventures, add/edit tabs.
-- **UC-31** When the device is offline, Roamio switches Firestore to offline mode and shows a card saying changes are kept on the phone. A short blip isn't offline: it takes three failed checks in a row. When connectivity returns, Roamio re-enables the network and uploads queued writes by itself, showing "Synced ✓" or the error with Try again. There is no Sync button to press while connected (owner, 2026-10-31).
+- **UC-31** When the device is offline, Roamio switches Firestore to offline mode and shows a card saying changes are kept on the phone. A short blip isn't offline: it takes three failed checks in a row. When connectivity returns, Roamio re-enables the network and uploads queued writes by itself, showing "Synced ✓" or the error with Try again. There is no Sync button to press while connected (owner, 2026-10-31). A check is a DNS lookup and, only when that fails, a small HTTPS request, so a network with odd DNS doesn't look offline (owner, 2026-10-31). If the server refuses a queued change, even one made before the app was restarted, the card says what wasn't saved with one button, OK, and never "Synced ✓" until it's been seen. If the server removes a tab after accepting it, its creator gets a Needs you card. A sync that doesn't finish within a minute says the changes are safe on the phone, with Try again.
 - **UC-32 Conflicts:** last write wins per tab. If a synced edit overwrote someone else's newer edit, both users see an activity entry ("Ari's offline edit replaced your change to *Dinner*").
 - **UC-33** Joining, inviting, role changes and account deletion need a connection; their buttons are disabled offline with a short reason.
 

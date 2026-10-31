@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
@@ -33,6 +34,9 @@ abstract interface class FxRepository {
   /// Asks the server for the latest rates; the latest day there is, or null
   /// if there are none yet. Throws if the server can't be reached.
   Future<String?> refreshLatest();
+
+  /// The newest rates day, live: a day that arrives shows at once (item 14).
+  Stream<String?> watchLatestDay();
 }
 
 final fxRepositoryProvider = Provider<FxRepository>(
@@ -43,9 +47,23 @@ final fxRepositoryProvider = Provider<FxRepository>(
 /// online: a read while offline only finds what's on the phone.
 final FutureProviderFamily<FxRates?, String> fxRatesProvider =
     FutureProvider.family<FxRates?, String>((ref, date) {
-      ref.watch(isOfflineProvider);
+      ref
+        // Read again when a newer day arrives, so rates that come in while
+        // the app is open are used at once (item 14).
+        ..watch(isOfflineProvider)
+        ..watch(latestRatesDayProvider);
       return ref.watch(fxRepositoryProvider).ratesFor(date);
     });
+
+/// The newest rates day, live. One listener on the newest `fx_rates` document.
+final StreamProvider<String?> latestRatesDayProvider = StreamProvider<String?>((
+  ref,
+) {
+  // Rates can only be read when signed in, and a refused listener stays dead.
+  final uid = ref.watch(sessionFactsProvider.select((s) => s.value?.uid));
+  if (uid == null) return Stream.value(null);
+  return ref.watch(fxRepositoryProvider).watchLatestDay();
+});
 
 /// Reads `fx_rates`. Firestore keeps what it has read on the phone, so
 /// rates already seen still work offline.
@@ -75,6 +93,14 @@ class FirebaseFxRepository implements FxRepository {
     if (docs.isEmpty) return null;
     return ratesFromDoc(docs.single.id, docs.single.data());
   }
+
+  @override
+  Stream<String?> watchLatestDay() => _db
+      .collection('fx_rates')
+      .orderBy('date', descending: true)
+      .limit(1)
+      .snapshots()
+      .map((q) => q.docs.isEmpty ? null : q.docs.single.id);
 
   @override
   Future<String?> refreshLatest() async {

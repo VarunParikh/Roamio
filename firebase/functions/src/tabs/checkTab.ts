@@ -217,5 +217,20 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
     reason: problem,
     createdAt: FieldValue.serverTimestamp(),
   });
+  // Saved on their phone and then taken off here: tell them (item 2).
+  if (tab.createdBy) {
+    batch.set(
+      db().doc(
+        `users/${tab.createdBy}/notifications/${event.params.aid}_removed_${event.params.tid}`,
+      ),
+      {
+        type: "tab_removed",
+        adventureId: event.params.aid,
+        tabId: event.params.tid,
+        description: String(tab.description ?? ""),
+        createdAt: FieldValue.serverTimestamp(),
+      },
+    );
+  }
   await batch.commit();
 });
