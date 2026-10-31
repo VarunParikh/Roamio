@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:roamio/features/splits/domain/money.dart';
 
 final _plainDecimal = RegExp(r'^\d+(\.\d+)?$');
@@ -93,4 +95,22 @@ BigInt _divideHalfEven(BigInt numerator, BigInt denominator) {
     quotient += BigInt.one;
   }
   return negative ? -quotient : quotient;
+}
+
+/// A rate to quote: that many units of one currency are worth that value of
+/// another. Quotes 1, or 10, 100… when 1 would round to almost nothing
+/// ("1,000 VND = ₹3.36").
+({int units, Money value}) rateExample(
+  FxRates rates, {
+  required String from,
+  required String to,
+}) {
+  final one = pow(10, minorUnitDigits(from)).toInt();
+  var units = 1;
+  var value = rates.convert(Money(one, from), to);
+  while (value.minor < 100 && units < 1000000) {
+    units *= 10;
+    value = rates.convert(Money(one * units, from), to);
+  }
+  return (units: units, value: value);
 }
