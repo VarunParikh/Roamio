@@ -114,6 +114,26 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
     expect((await good.get()).get("deleted")).toBe(false);
   });
 
+  it("keeps a tab saved with an old offline rates day, when those rates exist", async () => {
+    const { ari, id } = await squad();
+    await db().doc("fx_rates/2026-09-01").set({ date: "2026-09-01" });
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { date: "2026-12-02", fxDate: "2026-09-01" }));
+
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await ref.get()).get("deleted")).toBe(false);
+  });
+
+  it("soft-deletes a tab backdated to a rates day with no rates behind it", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { date: "2026-12-02", fxDate: "2026-08-15" }));
+
+    await eventually(async () => {
+      expect((await ref.get()).get("deleted")).toBe(true);
+    });
+  });
+
   it("leaves tabs alone that a lead already deleted", async () => {
     const { ari, id } = await squad();
     const ref = db().collection(`adventures/${id}/tabs`).doc();
@@ -309,19 +329,29 @@ describe("tabProblem when a tab is edited", () => {
   });
 });
 
-describe("tabProblem: the rate day (follow-up C14)", () => {
+describe("tabProblem: the rate day (follow-up C14, offline)", () => {
   const active = new Set(["ari"]);
   const isMember = (id: string) => id === "ari";
 
-  it("accepts the tab's own day or an earlier rates day within a week", () => {
+  it("accepts the tab's own day, with or without rates behind it", () => {
     expect(tabProblem(tab("ari"), active, isMember)).toBeNull();
-    expect(tabProblem(tab("ari", { fxDate: "2026-12-01" }), active, isMember)).toBeNull();
-    expect(tabProblem(tab("ari", { fxDate: "2026-11-25" }), active, isMember)).toBeNull();
+    expect(tabProblem(tab("ari"), active, isMember, undefined, false)).toBeNull();
   });
 
-  it("refuses a rates day after the tab, or backdated more than a week", () => {
-    expect(tabProblem(tab("ari", { fxDate: "2026-12-03" }), active, isMember)).toContain("rates");
-    expect(tabProblem(tab("ari", { fxDate: "2026-11-24" }), active, isMember)).toContain("rates");
+  it("accepts an earlier rates day however old, as long as those rates exist", () => {
+    // An offline phone can be weeks behind; its last rates still count.
+    const old = tab("ari", { fxDate: "2026-09-01" });
+    expect(tabProblem(old, active, isMember, undefined, true)).toBeNull();
+    expect(tabProblem(tab("ari", { fxDate: "2026-11-25" }), active, isMember, undefined, true)).toBeNull();
+  });
+
+  it("refuses an earlier rates day with no rates behind it (backdating)", () => {
+    expect(tabProblem(tab("ari", { fxDate: "2026-12-01" }), active, isMember)).toContain("rates");
+    expect(tabProblem(tab("ari", { fxDate: "2026-09-01" }), active, isMember, undefined, false)).toContain("rates");
+  });
+
+  it("refuses a rates day after the tab", () => {
+    expect(tabProblem(tab("ari", { fxDate: "2026-12-03" }), active, isMember, undefined, true)).toContain("rates");
   });
 
   it("keeps an old tab's rate day when someone else's edit doesn't touch it", () => {
