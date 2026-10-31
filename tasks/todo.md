@@ -183,6 +183,7 @@ Common verification commands:
   - Verify: unit tests of the parser with 10 sample receipt texts (₹, €, $, ฿ formats).
   - Files: `app/lib/features/tabs/data/receipt_parser.dart`, `ui/scan_bill.dart`, tests
   - Done: Scan bill on Add tab; `ocr_enabled` is an in-app default (on) until Task 37 wires Remote Config. Real ML Kit verified on the Android emulator (`integration_test/receipt_ocr_test.dart`); that run showed OCR returns columns separately, so lines are rebuilt from their positions first.
+  - Improved (owner, 2026-11-01): capture uses ML Kit Document Scanner with the camera as fallback; rows are levelled on tilted photos; the amount comes only from a labelled total within the tab limit. Still to do: measure accuracy on 30–50 real bill photos, and decide on cloud vision from that result.
 
 - [x] **Task 27: Adventure page** — M · Deps: 23 · UC-23
   - Acceptance: banner header with tab sheet scrolling over it; tabs grouped by day; row shows your share; tab detail (payers, shares, memories, map); creator edits, leads delete (soft).

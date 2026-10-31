@@ -149,14 +149,14 @@ TOTAL THB        1,250.00
       expect(g.merchant, 'Baan Khanitha');
     });
 
-    test('10. No total line: the largest amount; future dates ignored', () {
+    test('10. No total line: no amount guessed; future dates ignored', () {
       final g = read('''
 Night Market Stall
 12/12/2026
 Pad Thai   80
 Mango sticky rice   120
 ''', 'THB');
-      expect(g.amountMinor, 12000);
+      expect(g.amountMinor, isNull); // the real total, 200, isn't printed
       expect(g.date, isNull); // later than today, so not trusted
       expect(g.merchant, 'Night Market Stall');
     });
@@ -169,6 +169,67 @@ Mango sticky rice   120
       expect(g.date, isNull);
       expect(g.merchant, isNull);
       expect(g.isEmpty, isTrue);
+    });
+
+    test('a phone number or pin code is never the amount', () {
+      final g = read('''
+Spice Route
+12 MG Road, Bengaluru 560001
+Tel 9876543210
+Bill No 4521
+Paneer Tikka   320.00
+''', 'INR');
+      expect(g.amountMinor, isNull);
+      expect(g.merchant, 'Spice Route');
+    });
+
+    test('a total over the tab limit is not believed', () {
+      expect(read('TOTAL 9876543210', 'INR').amountMinor, isNull);
+    });
+
+    test('a total of zero is not believed', () {
+      expect(read('TOTAL 0.00', 'INR').amountMinor, isNull);
+    });
+
+    test('a very long number does not lose the rest of the bill', () {
+      final g = read('''
+Spice Route
+27/10/2026
+TOTAL 123456789012345678901234567890
+''', 'INR');
+      expect(g.amountMinor, isNull);
+      expect(g.date, DateTime(2026, 10, 27));
+      expect(g.merchant, 'Spice Route');
+    });
+
+    test('a smaller total is used when a larger one is impossible', () {
+      expect(
+        read('Total 588.00\nGrand Total 9876543210', 'INR').amountMinor,
+        58800,
+      );
+    });
+
+    test('the total can sit on the row below its label', () {
+      expect(read('Grand Total\n₹ 588.00', 'INR').amountMinor, 58800);
+      expect(read('TOTAL\nRs. 1,170', 'INR').amountMinor, 117000);
+    });
+
+    test('the row below only counts when it is just an amount', () {
+      expect(read('TOTAL\nCash 20.00', 'USD').amountMinor, isNull);
+    });
+
+    test('OCR reading letters as digits still finds the total', () {
+      expect(read('T0TAL 5.48', 'USD').amountMinor, 548);
+      expect(read('TOTA1 5.48', 'USD').amountMinor, 548);
+    });
+
+    test('Indian app and restaurant wording', () {
+      expect(
+        read('Item Total 560.00\nTo Pay 588.00', 'INR').amountMinor,
+        58800,
+      );
+      expect(read('Bill Amount 588.00', 'INR').amountMinor, 58800);
+      expect(read('Item Total 560.00', 'INR').amountMinor, isNull);
     });
 
     test('yen has no decimals', () {

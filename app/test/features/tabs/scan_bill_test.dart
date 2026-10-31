@@ -71,7 +71,7 @@ void main() {
       final h = await _openAddTab(tester);
 
       await _tap(tester, find.text('Scan bill'));
-      expect(h.photos.picks, [true]); // the camera
+      expect(h.photos.billScans, 1); // the document scanner
       expect(h.scanner.read, ['/photos/1.jpg']);
       expect(_field(tester, 'Amount'), '588.00');
       expect(
@@ -119,6 +119,19 @@ void main() {
         findsOneWidget,
       );
       expect(_field(tester, 'Amount'), '');
+    });
+
+    testWidgets('with no total found it asks for the amount', (tester) async {
+      final h = await _openAddTab(tester);
+      h.scanner.text = 'SPICE ROUTE\nDate: 27/10/2026\nPaneer Tikka  320.00';
+      await _tap(tester, find.text('Scan bill'));
+
+      expect(
+        find.text('We couldn’t find the total. Please add the amount.'),
+        findsOneWidget,
+      );
+      expect(_field(tester, 'Amount'), '');
+      expect(_field(tester, 'Description (optional)'), 'Spice Route');
     });
 
     testWidgets('if text reading fails it says so', (tester) async {
