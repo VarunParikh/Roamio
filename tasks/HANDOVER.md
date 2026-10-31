@@ -7,14 +7,18 @@ The owner works **remotely from a phone** (Remote Control) and does **one manual
 
 The older "Where things stand" below is out of date. Audit items are numbered as in the owner's brief.
 
-- **In three group PRs, in merge order:** offline and reporting (2, 3, 9, 14, 15, 18 HTTPS check, 23), squad and forms (4, 5, 6, 13, 16, 17), rates and server (7, 11, 19). Merged already: 1 (#97), 18 poll overlap (#108).
+- **Merged to `main` (through #117, `cbd8efd`):** items 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19 (warning fix), 23. No audit PRs are open; #98-#107 and #109-#114 were closed, replaced by #115, #116 and #117.
 - **Deferred to phase 2 by the owner:** 8 (payments recorded twice: trust the person), 10 (approved tabs skipping re-approval), 12 (stale stored names).
 - **Remote Config (19):** functions read the *server* template. `firebase deploy --only remoteconfig` publishes the *app* template, so don't use it for this. Defaults are safe and the warning is now once per 10 minutes, so a server template is only needed to change values without a deploy: Firebase console → Remote Config → Server tab → add `budget_alert_thresholds` `[80, 100]`, `invite_validity_days` `14`, `consent_link_validity_days` `7`, then publish. On dev, the app-side template now holds those three unused values, which is harmless.
 - **App Check (20):** confirmed on the phone: the dev app, which never starts App Check, makes the server log "Decoding App Check token failed" on its calls, so these warnings on dev are expected. Before anyone enforces on prod: App Check → APIs must show almost all requests verified for a week, from the installed prod APK (see `docs/SETUP.md`).
 - **Burst after deploy (21):** at 11:39 UTC each function's new revision got unauthenticated requests just after it rolled out. Source not found and it hasn't been seen since. All callables require sign-in; `health` and `invitePreview` are public by design and show nothing private.
 - **Item 22:** `updateFxRates` is proven on dev: pressing Update rates on the phone stored 165 rates dated 2026-10-31 at 18:30 UTC. Still unproven: the scheduled `dailyFxRates` (first look after 00:30 UTC), and `joinAdventure` and `settlementActivity`, which need the two-phone checks below.
 - **Prod logs (24):** prod has no functions deployed, so its logs can't be proven readable until the first deploy. Check straight after it.
-- **Backend changes aren't live** until functions are deployed to dev.
+- **Deployed:** functions are on dev from `cbd8efd`, including the new `budgetOnRates` trigger. Prod has nothing deployed.
+- **Item 7 still to confirm on real Firebase:** `budgetOnRates` hasn't yet run on real rates; read its log after the next 00:30 UTC job or Update rates.
+- **Crashlytics:** switch it on in the Firebase console for dev and prod. The Android crash-symbol Gradle plugin isn't added, so native crashes won't have readable stack traces.
+- **Phone build:** the owner's phone has a debug dev build of `cbd8efd`. Only opening the app, Home, a trip page, Split and Update rates have been tried on a real phone.
+- **First-load question:** on a fresh install with the phone locked, Home showed "No adventures yet" for a few minutes before the trips appeared. Unproven whether the lock explains it; check that an unlocked fresh install doesn't show it.
 
 ## Where things stand
 
