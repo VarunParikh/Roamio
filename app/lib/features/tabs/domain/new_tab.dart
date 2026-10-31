@@ -92,6 +92,9 @@ DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 /// Checks the Add Tab form. [amountText] is what was typed, in [currency].
 Set<TabProblem> tabProblems({
   required Adventure adventure,
+
+  /// Who is adding it: leads have a week longer than members (UC-11).
+  required String myUid,
   required String amountText,
   required String currency,
   required DateTime date,
@@ -121,7 +124,7 @@ Set<TabProblem> tabProblems({
     if (_day(date).isAfter(_day(today))) TabProblem.futureDate,
     if (category == null) TabProblem.noCategory,
     if (participants.isEmpty) TabProblem.nobodySharing,
-    if (!adventure.tabsOpenOn(today)) TabProblem.closed,
+    if (!adventure.tabsOpenFor(myUid, today)) TabProblem.closed,
     if (payerTexts != null &&
         (payerTexts.values.any(
               (t) => t.trim().isNotEmpty && parseAmount(t, currency) == null,

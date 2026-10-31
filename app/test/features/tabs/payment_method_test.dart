@@ -21,6 +21,7 @@ final _goa = Adventure(
 
 Set<TabProblem> _problems(List<PaymentMethod?>? methods) => tabProblems(
   adventure: _goa,
+  myUid: 'ari',
   amountText: '100',
   currency: 'INR',
   date: DateTime(2026, 10, 29),
