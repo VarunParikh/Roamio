@@ -26,6 +26,7 @@ import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/consent/data/firebase_consent_service.dart';
+import 'package:roamio/features/home/data/home_card_memory.dart';
 import 'package:roamio/features/home/data/weather_client.dart';
 import 'package:roamio/features/invites/data/firebase_invite_service.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
@@ -102,6 +103,7 @@ Future<void> runRoamio({
           ),
         ),
         paymentMemoryProvider.overrideWithValue(FilePaymentMemory()),
+        homeCardMemoryProvider.overrideWithValue(FileHomeCardMemory()),
         updateCheckerProvider.overrideWithValue(
           UpdateChecker(fetchJsonOverHttp, FileUpdateStore()),
         ),

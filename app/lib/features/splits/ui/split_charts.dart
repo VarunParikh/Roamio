@@ -162,13 +162,16 @@ class CategoryLegendEntry extends StatelessWidget {
 }
 
 /// Spending as a bar per day, latest at the right with earlier days a swipe
-/// away. Tapping a bar says its day and amount under the chart.
+/// away. The latest is in chartreuse, with its day and amount under the chart.
+/// Without [visibleDays], tapping a bar moves that to the bar tapped; with it,
+/// each bar is a [visibleDays]th of the width, too narrow to tap.
 class DayBars extends StatefulWidget {
   const new({
     required this.days,
     required this.amountOf,
     required this.dayName,
     required this.moneyOf,
+    this.visibleDays,
     super.key,
   });
 
@@ -179,6 +182,7 @@ class DayBars extends StatefulWidget {
   /// "Tue, 27 Oct 2026".
   final String Function(DateTime day) dayName;
   final String Function(int minor) moneyOf;
+  final int? visibleDays;
 
   @override
   State<DayBars> createState() => _DayBarsState();
@@ -200,51 +204,63 @@ class _DayBarsState extends State<DayBars> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
+          key: const ValueKey('day-bars'),
           height: _barsHeight + 28,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            reverse: true,
-            itemExtent: 48,
-            itemCount: days.length,
-            itemBuilder: (context, i) {
-              final day = days[days.length - 1 - i];
-              final amount = widget.amountOf(day);
-              final name = widget.dayName(day);
-              return Semantics(
-                button: true,
-                selected: day == selected,
-                label: '$name: ${widget.moneyOf(amount)}',
-                onTap: () => setState(() => _picked = day),
-                excludeSemantics: true,
-                child: InkWell(
-                  key: ValueKey('day-${_iso(day)}'),
-                  borderRadius: BorderRadius.circular(RoamioRadii.sm),
-                  onTap: () => setState(() => _picked = day),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: 28,
-                        // A day with spending always shows, however small.
-                        height: amount <= 0
-                            ? 2
-                            : max(4, _barsHeight * amount / top),
-                        decoration: BoxDecoration(
-                          color: day == selected
-                              ? RoamioColors.chartreuse
-                              : amount <= 0
-                              ? RoamioColors.hairline
-                              : RoamioColors.muted,
-                          borderRadius: BorderRadius.circular(RoamioRadii.sm),
-                        ),
+          child: LayoutBuilder(
+            builder: (context, box) => ListView.builder(
+              scrollDirection: Axis.horizontal,
+              reverse: true,
+              itemExtent: switch (widget.visibleDays) {
+                final n? => box.maxWidth / n,
+                null => 48,
+              },
+              itemCount: days.length,
+              itemBuilder: (context, i) {
+                final day = days[days.length - 1 - i];
+                final amount = widget.amountOf(day);
+                final interactive = widget.visibleDays == null;
+                final bar = Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      width: 24,
+                      // A day with spending always shows, however small.
+                      height: amount <= 0
+                          ? 2
+                          : max(4, _barsHeight * amount / top),
+                      decoration: BoxDecoration(
+                        color: day == selected
+                            ? RoamioColors.chartreuse
+                            : amount <= 0
+                            ? RoamioColors.hairline
+                            : RoamioColors.muted,
+                        borderRadius: BorderRadius.circular(RoamioRadii.sm),
                       ),
-                      const SizedBox(height: 4),
-                      Text('${day.day}', style: text.bodySmall),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    ),
+                    const SizedBox(height: 4),
+                    Text('${day.day}', style: text.bodySmall),
+                  ],
+                );
+                return Semantics(
+                  key: ValueKey('day-${_iso(day)}'),
+                  container: true,
+                  button: interactive,
+                  selected: day == selected,
+                  label: '${widget.dayName(day)}: ${widget.moneyOf(amount)}',
+                  onTap: interactive
+                      ? () => setState(() => _picked = day)
+                      : null,
+                  excludeSemantics: true,
+                  child: interactive
+                      ? InkWell(
+                          borderRadius: BorderRadius.circular(RoamioRadii.sm),
+                          onTap: () => setState(() => _picked = day),
+                          child: bar,
+                        )
+                      : bar,
+                );
+              },
+            ),
           ),
         ),
         const SizedBox(height: 8),

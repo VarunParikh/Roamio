@@ -31,6 +31,8 @@ Tests:
 |---|---|---|---|
 | Home | nothing ahead, no adventures | Create a new adventure (pulsing primary) | `first_screen_test`: no adventures |
 | Home | nothing ahead, past trips only | Create a new adventure, then the Past list | `first_screen_test`: past trips only |
+| Home card, expanded | no tabs | No spending yet, with See split | `home_expanded_test`: no tabs |
+| Home card, expanded | before the trip | no chart, See split stays | `home_expanded_test`: before the trip |
 | Home | prompts waiting | Needs you: top 2, then See all | `needs_you_test` |
 | Home | can't load | Try again | `screen_states_test`: Home: adventures can't load → Try again |
 | Home | offline / back online | banner; Sync when back | `offline_ui_test` |

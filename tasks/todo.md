@@ -375,7 +375,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: adventure card versions; weather and credit moved; Needs you order, top 2 and See all; image card with a random bundled photo per app open and a gradient meeting contrast on all 10; polaroid card; Sync only when needed.
   - Verify: widget tests per version; contrast test for all 10; first-screen and past-only tests.
 
-- [ ] **Task 60: Home expanded card** — M · Deps: 56, 58, 59 · UC-5
+- [x] **Task 60: Home expanded card** — M · Deps: 56, 58, 59 · UC-5
   - Acceptance: expand arrow, remembered; budget, daily spend, squad and activity rows, each with a working link; tabs load only when expanded.
   - Verify: widget tests incl. a long trip and no tabs.
 

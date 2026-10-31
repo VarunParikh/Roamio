@@ -65,6 +65,17 @@ Map<String, SquadPerson> squadPeople(WidgetRef ref, Adventure adventure) {
   };
 }
 
+/// Members and current pals with their pictures, for when reading the tabs
+/// (which [squadPeople] does) would cost more than it's worth, as on Home.
+Map<String, SquadPerson> squadWithoutTabs(
+  WidgetRef ref,
+  Adventure adventure,
+) => {
+  ...?ref.watch(squadPeopleProvider(adventure.memberUids.join(','))).value,
+  for (final p in ref.watch(palsProvider(adventure.id)).value ?? const <Pal>[])
+    p.id: SquadPerson(name: p.nickname, characterId: p.characterId),
+};
+
 /// Formats [money] with its currency's symbol when one is known.
 String formatWithSymbol(WidgetRef ref, Money money) => formatMoney(
   money,

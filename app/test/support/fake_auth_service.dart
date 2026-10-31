@@ -19,6 +19,7 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
+import 'package:roamio/features/home/data/home_card_memory.dart';
 import 'package:roamio/features/home/data/weather_client.dart';
 import 'package:roamio/features/home/data/weather_provider.dart';
 import 'package:roamio/features/invites/data/invite_service.dart';
@@ -46,6 +47,7 @@ import 'fake_banner_service.dart';
 import 'fake_budget_service.dart';
 import 'fake_consent_service.dart';
 import 'fake_fx_repository.dart';
+import 'fake_home_card_memory.dart';
 import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
@@ -200,6 +202,7 @@ Future<void> pumpRoamio(
   UpdateChecker? updates,
   // Remembers Cash, so tests about other things can save a tab straight away.
   FakePaymentMemory? paymentMemory,
+  FakeHomeCardMemory? homeCardMemory,
   Map<String, String>? remoteConfig,
   // Phase 2 features (under-18s, nominee) are off in the pilot app; most
   // feature tests still exercise them. Pilot tests pass `phase2: false`.
@@ -215,6 +218,9 @@ Future<void> pumpRoamio(
         countriesProvider.overrideWith((ref) => testCountries),
         categoriesProvider.overrideWith((ref) => testCategories),
         tabServiceProvider.overrideWithValue(tabs ?? FakeTabService()),
+        homeCardMemoryProvider.overrideWithValue(
+          homeCardMemory ?? FakeHomeCardMemory(),
+        ),
         paymentMemoryProvider.overrideWithValue(
           paymentMemory ?? FakePaymentMemory(PaymentMethod.cash),
         ),
