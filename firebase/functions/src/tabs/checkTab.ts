@@ -18,15 +18,16 @@ const db = () => getFirestore();
 
 type Payer = { id: string; amountMinor: number };
 
-/** How much older than a tab its saved rates may be (an offline phone's last rates). */
-const MAX_RATE_AGE_DAYS = 7;
-
-/** Why [tab] is invalid, or null. [active] = members and active pals; [isMember] for payers. */
+/**
+ * Why [tab] is invalid, or null. [active] = members and active pals; [isMember] for payers.
+ * [rateDayKnown]: whether `fx_rates` holds the tab's rates day, which the trigger reads.
+ */
 export function tabProblem(
   tab: DocumentData,
   active: Set<string>,
   isMember: (id: string) => boolean,
   before?: DocumentData,
+  rateDayKnown = false,
 ): string | null {
   const payers: Payer[] = tab.payers ?? [];
   const participants: string[] = tab.participants ?? [];
@@ -52,13 +53,15 @@ export function tabProblem(
     }
   }
 
-  // The rates day the app saved (follow-up C4): never after the tab, and
-  // at most a week before it, so nobody backdates to a better rate. Only
-  // checked when it changes, so an old tab's edit is never refused for it.
+  // The rates day the app saved (follow-up C4): never after the tab. An
+  // earlier day is allowed only when `fx_rates` really holds it, so an offline
+  // phone's last rates still count however old, but nobody can backdate to a
+  // day with no rates. Only checked when it changes, so an old tab's edit is
+  // never refused for it.
   if (tab.fxDate !== before?.fxDate || tab.date !== before?.date) {
     const days = (Date.parse(tab.date) - Date.parse(tab.fxDate)) / 86_400_000;
-    if (!(days >= 0 && days <= MAX_RATE_AGE_DAYS)) {
-      return "the exchange rates must be from the tab's day or the week before";
+    if (!(days === 0 || (days > 0 && rateDayKnown))) {
+      return "the exchange rates must be from the tab's day or an earlier day with rates";
     }
   }
 
@@ -130,7 +133,14 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const members: string[] = adventure.get("memberUids") ?? [];
   const pals = await adventureRef.collection("pals").where("status", "==", "active").get();
   const active = new Set([...members, ...pals.docs.map((p) => p.id)]);
-  const problem = tabProblem(tab, active, (id) => members.includes(id), event.data?.before?.data());
+  const before = event.data?.before?.data();
+  // Reads `fx_rates` only when the rates day or date changed (saves a read per write).
+  const rateDayChanged = tab.fxDate !== before?.fxDate || tab.date !== before?.date;
+  const rateDayKnown =
+    rateDayChanged && tab.fxDate !== tab.date
+      ? (await db().doc(`fx_rates/${tab.fxDate}`).get()).exists
+      : false;
+  const problem = tabProblem(tab, active, (id) => members.includes(id), before, rateDayKnown);
   if (!problem) {
     const before = event.data?.before?.data();
     if (before?.status === "waiting" && tab.status === "rejected") {
