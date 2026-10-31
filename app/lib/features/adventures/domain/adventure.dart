@@ -52,6 +52,15 @@ class Adventure {
     return !_day(today).isAfter(lastDay);
   }
 
+  /// Whether [uid] can add tabs today. Members only up to the last day of the
+  /// trip; leads and co-leads for [tabGraceDays] more (spec UC-11).
+  bool tabsOpenFor(String uid, DateTime today) {
+    final e = _day(endDate);
+    final grace = isLead(uid) ? tabGraceDays : 0;
+    final lastDay = DateTime(e.year, e.month, e.day + grace);
+    return !_day(today).isAfter(lastDay);
+  }
+
   bool isLead(String uid) => uid == leaderUid || coLeadUids.contains(uid);
 
   /// The leader, with no co-lead to share decisions with.

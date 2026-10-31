@@ -33,7 +33,7 @@ class AdventurePage extends ConsumerWidget {
       return AdventureUnavailable(loading: adventures.isLoading);
     }
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
-    final open = adventure.tabsOpenOn(ref.watch(todayProvider));
+    final open = adventure.tabsOpenFor(myUid, ref.watch(todayProvider));
     final banner = MediaQuery.sizeOf(context).height * 0.34;
 
     return Scaffold(

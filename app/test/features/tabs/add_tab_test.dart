@@ -27,12 +27,13 @@ Future<FakeTabService> _openAdventure(
   WidgetTester tester, {
   Adventure? adventure,
   FxRepository? fx,
+  FakeAdventureService? adventures,
 }) async {
   final tabs = FakeTabService();
   await pumpRoamio(
     tester,
     FakeAuthService(initial: readyFacts),
-    adventures: FakeAdventureService([adventure ?? _bangkok()]),
+    adventures: adventures ?? FakeAdventureService([adventure ?? _bangkok()]),
     squad: FakeSquadService()
       ..names.addAll({'ari': 'Ari Chen', 'bob': 'Bob Lee'})
       ..palsByAdventure['bkk'] = [const Pal(id: 'kiko', nickname: 'Kiko')],
@@ -77,6 +78,79 @@ Future<void> _save(WidgetTester tester) async {
 }
 
 void main() {
+  group('the squad changes while the form is open (item 5)', () {
+    Adventure withMembers(List<String> members) => Adventure(
+      id: 'bkk',
+      name: 'Bangkok trip',
+      countryCode: 'TH',
+      startDate: _bangkok().startDate,
+      endDate: _bangkok().endDate,
+      baseCurrency: 'THB',
+      leaderUid: 'ari',
+      memberUids: members,
+    );
+
+    Future<FakeAdventureService> open(WidgetTester tester) async {
+      final service = FakeAdventureService([_bangkok()]);
+      await _openAdventure(tester, adventures: service);
+      await _openAddTab(tester);
+      return service;
+    }
+
+    testWidgets('someone removed comes off the tab, and it says so', (
+      tester,
+    ) async {
+      final service = await open(tester);
+      expect(find.widgetWithText(CheckboxListTile, 'Bob Lee'), findsOneWidget);
+
+      service.changeTo(withMembers(['ari']));
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(CheckboxListTile, 'Bob Lee'), findsNothing);
+      expect(find.textContaining('left the squad'), findsOneWidget);
+    });
+
+    testWidgets('someone who joins appears, not sharing until ticked', (
+      tester,
+    ) async {
+      final service = await open(tester);
+
+      service.changeTo(withMembers(['ari', 'bob', 'cara']));
+      await tester.pumpAndSettle();
+
+      final box = find.widgetWithText(CheckboxListTile, 'cara');
+      expect(box, findsOneWidget);
+      expect(tester.widget<CheckboxListTile>(box).value, isFalse);
+      expect(find.textContaining('left the squad'), findsNothing);
+    });
+
+    testWidgets('custom percentages go back to Equal, so saving isn’t stuck', (
+      tester,
+    ) async {
+      final service = await open(tester);
+      await _tapVisible(tester, find.text('Custom %'));
+      expect(find.textContaining('of 100%'), findsWidgets);
+
+      service.changeTo(withMembers(['ari']));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('of 100%'), findsNothing);
+    });
+
+    testWidgets('a split payment follows the squad', (tester) async {
+      final service = await open(tester);
+      await _tapVisible(tester, find.text('Split payment'));
+      final fields = find.byType(TextField).evaluate().length;
+
+      service.changeTo(withMembers(['ari', 'cara']));
+      await tester.pumpAndSettle();
+
+      // Bob's amount went, Cara's came.
+      expect(find.byType(TextField).evaluate().length, fields);
+      expect(find.textContaining('cara'), findsWidgets);
+    });
+  });
+
   group('Add tab (UC-21, basic)', () {
     testWidgets('saves an equal split paid by you and lists it', (
       tester,
