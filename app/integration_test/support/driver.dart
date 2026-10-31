@@ -246,7 +246,8 @@ Future<void> openAdventure(WidgetTester tester, String name) async {
   await settle(tester, const Duration(milliseconds: 300));
   // The hero card's text sits under its tappable overlay.
   await tester.tap(find.text(name).first, warnIfMissed: false);
-  await waitFor(tester, find.textContaining('Squad ('));
+  // Not the squad heading: the list builds lazily, and many tabs push it out.
+  await waitFor(tester, find.text('Tabs'));
 }
 
 /// Adds a tab from an open adventure page: [amount] in [currency] (null =
