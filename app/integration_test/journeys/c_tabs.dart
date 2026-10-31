@@ -91,8 +91,8 @@ void journeyC() {
     expect(dinner['currency'], 'INR');
     expect(dinner['percentBp'], {ari.uid: 5000, bob.uid: 3000, 'kiko': 2000});
     expect(dinner['payers'], [
-      {'id': ari.uid, 'amountMinor': 200000},
-      {'id': bob.uid, 'amountMinor': 100000},
+      {'id': ari.uid, 'amountMinor': 200000, 'method': 'cash'},
+      {'id': bob.uid, 'amountMinor': 100000, 'method': 'upi'},
     ]);
     final boat = tabs.singleWhere((t) => t['description'] == 'Boat ride');
     expect(boat['amountMinor'], 9000);
