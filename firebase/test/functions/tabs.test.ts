@@ -425,6 +425,12 @@ describe("windowProblem: when tabs can be added (spec UC-11, item 17)", () => {
     expect(windowProblem.length).toBe(3);
   });
 
+  it("a trip with no readable end date refuses nothing, and doesn't crash", () => {
+    const undated = { leaderUid: "ari" };
+    expect(windowProblem(added("bob", "2026-12-20"), undefined, undated)).toBeNull();
+    expect(windowProblem(added("bob", "2026-12-20"), undefined, { ...undated, endDate: "soon" })).toBeNull();
+  });
+
   it("never refuses an edit of a tab that already exists", () => {
     const before = added("bob", "2026-12-20");
     expect(windowProblem(before, before, trip)).toBeNull();

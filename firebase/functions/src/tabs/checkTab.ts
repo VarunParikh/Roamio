@@ -93,12 +93,14 @@ const LEAD_GRACE_DAYS = 7;
 export function windowProblem(
   tab: DocumentData,
   before: DocumentData | undefined,
-  adventure: { endDate: string; leaderUid: string; coLeadUids?: string[] },
+  adventure: { endDate?: string; leaderUid: string; coLeadUids?: string[] },
 ): string | null {
   if (before) return null;
+  const end = Date.parse(adventure.endDate ?? "");
+  if (Number.isNaN(end)) return null; // Nothing to measure against.
   const leads = [adventure.leaderUid, ...(adventure.coLeadUids ?? [])];
   const grace = leads.includes(tab.createdBy) ? LEAD_GRACE_DAYS : 0;
-  const last = new Date(Date.parse(adventure.endDate) + grace * 86_400_000);
+  const last = new Date(end + grace * 86_400_000);
   const lastDay = last.toISOString().slice(0, 10);
   return tab.date > lastDay ? "tabs can't be dated after the trip" : null;
 }
