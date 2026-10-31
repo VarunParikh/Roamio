@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 
@@ -113,6 +115,50 @@ class SquadPerson {
 
   /// Their account is gone: "Deleted user".
   final bool deleted;
+}
+
+/// Everyone's details from one live stream each ([listen]), as one map. It
+/// answers once everyone has answered, so names don't appear one by one.
+/// Someone who can't be read (an error) or isn't known yet (null, offline) is
+/// left out rather than hiding everyone's name or showing as deleted.
+Stream<Map<String, SquadPerson>> combinePeople(
+  List<String> uids,
+  Stream<SquadPerson?> Function(String uid) listen,
+) {
+  final latest = <String, SquadPerson>{};
+  final answered = <String>{};
+  final subs = <StreamSubscription<SquadPerson?>>[];
+  late final StreamController<Map<String, SquadPerson>> out;
+  void update() {
+    if (answered.length == uids.length) out.add(Map.of(latest));
+  }
+
+  out = StreamController<Map<String, SquadPerson>>(
+    onListen: () {
+      if (uids.isEmpty) out.add({});
+      for (final uid in uids) {
+        subs.add(
+          listen(uid).listen(
+            (person) {
+              answered.add(uid);
+              if (person == null) {
+                latest.remove(uid);
+              } else {
+                latest[uid] = person;
+              }
+              update();
+            },
+            onError: (Object _) {
+              answered.add(uid);
+              update();
+            },
+          ),
+        );
+      }
+    },
+    onCancel: () => Future.wait<void>(subs.map((s) => s.cancel())),
+  );
+  return out.stream;
 }
 
 /// Names and characters for a squad, keyed by the comma-joined uids so it

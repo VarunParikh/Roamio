@@ -310,7 +310,7 @@ class _TabRow extends ConsumerWidget {
                 ),
               if (tab.status == TabStatus.rejected &&
                   tab.createdBy == myUid &&
-                  adventure.tabsOpenFor(myUid, ref.watch(todayProvider)))
+                  adventure.tabsOpenOn(ref.watch(todayProvider)))
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: OutlinedButton(

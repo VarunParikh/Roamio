@@ -53,6 +53,12 @@ class FakeAdventureService implements AdventureService {
     _changes.add([...adventures]);
   }
 
+  /// The squad changes while someone has a screen open.
+  void changeTo(Adventure adventure) {
+    adventures[adventures.indexWhere((a) => a.id == adventure.id)] = adventure;
+    _changes.add([...adventures]);
+  }
+
   final List<(String, AdventureEdit)> edits = [];
 
   @override

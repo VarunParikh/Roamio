@@ -125,6 +125,10 @@ Set<TabProblem> tabProblems({
 
   /// Paid with for each person who paid; null for one with none chosen.
   List<PaymentMethod?>? paymentMethods,
+
+  /// Fixing a tab that already exists stays open for the whole extra week,
+  /// so a member can still resubmit a rejected tab (spec UC-21a).
+  bool isEdit = false,
 }) {
   final minor = parseAmount(amountText, currency);
   final payers = payerTexts == null ? null : payersFrom(payerTexts, currency);
@@ -138,7 +142,10 @@ Set<TabProblem> tabProblems({
     if (_day(date).isAfter(_day(today))) TabProblem.futureDate,
     if (category == null) TabProblem.noCategory,
     if (participants.isEmpty) TabProblem.nobodySharing,
-    if (!adventure.tabsOpenFor(myUid, today)) TabProblem.closed,
+    if (!(isEdit
+        ? adventure.tabsOpenOn(today)
+        : adventure.tabsOpenFor(myUid, today)))
+      TabProblem.closed,
     if (payerTexts != null &&
         (payerTexts.values.any(
               (t) => t.trim().isNotEmpty && parseAmount(t, currency) == null,

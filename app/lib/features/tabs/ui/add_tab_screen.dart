@@ -267,6 +267,47 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     _resetToEqual = true;
   }
 
+  /// The squad changed while the form is open (item 5).
+  @override
+  void didUpdateWidget(_AddTabForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final before = oldWidget.adventure.memberUids.toSet();
+    final now = _a.memberUids.toSet();
+    final joined = now.difference(before);
+    // Someone already on the tab being edited stays on it (spec UC-16).
+    final left = before.difference(now).difference(_onOldTab);
+    if (joined.isEmpty && left.isEmpty) return;
+    // Someone new is listed but doesn't share in the cost until ticked.
+    _unticked.addAll(joined);
+    if (_payerFields case final fields?) {
+      for (final id in left) {
+        fields.remove(id)?.dispose();
+      }
+      for (final id in joined) {
+        fields[id] = TextEditingController();
+      }
+    }
+    if (left.isNotEmpty) _someoneLeft();
+  }
+
+  /// People on the tab being edited, who stay on it even if they've left.
+  Set<String> get _onOldTab => {
+    ...?_old?.split.participants,
+    ...?_old?.split.payers.map((p) => p.payer),
+  };
+
+  void _someoneLeft() {
+    _peopleChanged();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        showAuthMessage(
+          context,
+          'Someone left the squad, so they’re off this tab.',
+        );
+      }
+    });
+  }
+
   Future<void> _addPal() async {
     final added = await showPalForm(context, adventure: _a);
     if (added && mounted) setState(_peopleChanged);
@@ -286,6 +327,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   Set<TabProblem> _problems(List<Pal> pals, String myUid) => tabProblems(
     adventure: _a,
     myUid: myUid,
+    isEdit: _old != null,
     amountText: _amount.text,
     currency: _currency,
     date: _date,
@@ -516,6 +558,15 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final text = Theme.of(context).textTheme;
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final palsState = ref.watch(palsProvider(_a.id));
+    ref.listen(palsProvider(_a.id), (before, now) {
+      final was = before?.value;
+      final is_ = now.value;
+      if (was == null || is_ == null) return;
+      final ids = {for (final p in is_) p.id};
+      if (was.any((p) => !ids.contains(p.id) && !_onOldTab.contains(p.id))) {
+        setState(_someoneLeft);
+      }
+    });
     final pals = palsState.value ?? const <Pal>[];
     if (_old case final old? when !_untickedFromOld && palsState.hasValue) {
       _untickedFromOld = true;

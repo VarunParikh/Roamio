@@ -58,6 +58,15 @@ class AdventureEdit {
 
   /// Null leaves it unchanged, as it must once the adventure has tabs.
   final String? baseCurrency;
+
+  /// Nothing to save.
+  bool get isEmpty =>
+      name == null &&
+      description == null &&
+      city == null &&
+      startDate == null &&
+      endDate == null &&
+      baseCurrency == null;
 }
 
 /// The edit for what the form now says, against the adventure it opened with:

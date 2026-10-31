@@ -86,6 +86,17 @@ void main() {
       expect(find.text('Bangkok & Krabi'), findsWidgets);
     });
 
+    testWidgets('saving with no changes writes nothing (item 6)', (
+      tester,
+    ) async {
+      final adventures = await _openEdit(tester);
+      await _tapEdit(tester);
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(adventures.edits, isEmpty);
+      expect(find.text('Edit adventure'), findsNothing);
+    });
+
     testWidgets('an empty name is refused', (tester) async {
       final adventures = await _openEdit(tester);
       await _tapEdit(tester);
@@ -111,6 +122,10 @@ void main() {
       );
       expect(field.onChanged, isNull);
 
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Adventure name'),
+        'Bangkok again',
+      );
       await tester.tap(find.text('Save changes'));
       await tester.pumpAndSettle();
       expect(adventures.edits.single.$2.baseCurrency, isNull);

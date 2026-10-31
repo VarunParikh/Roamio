@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,31 +61,24 @@ class FirebaseSquadService implements SquadService {
 
   @override
   Stream<Map<String, SquadPerson>> peopleOf(List<String> uids) {
-    // Profiles are visible only to squadmates (S3b); one that can't be read
-    // is left out rather than hiding everyone's name. Each profile is a live
-    // listener: a change shows at once and costs a read only when it changes.
-    final latest = <String, SquadPerson>{};
-    final subs = <StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>>[];
-    late final StreamController<Map<String, SquadPerson>> out;
-    out = StreamController<Map<String, SquadPerson>>(
-      onListen: () {
-        if (uids.isEmpty) out.add({});
-        for (final uid in uids) {
-          subs.add(
-            _db.doc('users/$uid').snapshots().listen((d) {
-              latest[uid] = SquadPerson(
-                name: nameFromProfile(d.data()),
-                characterId: d.data()?['characterId'] as String?,
-                deleted: !d.exists,
-              );
-              out.add(Map<String, SquadPerson>.of(latest));
-            }, onError: (Object _) {}),
-          );
-        }
-      },
-      onCancel: () => Future.wait<void>(subs.map((s) => s.cancel())),
+    // Profiles are visible only to squadmates (S3b). Each is a live listener:
+    // a change shows at once and costs one read per listener only then.
+    return combinePeople(
+      uids,
+      (uid) => _db
+          .doc('users/$uid')
+          .snapshots()
+          .map(
+            (d) => !d.exists && d.metadata.isFromCache
+                // Not on this phone, which says nothing about their account.
+                ? null
+                : SquadPerson(
+                    name: nameFromProfile(d.data()),
+                    characterId: d.data()?['characterId'] as String?,
+                    deleted: !d.exists,
+                  ),
+          ),
     );
-    return out.stream;
   }
 
   CollectionReference<Map<String, dynamic>> _pals(String adventureId) =>

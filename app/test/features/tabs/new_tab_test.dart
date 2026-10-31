@@ -150,6 +150,25 @@ void main() {
       },
     );
 
+    test(
+      'a member can still fix their own tab in the extra week (item 17)',
+      () {
+        Set<TabProblem> bobEdits(DateTime on) => tabProblems(
+          adventure: _trip,
+          myUid: 'bob',
+          isEdit: true,
+          amountText: '100',
+          currency: 'INR',
+          date: DateTime(2026, 10, 24),
+          today: on,
+          category: 'food_dining',
+          participants: const ['ari', 'bob'],
+        );
+        expect(bobEdits(DateTime(2026, 10, 26)), isEmpty);
+        expect(bobEdits(DateTime(2026, 11, 2)), {TabProblem.closed});
+      },
+    );
+
     test('tabs close 7 days after the adventure ends (UC-11)', () {
       expect(check(on: DateTime(2026, 11)), isEmpty);
       expect(check(on: DateTime(2026, 11, 2)), {TabProblem.closed});
