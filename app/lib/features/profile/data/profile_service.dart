@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 
 /// What the squad sees of a person (spec UC-28).
 class Profile {
@@ -153,7 +154,9 @@ class FirebaseProfileService implements ProfileService {
   // Writes aren't awaited: offline they're queued and streams show them now.
   @override
   Future<void> saveProfile({required String name, required String bio}) async {
-    _profile?.set({'name': name, 'bio': bio}, SetOptions(merge: true)).ignore();
+    _profile
+        ?.set({'name': name, 'bio': bio}, SetOptions(merge: true))
+        .keepOrReport('your name and bio');
     // The Home greeting reads the sign-in name; keep it in step when online.
     unawaited(
       (_auth.currentUser?.updateDisplayName(name) ?? Future<void>.value())
@@ -163,12 +166,14 @@ class FirebaseProfileService implements ProfileService {
 
   @override
   Future<void> setCharacter(String? id) async {
-    _profile?.set({'characterId': id}, SetOptions(merge: true)).ignore();
+    _profile
+        ?.set({'characterId': id}, SetOptions(merge: true))
+        .keepOrReport('your character');
   }
 
   @override
   Future<void> setProfileCurrency(String code) async {
-    _account?.update({'profileCurrency': code}).ignore();
+    _account?.update({'profileCurrency': code}).keepOrReport('your currency');
   }
 
   @override
@@ -180,7 +185,9 @@ class FirebaseProfileService implements ProfileService {
 
   @override
   Future<void> setLocationAllowed({required bool allowed}) async {
-    _account?.update({'consents.location': allowed}).ignore();
+    _account
+        ?.update({'consents.location': allowed})
+        .keepOrReport('your location choice');
   }
 
   @override
@@ -192,7 +199,9 @@ class FirebaseProfileService implements ProfileService {
 
   @override
   Future<void> setCameraAllowed({required bool allowed}) async {
-    _account?.update({'consents.camera': allowed}).ignore();
+    _account
+        ?.update({'consents.camera': allowed})
+        .keepOrReport('your camera choice');
   }
 
   @override
@@ -207,10 +216,12 @@ class FirebaseProfileService implements ProfileService {
 
   @override
   Future<void> setNominee(Nominee? nominee) async {
-    _account?.update({
-      'nominee': nominee == null
-          ? null
-          : {'name': nominee.name, 'email': nominee.email},
-    }).ignore();
+    _account
+        ?.update({
+          'nominee': nominee == null
+              ? null
+              : {'name': nominee.name, 'email': nominee.email},
+        })
+        .keepOrReport('your nominee');
   }
 }

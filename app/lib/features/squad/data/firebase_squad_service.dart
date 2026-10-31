@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 
 class FirebaseSquadService implements SquadService {
@@ -117,13 +118,15 @@ class FirebaseSquadService implements SquadService {
     String nickname,
     String characterId,
   ) async {
-    _pals(adventureId).add({
-      'nickname': nickname,
-      'characterId': characterId,
-      'addedBy': _auth.currentUser!.uid,
-      'status': 'active',
-      'createdAt': FieldValue.serverTimestamp(),
-    }).ignore();
+    _pals(adventureId)
+        .add({
+          'nickname': nickname,
+          'characterId': characterId,
+          'addedBy': _auth.currentUser!.uid,
+          'status': 'active',
+          'createdAt': FieldValue.serverTimestamp(),
+        })
+        .keepOrReport('a pal');
   }
 
   @override
@@ -136,12 +139,15 @@ class FirebaseSquadService implements SquadService {
     _pals(adventureId)
         .doc(palId)
         .update({'nickname': nickname, 'characterId': characterId})
-        .ignore();
+        .keepOrReport('a pal');
   }
 
   @override
   Future<void> removePal(String adventureId, String palId) async {
-    _pals(adventureId).doc(palId).update({'status': 'left'}).ignore();
+    _pals(adventureId)
+        .doc(palId)
+        .update({'status': 'left'})
+        .keepOrReport('a pal');
   }
 
   Future<void> _call(String name, String adventureId, String? memberUid) async {
