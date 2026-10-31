@@ -53,6 +53,12 @@ class FakeAdventureService implements AdventureService {
     _changes.add([...adventures]);
   }
 
+  /// The squad changes while someone has a screen open.
+  void changeTo(Adventure adventure) {
+    adventures[adventures.indexWhere((a) => a.id == adventure.id)] = adventure;
+    _changes.add([...adventures]);
+  }
+
   final List<(String, AdventureEdit)> edits = [];
 
   @override
@@ -62,12 +68,12 @@ class FakeAdventureService implements AdventureService {
     final a = adventures[i];
     adventures[i] = Adventure(
       id: a.id,
-      name: edit.name.trim(),
-      description: edit.description.trim(),
+      name: edit.name?.trim() ?? a.name,
+      description: edit.description?.trim() ?? a.description,
       countryCode: a.countryCode,
-      city: edit.city.trim(),
-      startDate: edit.startDate,
-      endDate: edit.endDate,
+      city: edit.city?.trim() ?? a.city,
+      startDate: edit.startDate ?? a.startDate,
+      endDate: edit.endDate ?? a.endDate,
       baseCurrency: edit.baseCurrency ?? a.baseCurrency,
       bannerUrl: a.bannerUrl,
       leaderUid: a.leaderUid,

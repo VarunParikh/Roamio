@@ -98,7 +98,7 @@ class TabsSection extends ConsumerWidget {
     final slate = text.bodyMedium?.copyWith(color: RoamioColors.slate);
     final tabs = ref.watch(tabsProvider(adventure.id));
     final today = ref.watch(todayProvider);
-    final open = adventure.tabsOpenOn(today);
+    final open = adventure.tabsOpenFor(myUid, today);
     final categories = {
       for (final c in ref.watch(categoriesProvider).value ?? const <Category>[])
         c.id: c,

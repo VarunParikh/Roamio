@@ -74,14 +74,27 @@ void main() {
 
       final (id, edit) = adventures.edits.single;
       expect(id, 'bkk');
+      // Only what changed is sent, so the other fields can't overwrite
+      // a co-lead's change to them (item 6).
       expect(edit.name, '  Bangkok & Krabi  ');
       expect(edit.description, 'Food and beaches');
-      expect(edit.city, 'Bangkok');
-      expect(edit.startDate, DateTime(2026, 12));
-      expect(edit.endDate, DateTime(2026, 12, 8));
-      expect(edit.baseCurrency, 'THB');
+      expect(edit.city, isNull);
+      expect(edit.startDate, isNull);
+      expect(edit.endDate, isNull);
+      expect(edit.baseCurrency, isNull);
       // Back on the adventure, showing the new name.
       expect(find.text('Bangkok & Krabi'), findsWidgets);
+    });
+
+    testWidgets('saving with no changes writes nothing (item 6)', (
+      tester,
+    ) async {
+      final adventures = await _openEdit(tester);
+      await _tapEdit(tester);
+      await tester.tap(find.text('Save changes'));
+      await tester.pumpAndSettle();
+      expect(adventures.edits, isEmpty);
+      expect(find.text('Edit adventure'), findsNothing);
     });
 
     testWidgets('an empty name is refused', (tester) async {
@@ -109,6 +122,10 @@ void main() {
       );
       expect(field.onChanged, isNull);
 
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Adventure name'),
+        'Bangkok again',
+      );
       await tester.tap(find.text('Save changes'));
       await tester.pumpAndSettle();
       expect(adventures.edits.single.$2.baseCurrency, isNull);

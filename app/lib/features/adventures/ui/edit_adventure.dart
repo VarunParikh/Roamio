@@ -92,19 +92,18 @@ class _EditFormState extends ConsumerState<_EditForm> {
     if (_problems.isNotEmpty) return;
     setState(() => _busy = true);
     try {
-      await ref
-          .read(adventureServiceProvider)
-          .update(
-            _a.id,
-            AdventureEdit(
-              name: _name.text,
-              description: _description.text,
-              city: _city.text,
-              startDate: _start,
-              endDate: _end,
-              baseCurrency: _a.currencyLocked ? null : _currency,
-            ),
-          );
+      final edit = editChanges(
+        opened: _a,
+        name: _name.text,
+        description: _description.text,
+        city: _city.text,
+        start: _start,
+        end: _end,
+        currency: _a.currencyLocked ? null : _currency,
+      );
+      if (!edit.isEmpty) {
+        await ref.read(adventureServiceProvider).update(_a.id, edit);
+      }
       if (mounted) context.pop();
     } on Exception {
       if (mounted) {

@@ -30,6 +30,7 @@ void main() {
     Map<String, String>? percents,
   }) => tabProblems(
     adventure: _trip,
+    myUid: 'ari',
     amountText: amount,
     currency: currency,
     date: date ?? DateTime(2026, 10, 24),
@@ -39,6 +40,18 @@ void main() {
     payerTexts: payers,
     percentTexts: percents,
   );
+
+  group('payerTextsOf (item 5: someone removed while the form is open)', () {
+    test('keeps only the people still on the squad', () {
+      expect(payerTextsOf({'ari': '100', 'bob': '50'}, ['ari', 'cara']), {
+        'ari': '100',
+      });
+    });
+
+    test('keeps everything when everyone is still there', () {
+      expect(payerTextsOf({'ari': '1'}, ['ari']), {'ari': '1'});
+    });
+  });
 
   group('fxDateFor (follow-up C4: a tab keeps the rates it used)', () {
     final oct29 = DateTime(2026, 10, 29);
@@ -117,6 +130,44 @@ void main() {
       expect(check(category: null), {TabProblem.noCategory});
       expect(check(participants: const []), {TabProblem.nobodySharing});
     });
+
+    test(
+      'members stop on the last day; leads keep the extra week (item 17)',
+      () {
+        Set<TabProblem> asBob(DateTime on) => tabProblems(
+          adventure: _trip,
+          myUid: 'bob',
+          amountText: '100',
+          currency: 'INR',
+          date: DateTime(2026, 10, 24),
+          today: on,
+          category: 'food_dining',
+          participants: const ['ari', 'bob'],
+        );
+        expect(asBob(DateTime(2026, 10, 25)), isEmpty);
+        expect(asBob(DateTime(2026, 10, 26)), {TabProblem.closed});
+        expect(check(on: DateTime(2026, 10, 26)), isEmpty); // ari leads
+      },
+    );
+
+    test(
+      'a member can still fix their own tab in the extra week (item 17)',
+      () {
+        Set<TabProblem> bobEdits(DateTime on) => tabProblems(
+          adventure: _trip,
+          myUid: 'bob',
+          isEdit: true,
+          amountText: '100',
+          currency: 'INR',
+          date: DateTime(2026, 10, 24),
+          today: on,
+          category: 'food_dining',
+          participants: const ['ari', 'bob'],
+        );
+        expect(bobEdits(DateTime(2026, 10, 26)), isEmpty);
+        expect(bobEdits(DateTime(2026, 11, 2)), {TabProblem.closed});
+      },
+    );
 
     test('tabs close 7 days after the adventure ends (UC-11)', () {
       expect(check(on: DateTime(2026, 11)), isEmpty);

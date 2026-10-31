@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 
@@ -63,8 +65,9 @@ abstract interface class SquadService {
   /// they're alone, which archives the adventure (spec UC-17).
   Future<void> leave(String adventureId);
 
-  /// Display names for [uids], from their public profiles.
-  Future<Map<String, SquadPerson>> peopleOf(List<String> uids);
+  /// Display names for [uids], from their public profiles, live: a change to
+  /// a profile arrives as it happens (item 4).
+  Stream<Map<String, SquadPerson>> peopleOf(List<String> uids);
 
   /// The adventure's active pals, A to Z.
   Stream<List<Pal>> pals(String adventureId);
@@ -114,19 +117,66 @@ class SquadPerson {
   final bool deleted;
 }
 
+/// Everyone's details from one live stream each ([listen]), as one map. It
+/// answers once everyone has answered, so names don't appear one by one.
+/// Someone who can't be read (an error) or isn't known yet (null, offline) is
+/// left out rather than hiding everyone's name or showing as deleted.
+Stream<Map<String, SquadPerson>> combinePeople(
+  List<String> uids,
+  Stream<SquadPerson?> Function(String uid) listen,
+) {
+  final latest = <String, SquadPerson>{};
+  final answered = <String>{};
+  final subs = <StreamSubscription<SquadPerson?>>[];
+  late final StreamController<Map<String, SquadPerson>> out;
+  void update() {
+    if (answered.length == uids.length) out.add(Map.of(latest));
+  }
+
+  out = StreamController<Map<String, SquadPerson>>(
+    onListen: () {
+      if (uids.isEmpty) out.add({});
+      for (final uid in uids) {
+        subs.add(
+          listen(uid).listen(
+            (person) {
+              answered.add(uid);
+              if (person == null) {
+                latest.remove(uid);
+              } else {
+                latest[uid] = person;
+              }
+              update();
+            },
+            onError: (Object _) {
+              answered.add(uid);
+              update();
+            },
+          ),
+        );
+      }
+    },
+    onCancel: () => Future.wait<void>(subs.map((s) => s.cancel())),
+  );
+  return out.stream;
+}
+
 /// Names and characters for a squad, keyed by the comma-joined uids so it
 /// reloads when the squad changes.
-final FutureProviderFamily<Map<String, SquadPerson>, String>
-squadPeopleProvider = FutureProvider.family<Map<String, SquadPerson>, String>(
+final StreamProviderFamily<Map<String, SquadPerson>, String>
+squadPeopleProvider = StreamProvider.family<Map<String, SquadPerson>, String>(
   (ref, uids) => ref.watch(squadServiceProvider).peopleOf(uids.split(',')),
 );
 
 /// Just the names, for the many places that show only those.
-final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
-    FutureProvider.family<Map<String, String>, String>((ref, uids) async {
-      final people = await ref.watch(squadPeopleProvider(uids).future);
-      return {for (final e in people.entries) e.key: e.value.name};
-    });
+final ProviderFamily<AsyncValue<Map<String, String>>, String>
+squadNamesProvider = Provider.family<AsyncValue<Map<String, String>>, String>(
+  (ref, uids) => ref
+      .watch(squadPeopleProvider(uids))
+      .whenData(
+        (people) => {for (final e in people.entries) e.key: e.value.name},
+      ),
+);
 
 final StreamProviderFamily<List<Pal>, String> palsProvider =
     StreamProvider.family<List<Pal>, String>(
