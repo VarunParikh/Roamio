@@ -67,6 +67,9 @@ class _SettleSheet extends StatefulWidget {
 }
 
 class _SettleSheetState extends State<_SettleSheet> {
+  /// How much of the screen the sheet's content fills, keyboard closed.
+  static const _tallShare = 0.68;
+
   late String _typedIn = widget.currency;
   late final _amount = TextEditingController(
     text: amountText(widget.suggestedMinor, widget.currency),
@@ -158,95 +161,113 @@ class _SettleSheetState extends State<_SettleSheet> {
         inTrip != null &&
         inTrip > 0 &&
         inTrip <= widget.suggestedMinor;
+    final media = MediaQuery.of(context);
+    final keyboard = media.viewInsets.bottom;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        0,
-        16,
-        16 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Mark as settled', style: text.headlineSmall),
-          const SizedBox(height: 12),
-          widget.people,
-          const SizedBox(height: 12),
-          Text(
-            '${widget.title} outside the app. No money moves in Roamio; '
-            'this just records it.',
-            style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: SingleChildScrollView(
+        // Clear of the phone's navigation buttons, which the keyboard covers.
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          16 + (keyboard > 0 ? 0 : media.viewPadding.bottom),
+        ),
+        child: ConstrainedBox(
+          // Tall enough to bring the amount up to about the middle of the
+          // screen; with the keyboard open, as short as it can be.
+          constraints: BoxConstraints(
+            minHeight: keyboard > 0 ? 0 : media.size.height * _tallShare,
           ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: TextField(
-                  controller: _amount,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
-                    LengthLimitingTextInputFormatter(16),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Amount paid',
-                    errorText: _error,
-                    errorMaxLines: 2,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                  onSubmitted: (_) => _save(),
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Mark as settled', style: text.headlineSmall),
+                const SizedBox(height: 12),
+                widget.people,
+                const SizedBox(height: 12),
+                Text(
+                  '${widget.title} outside the app. No money moves in Roamio; '
+                  'this just records it.',
+                  style: text.bodyMedium?.copyWith(color: RoamioColors.slate),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _typedIn,
-                  isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Currency'),
-                  items: [
-                    for (final c in {
-                      widget.currency,
-                      widget.viewerCurrency,
-                      ...widget.currencies,
-                    })
-                      DropdownMenuItem(value: c, child: Text(c)),
+                const SizedBox(height: 16),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _amount,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                          LengthLimitingTextInputFormatter(16),
+                        ],
+                        decoration: InputDecoration(
+                          labelText: 'Amount paid',
+                          errorText: _error,
+                          errorMaxLines: 2,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                        onSubmitted: (_) => _save(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _typedIn,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Currency',
+                        ),
+                        items: [
+                          for (final c in {
+                            widget.currency,
+                            widget.viewerCurrency,
+                            ...widget.currencies,
+                          })
+                            DropdownMenuItem(value: c, child: Text(c)),
+                        ],
+                        onChanged: (c) {
+                          if (c != null) _chooseCurrency(c);
+                        },
+                      ),
+                    ),
                   ],
-                  onChanged: (c) {
-                    if (c != null) _chooseCurrency(c);
-                  },
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            max == null
-                ? 'Can’t convert $_typedIn yet: no exchange rates.'
-                : 'Up to ${_money(max, _typedIn)}. '
-                      'Lower it for a part payment.',
-            style: text.bodySmall?.copyWith(color: RoamioColors.slate),
-          ),
-          if (converted != null) ...[
-            const SizedBox(height: 4),
-            Text('≈ $converted in your currency', style: text.bodyMedium),
-          ],
-          if (showTrip) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Recorded as ${_money(inTrip, widget.currency)}, '
-              'the trip’s currency.',
-              style: text.bodySmall?.copyWith(color: RoamioColors.slate),
+                const SizedBox(height: 8),
+                Text(
+                  max == null
+                      ? 'Can’t convert $_typedIn yet: no exchange rates.'
+                      : 'Up to ${_money(max, _typedIn)}. '
+                            'Lower it for a part payment.',
+                  style: text.bodySmall?.copyWith(color: RoamioColors.slate),
+                ),
+                if (converted != null) ...[
+                  const SizedBox(height: 4),
+                  Text('≈ $converted in your currency', style: text.bodyMedium),
+                ],
+                if (showTrip) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Recorded as ${_money(inTrip, widget.currency)}, '
+                    'the trip’s currency.',
+                    style: text.bodySmall?.copyWith(color: RoamioColors.slate),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                const Spacer(),
+                PrimaryButton(label: 'Mark as settled', onPressed: _save),
+              ],
             ),
-          ],
-          const SizedBox(height: 16),
-          PrimaryButton(label: 'Mark as settled', onPressed: _save),
-        ],
+          ),
+        ),
       ),
     );
   }
