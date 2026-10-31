@@ -222,4 +222,7 @@ class _RatesFrom implements FxRepository {
 
   @override
   Future<String?> refreshLatest() async => null;
+
+  @override
+  Stream<String?> watchLatestDay() => Stream.value(day);
 }

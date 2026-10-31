@@ -148,6 +148,32 @@ void main() {
       expect(find.textContaining('From Cara'), findsOneWidget);
     });
 
+    testWidgets(
+      'an expired saved invite is checked again on coming back (item 14)',
+      (tester) async {
+        final invites = FakeInviteService(valid: {'7KQ2M9XA': _goaInvite});
+        await invites.saveCode('7KQ2M9XA');
+        await pumpRoamio(
+          tester,
+          FakeAuthService(initial: readyFacts),
+          invites: invites,
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('🇮🇳  Goa getaway'), findsOneWidget);
+
+        // The invite runs out while the app is in the background.
+        invites.valid.remove('7KQ2M9XA');
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('🇮🇳  Goa getaway'), findsNothing);
+        expect(find.text(invites.unknownMessage), findsOneWidget);
+      },
+    );
+
     testWidgets('an expired code explains itself and saves nothing', (
       tester,
     ) async {
