@@ -285,6 +285,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
   Set<TabProblem> _problems(List<Pal> pals, String myUid) => tabProblems(
     adventure: _a,
+    myUid: myUid,
     amountText: _amount.text,
     currency: _currency,
     date: _date,

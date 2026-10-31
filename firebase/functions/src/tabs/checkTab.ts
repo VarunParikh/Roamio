@@ -80,6 +80,33 @@ export function tabProblem(
   return null;
 }
 
+/** Days after the trip's last day that leads can still add tabs (spec UC-11). */
+const LEAD_GRACE_DAYS = 7;
+
+/** Today in India, the day the app counts by: YYYY-MM-DD. */
+export function todayInIndia(now = Date.now()): string {
+  return new Date(now + 5.5 * 3_600_000).toISOString().slice(0, 10);
+}
+
+/**
+ * Why a new tab can't be added on [today], or null. Members can add tabs up
+ * to the trip's last day; leads and co-leads for a week more. Edits of tabs
+ * that already exist are never refused for the date.
+ */
+export function windowProblem(
+  tab: DocumentData,
+  before: DocumentData | undefined,
+  adventure: { endDate: string; leaderUid: string; coLeadUids?: string[] },
+  today: string,
+): string | null {
+  if (before) return null;
+  const leads = [adventure.leaderUid, ...(adventure.coLeadUids ?? [])];
+  const grace = leads.includes(tab.createdBy) ? LEAD_GRACE_DAYS : 0;
+  const last = new Date(Date.parse(adventure.endDate) + grace * 86_400_000);
+  const lastDay = last.toISOString().slice(0, 10);
+  return today > lastDay ? "tabs can't be added after the trip" : null;
+}
+
 /**
  * True when [after] is an edit made from an older version than the one it
  * replaced (spec UC-32: last write wins, but the squad is told). Only writes
@@ -140,7 +167,17 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
     rateDayChanged && tab.fxDate !== tab.date
       ? (await db().doc(`fx_rates/${tab.fxDate}`).get()).exists
       : false;
-  const problem = tabProblem(tab, active, (id) => members.includes(id), before, rateDayKnown);
+  const problem =
+    windowProblem(
+      tab,
+      before,
+      {
+        endDate: adventure.get("endDate"),
+        leaderUid: adventure.get("leaderUid"),
+        coLeadUids: adventure.get("coLeadUids") ?? [],
+      },
+      todayInIndia(),
+    ) ?? tabProblem(tab, active, (id) => members.includes(id), before, rateDayKnown);
   if (!problem) {
     const before = event.data?.before?.data();
     if (before?.status === "waiting" && tab.status === "rejected") {

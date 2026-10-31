@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getFirestore, Timestamp } from "../support/admin";
-import { moneyChanged, tabProblem, replacedEdit } from "../../functions/src/tabs/checkTab";
+import { moneyChanged, tabProblem, replacedEdit, windowProblem } from "../../functions/src/tabs/checkTab";
 import { adventure, person } from "../support/callable";
 
 const db = () => getFirestore();
@@ -401,5 +401,27 @@ describe("a replaced edit is logged (spec UC-32)", () => {
       const log = await db().collection(`adventures/${id}/activity`).where("subject", "==", ref.id).get();
       expect(log.docs.map((d) => [d.get("type"), d.get("actorUid")])).toEqual([["tab_edit_replaced", ari.uid]]);
     });
+  });
+});
+
+describe("windowProblem: when tabs can be added (spec UC-11, item 17)", () => {
+  // Trip ends 8 December; ari leads, cara co-leads, bob is a member.
+  const trip = { endDate: "2026-12-08", leaderUid: "ari", coLeadUids: ["cara"] };
+  const added = (by: string) => tab(by, { createdBy: by });
+
+  it("members can add a tab up to the last day of the trip", () => {
+    expect(windowProblem(added("bob"), undefined, trip, "2026-12-08")).toBeNull();
+    expect(windowProblem(added("bob"), undefined, trip, "2026-12-09")).toContain("trip");
+  });
+
+  it("leads and co-leads can add tabs for 7 days after", () => {
+    expect(windowProblem(added("ari"), undefined, trip, "2026-12-15")).toBeNull();
+    expect(windowProblem(added("cara"), undefined, trip, "2026-12-15")).toBeNull();
+    expect(windowProblem(added("ari"), undefined, trip, "2026-12-16")).toContain("trip");
+  });
+
+  it("never refuses an edit of a tab that already exists", () => {
+    const before = added("bob");
+    expect(windowProblem(added("bob"), before, trip, "2027-01-20")).toBeNull();
   });
 });
