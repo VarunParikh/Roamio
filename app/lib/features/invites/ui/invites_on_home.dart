@@ -61,10 +61,32 @@ class _InviteCard extends ConsumerStatefulWidget {
   ConsumerState<_InviteCard> createState() => _InviteCardState();
 }
 
-class _InviteCardState extends ConsumerState<_InviteCard> {
+class _InviteCardState extends ConsumerState<_InviteCard>
+    with WidgetsBindingObserver {
   bool _joining = false;
 
   String get code => widget.code;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// An invite can run out while the app is in the background, so it's looked
+  /// up again on coming back (item 14).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(inviteDetailsProvider(code));
+    }
+  }
 
   Future<void> _join(InviteDetails d) async {
     setState(() => _joining = true);
