@@ -133,20 +133,21 @@ void main() {
       expect((saved.lat, saved.lng), (13.7563, 100.5018));
     });
 
-    testWidgets('with the Location switch off, it points you to You', (
-      tester,
-    ) async {
-      final h = await _openAddTab(tester, locationOn: false);
+    testWidgets(
+      'with the Location switch off, Add location turns it on and asks',
+      (tester) async {
+        final h = await _openAddTab(tester, locationOn: false);
 
-      expect(find.text('Add location'), findsNothing);
-      expect(
-        find.text(
-          'Location is off. Turn it on in You to tag where tabs happen.',
-        ),
-        findsOneWidget,
-      );
-      expect(h.location.calls, isEmpty);
-    });
+        // Asked only when they choose to add one.
+        expect(h.location.calls, isEmpty);
+        await tester.ensureVisible(find.text('Add location'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add location'));
+        await tester.pumpAndSettle();
+        expect(h.location.calls, isNotEmpty);
+        expect(find.text('📍 Location added'), findsOneWidget);
+      },
+    );
 
     testWidgets('a minor never gets it, even with a stored “on”', (
       tester,

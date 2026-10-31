@@ -84,12 +84,25 @@ void main() {
     expect(network.calls, ['enable', 'disable']);
   });
 
-  test('coming back shows Sync but does not touch the network', () async {
+  test('coming back syncs by itself: network, writes and photos', () async {
     await start(online: false);
     connectivity.set(online: true);
     await pumpEventQueue();
-    expect(phase(), SyncPhase.needsSync);
-    expect(network.calls, ['disable']);
+    expect(phase(), SyncPhase.synced);
+    expect(network.calls, ['disable', 'enable', 'writes']);
+    expect(photoRuns, ['photos']);
+  });
+
+  test('only really being offline counts as offline', () async {
+    await start(online: false);
+    expect(container.read(isOfflineProvider), isTrue);
+
+    network.failWrites = Exception('permission-denied');
+    connectivity.set(online: true);
+    await pumpEventQueue();
+    // A failed sync with a connection isn't a reason to switch buttons off.
+    expect(phase(), SyncPhase.failed);
+    expect(container.read(isOfflineProvider), isFalse);
   });
 
   test('blips that never went offline do not ask for a sync', () async {
@@ -99,11 +112,8 @@ void main() {
     expect(phase(), SyncPhase.online);
   });
 
-  test('Sync re-enables the network, uploads writes and photos', () async {
+  test('Try again re-enables the network and uploads again', () async {
     await start(online: false);
-    connectivity.set(online: true);
-    await pumpEventQueue();
-
     await container.read(syncControllerProvider.notifier).sync();
 
     expect(phase(), SyncPhase.synced);
@@ -113,13 +123,11 @@ void main() {
 
   test('a failed sync shows the error and can be retried', () async {
     await start(online: false);
+    network.failWrites = Exception('permission-denied');
     connectivity.set(online: true);
     await pumpEventQueue();
-    network.failWrites = Exception('permission-denied');
 
     final notifier = container.read(syncControllerProvider.notifier);
-    await notifier.sync();
-
     final failed = container.read(syncControllerProvider);
     expect(failed.phase, SyncPhase.failed);
     expect(failed.error, isNotEmpty);
@@ -130,8 +138,6 @@ void main() {
 
   test('dropping offline mid-sync ends offline, not failed', () async {
     await start(online: false);
-    connectivity.set(online: true);
-    await pumpEventQueue();
     network.failWrites = Exception('unavailable');
     connectivity.online = false;
 
@@ -145,18 +151,13 @@ void main() {
     await start(online: false);
     connectivity.set(online: true);
     await pumpEventQueue();
-    final notifier = container.read(syncControllerProvider.notifier);
-    await notifier.sync();
-
-    notifier.dismissSynced();
+    container.read(syncControllerProvider.notifier).dismissSynced();
 
     expect(phase(), SyncPhase.online);
   });
 
   test('a second tap while syncing does nothing', () async {
     await start(online: false);
-    connectivity.set(online: true);
-    await pumpEventQueue();
     final notifier = container.read(syncControllerProvider.notifier);
 
     await Future.wait([notifier.sync(), notifier.sync()]);

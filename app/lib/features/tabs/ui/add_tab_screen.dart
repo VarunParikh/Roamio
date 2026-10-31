@@ -40,6 +40,14 @@ import 'package:roamio/features/tabs/ui/tabs_section.dart';
 /// Add a tab (spec UC-21): who paid (you, or split between members), how
 /// it's shared (equal or custom %), up to 4 photos and, for adults, where
 /// it happened. Leads can add a pal on the spot.
+/// The categories shown before View more; the one picked always shows too.
+const commonCategories = {
+  'accommodation',
+  'local_transportation',
+  'food_dining',
+  'activities_sightseeing',
+};
+
 class AddTabScreen extends ConsumerWidget {
   const new({required this.adventureId, this.tabId, super.key});
 
@@ -93,6 +101,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   late String _currency = _a.baseCurrency;
   late DateTime _date = ref.read(todayProvider);
   String? _category;
+  bool _allCategories = false;
 
   /// Everyone starts ticked, including pals that load later.
   final Set<String> _unticked = {};
@@ -617,15 +626,26 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             runSpacing: 8,
             children: [
               for (final c in categories)
-                ChoiceChip(
-                  label: Text('${c.emoji} ${c.name}'),
-                  selected: _category == c.id,
-                  onSelected: (_) {
-                    _doneTyping();
-                    setState(() => _category = c.id);
-                  },
-                ),
+                if (_allCategories ||
+                    commonCategories.contains(c.id) ||
+                    _category == c.id)
+                  ChoiceChip(
+                    label: Text('${c.emoji} ${c.name}'),
+                    selected: _category == c.id,
+                    onSelected: (_) {
+                      _doneTyping();
+                      setState(() => _category = c.id);
+                    },
+                  ),
             ],
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+              onPressed: () => setState(() => _allCategories = !_allCategories),
+              child: Text(_allCategories ? 'View less' : 'View more'),
+            ),
           ),
           if (problems.contains(TabProblem.noCategory))
             Padding(

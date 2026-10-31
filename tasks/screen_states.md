@@ -14,7 +14,8 @@ Tests:
 
 | Screen | Primary | Notes |
 |---|---|---|
-| Sign in / Email sign-in / Create account / Verify email / Complete profile / Confirm adult | the screen's one action | `AuthScaffold.primary` |
+| Sign in | none: Google's own white button, as its branding asks | the 18+ tick is here; without it each way in explains why |
+| Email sign-in / Create account / Verify email / Complete profile / Confirm adult | the screen's one action | `AuthScaffold.primary` |
 | Waiting for parent | Send request, *or* Send the email again | two states, never both at once |
 | Parent consent (link) | Agree | decline is secondary |
 | Home | Create a new adventure (pulses), only with nothing ahead | with an adventure ahead, New adventure is a plain outlined button and Add tab is white |

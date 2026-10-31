@@ -426,6 +426,12 @@ void main() {
         await tester.pumpAndSettle();
         // A RenderFlex overflow fails the test by itself.
         expect(tester.takeException(), isNull, reason: 'scale $scale');
+        await tester.scrollUntilVisible(
+          find.text('🏦💵📝'),
+          200,
+          scrollable: find.byType(Scrollable).last,
+        );
+        await tester.pumpAndSettle();
       }
       expect(find.text('🏦💵📝'), findsOneWidget);
       expect(find.text('฿9,999,999.99'), findsOneWidget);

@@ -198,7 +198,7 @@ void main() {
         );
 
     const notAsked = Profile(name: 'Ari', characterOffered: false);
-    const prompt = 'We picked this for you';
+    const prompt = 'We have selected your awesome Avatar';
 
     testWidgets('a new account sees its default and can change it', (
       tester,
@@ -210,11 +210,11 @@ void main() {
       expect(_assetImage('giraffe'), findsNWidgets(2));
     });
 
-    testWidgets('Keep it is remembered, and keeps the default', (tester) async {
+    testWidgets('Keep is remembered, and keeps the default', (tester) async {
       final profile = FakeProfileService(profile: notAsked);
       await openHome(tester, profile);
 
-      await tester.tap(find.text('Keep it'));
+      await tester.tap(find.text('Keep'));
       await tester.pumpAndSettle();
 
       expect(profile.characterSaved, [null]);

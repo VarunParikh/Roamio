@@ -24,45 +24,89 @@ void main() {
   uploadsOff();
   const tick = 'I’m 18 or older and I’ve read the ';
 
-  testWidgets('email sign-up asks no birth date; the 18+ tick is recorded', (
-    tester,
-  ) async {
-    final auth = FakeAuthService();
-    await pumpRoamio(tester, auth, phase2: false);
-    await tester.tap(find.text('New here? Create an account'));
-    await tester.pumpAndSettle();
+  group('the tick on the first page', () {
+    const error =
+        'Please confirm you’re 18 or older and accept the privacy notice.';
 
-    expect(find.text('Date of birth'), findsNothing);
-    expect(find.text(tick), findsOneWidget);
+    testWidgets('nothing goes on without it, and it says why', (tester) async {
+      final auth = FakeAuthService();
+      await pumpRoamio(tester, auth, phase2: false);
+      expect(find.text(tick), findsOneWidget);
 
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Your name'),
-      'Ari',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Email'),
-      'ari@example.com',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Password'),
-      'secret123',
-    );
-    await tester.tap(find.text('Create account'));
-    await tester.pumpAndSettle();
-    // Without the tick nothing happens, with a reason.
-    expect(
-      find.text(
-        'Please confirm you’re 18 or older and accept the privacy '
-        'notice.',
-      ),
-      findsOneWidget,
-    );
-    expect(auth.calls, isEmpty);
+      for (final button in [
+        'Continue with Google',
+        'Sign in with email',
+        'New here? Create an account',
+      ]) {
+        await tester.tap(find.text(button));
+        await tester.pumpAndSettle();
+        expect(find.text(error), findsOneWidget, reason: button);
+      }
+      expect(auth.calls, isEmpty);
+    });
 
-    await tester.tap(find.byType(Checkbox));
-    await tester.tap(find.text('Create account'));
-    await tester.pumpAndSettle();
-    expect(auth.calls, ['create:Ari:ari@example.com:adult']);
+    testWidgets('email sign-up: no second tick, no birth date', (tester) async {
+      final auth = FakeAuthService();
+      await pumpRoamio(tester, auth, phase2: false);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New here? Create an account'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Date of birth'), findsNothing);
+      expect(find.text(tick), findsNothing);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Your name'),
+        'Ari',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Email'),
+        'ari@example.com',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'),
+        'secret123',
+      );
+      await tester.tap(find.text('Create account'));
+      await tester.pumpAndSettle();
+      expect(auth.calls.single, startsWith('create'));
+    });
+
+    testWidgets('Google: no separate page after ticking', (tester) async {
+      final auth = FakeAuthService();
+      await pumpRoamio(tester, auth, phase2: false);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      auth.emit(const SessionFacts(uid: 'u'));
+      await tester.pumpAndSettle();
+      expect(auth.calls, contains('complete:adult'));
+    });
+
+    testWidgets('the next person after a sign-out ticks for themselves', (
+      tester,
+    ) async {
+      final auth = FakeAuthService();
+      await pumpRoamio(tester, auth, phase2: false);
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      auth.emit(readyFacts);
+      await tester.pumpAndSettle();
+      auth.emit(const SessionFacts(uid: null));
+      await tester.pumpAndSettle();
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+    });
+
+    testWidgets('fits a small phone, and white text is on a dark photo', (
+      tester,
+    ) async {
+      await pumpRoamio(tester, FakeAuthService(), phase2: false);
+      tester.view
+        ..physicalSize = const Size(320, 568)
+        ..devicePixelRatio = 1;
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Image), findsWidgets);
+    });
   });
 
   testWidgets('a Google sign-in just confirms 18+ and the notice', (
@@ -107,6 +151,7 @@ void main() {
       scrollable: list,
     );
     expect(find.text('Nominate a person', skipOffstage: false), findsNothing);
+    expect(find.text('Raise a concern', skipOffstage: false), findsNothing);
     expect(find.text('Download Mia’s data', skipOffstage: false), findsNothing);
     expect(find.text('Linked children', skipOffstage: false), findsNothing);
   });

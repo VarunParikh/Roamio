@@ -8,6 +8,7 @@ import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/auth/ui/dob_field.dart';
 import 'package:roamio/features/auth/ui/email_sign_in_screen.dart';
+import 'package:roamio/features/auth/ui/login_screen.dart';
 import 'package:roamio/features/auth/ui/privacy_notice_check.dart';
 
 /// Create an email account (UC-3). Under-13s are refused here, before any
@@ -26,7 +27,8 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   DateTime? _dob;
-  bool _accepted = false;
+  late final bool _tickedBefore = ref.read(termsAcceptedProvider);
+  late bool _accepted = _tickedBefore;
   bool _submitted = false;
   bool _busy = false;
   bool _hidden = true;
@@ -128,12 +130,14 @@ class _CreateAccountScreenState extends ConsumerState<CreateAccountScreen> {
               ),
               const SizedBox(height: 8),
             ],
-            PrivacyNoticeCheck(
-              accepted: _accepted,
-              onChanged: (v) => setState(() => _accepted = v),
-              showError: _submitted && !_accepted,
-              adultDeclaration: !asksDob,
-            ),
+            // Already ticked on the first page in the pilot.
+            if (!_tickedBefore)
+              PrivacyNoticeCheck(
+                accepted: _accepted,
+                onChanged: (v) => setState(() => _accepted = v),
+                showError: _submitted && !_accepted,
+                adultDeclaration: !asksDob,
+              ),
           ],
         ),
       ),

@@ -205,9 +205,25 @@ class _PalFormState extends ConsumerState<_PalForm> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Center(
+            child: CharacterAvatar(
+              uid: pal?.id ?? '',
+              characterId: character,
+              // Nothing to show until there's a choice.
+              loading: character == null && pal == null,
+              radius: 48,
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: _pick,
+            child: Text(
+              character == null ? 'Choose a character' : 'Change character',
+            ),
+          ),
+          const SizedBox(height: 24),
           TextField(
             controller: _field,
-            autofocus: pal == null,
             textCapitalization: TextCapitalization.words,
             inputFormatters: [LengthLimitingTextInputFormatter(30)],
             decoration: const InputDecoration(
@@ -216,29 +232,6 @@ class _PalFormState extends ConsumerState<_PalForm> {
                   'Just a nickname: no real name, phone, email or photo.',
             ),
             onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              CharacterAvatar(
-                uid: pal?.id ?? '',
-                characterId: character,
-                // Nothing to show until there's a choice.
-                loading: character == null && pal == null,
-                radius: 36,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: _pick,
-                  child: Text(
-                    character == null
-                        ? 'Choose a character'
-                        : 'Change character',
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),

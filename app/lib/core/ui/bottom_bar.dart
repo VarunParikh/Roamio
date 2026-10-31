@@ -41,16 +41,46 @@ class RoamioBottomBar extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.all(6),
-              child: Row(
+              child: Stack(
                 children: [
-                  for (var i = 0; i < items.length; i++)
-                    Expanded(
-                      child: _BarButton(
-                        item: items[i],
-                        selected: i == currentIndex,
-                        onTap: () => onSelected(i),
+                  // The highlight slides to the selected tab.
+                  Positioned.fill(
+                    child: AnimatedAlign(
+                      key: const ValueKey('bottom-bar-highlight'),
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment(
+                        items.length < 2
+                            ? 0
+                            : -1 + 2 * currentIndex / (items.length - 1),
+                        0,
+                      ),
+                      child: FractionallySizedBox(
+                        widthFactor: 1 / items.length,
+                        heightFactor: 1,
+                        child: const DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: RoamioColors.chartreuse,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(RoamioRadii.full),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
+                  ),
+                  Row(
+                    children: [
+                      for (var i = 0; i < items.length; i++)
+                        Expanded(
+                          child: _BarButton(
+                            item: items[i],
+                            selected: i == currentIndex,
+                            onTap: () => onSelected(i),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -79,14 +109,8 @@ class _BarButton extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutBack,
+        child: SizedBox(
           height: 52,
-          decoration: BoxDecoration(
-            color: selected ? RoamioColors.chartreuse : Colors.transparent,
-            borderRadius: BorderRadius.circular(RoamioRadii.full),
-          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

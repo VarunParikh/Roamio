@@ -13,9 +13,6 @@ enum SyncPhase {
   /// No connection. Changes are kept on the phone.
   offline,
 
-  /// Connection is back; waiting for the person to press Sync.
-  needsSync,
-
   syncing,
   synced,
   failed,
@@ -32,7 +29,8 @@ class SyncState {
 
   /// Joining, inviting, role changes and deleting an account need a
   /// connection (UC-33).
-  bool get isOffline => phase != SyncPhase.online && phase != SyncPhase.synced;
+  bool get isOffline =>
+      phase == SyncPhase.offline || phase == SyncPhase.syncing;
 }
 
 /// Turns Firestore's network off and on, and waits for queued writes.
@@ -77,8 +75,8 @@ final syncControllerProvider = NotifierProvider<SyncController, SyncState>(
   SyncController.new,
 );
 
-/// Goes offline when the connection drops, offers Sync when it returns, and
-/// on Sync re-enables the network and sends everything that was waiting.
+/// Goes offline when the connection drops and, when it returns, re-enables
+/// the network and sends everything that was waiting (spec UC-31).
 class SyncController extends Notifier<SyncState> {
   Future<void>? _syncing;
 
@@ -117,7 +115,7 @@ class SyncController extends Notifier<SyncState> {
     if (!online) {
       if (state.phase != SyncPhase.offline) await _goOffline();
     } else if (state.phase == SyncPhase.offline) {
-      state = const SyncState(SyncPhase.needsSync);
+      await sync();
     }
   }
 

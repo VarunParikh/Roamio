@@ -58,6 +58,24 @@ ThemeData buildRoamioTheme() {
     colorScheme: colorScheme,
     scaffoldBackgroundColor: RoamioColors.canvas,
     textTheme: textTheme,
+    // Off has to read as a real control, not a greyed-out one.
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? RoamioColors.surface
+            : RoamioColors.slate,
+      ),
+      trackColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? RoamioColors.ink
+            : RoamioColors.surface,
+      ),
+      trackOutlineColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? RoamioColors.ink
+            : RoamioColors.slate,
+      ),
+    ),
     cardTheme: const CardThemeData(
       color: RoamioColors.surface,
       elevation: 0,

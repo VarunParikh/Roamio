@@ -129,10 +129,10 @@ Each item is written so it can become a test.
 
 ### 5.2 Home (bottom tab: Home)
 
-- **UC-5** Shows "Hey <first name> 👋" with a small picture of you that opens You, then the Sync card (only when needed, UC-31), the **adventure card**, **Needs you**, New adventure, Recent activity, then other trips.
+- **UC-5** Shows "Hey <first name> 👋" with a small picture of you that opens You, then the offline card (only when offline, UC-31), the **adventure card**, **Needs you**, New adventure, Recent activity, then other trips.
   - **Adventure card:** the trip happening now (the most recently started, if several) or else the next one. Banner, badge, name, dates, weather, squad pictures (first 4 then "+N", pals included), **Add tab**, an arrow that expands it, and the photographer's credit. Tapping the card opens the adventure.
   - **Badge and subtitle:** "Current adventure" with "5 days left" ("Last day" on the final day); "Next adventure" with "Starts in 12 days".
-  - **Expanded** (starts collapsed; the phone remembers): your budget (UC-19), daily spend (the 7 days ending today, today in chartreuse, swipe for earlier, fewer bars on a short trip, "No spending yet" with no tabs, none before the trip), squad, recent activity. **See split** and **View all** open Split on this adventure; the squad row opens the adventure's squad.
+  - **Expanded** (starts collapsed; the phone remembers): your budget (UC-19), daily spend (the 7 days ending today, today in chartreuse, swipe for earlier, fewer bars on a short trip, "No spending yet" with no tabs; before the trip only once something has been spent; your own spend when you only have personal tabs), squad, recent activity. **See split** and **View all** open Split on this adventure; the squad row opens the adventure's squad.
   - **Needs you:** the top 2 cards and See all, in this order: tabs to approve, invites, join cards, budget alerts, character prompt, notification prompt.
   - **New adventure** is a plain outlined button under the adventure card.
   - **Recent activity:** one row with the newest event across current and upcoming trips, opening that trip's Activity.
@@ -162,18 +162,18 @@ Each item is written so it can become a test.
 
 ### 5.6 Personal budget
 
-- **UC-19** Each member can set a personal budget for an adventure (amount + currency, default their profile currency), at any time, including before and after the trip. **Only they can read it** — enforced by security rules, not just hidden in the UI. It appears as a widget on the expanded Home card and in Split's top card: "₹768 left" or "₹500 over budget", the percentage and a bar. Tapping it opens the edit sheet, which has Save and Remove budget (with a confirmation). With no budget it offers a plain Set a budget. When tabs are waiting: "₹1,200 waiting for approval, not counted".
+- **UC-19** Each member can set a personal budget for an adventure (amount + currency, default their profile currency), at any time, including before and after the trip. **Only they can read it** — enforced by security rules, not just hidden in the UI. It appears as a widget on the expanded Home card, on the adventure page and in Split's top card: "₹768 left" or "₹500 over budget", the percentage and a bar. Tapping it opens the edit sheet, which has Save and Remove budget (with a confirmation). With no budget it offers a plain Set a budget. When tabs are waiting: "₹1,200 waiting for approval, not counted".
 - **UC-20** The budget is measured against the user's **own share** of approved tabs plus their personal tabs (not what they paid). A push + in-app alert fires once at 80% and once at 100% (thresholds from remote config), including when an approval crosses a threshold. Changing the budget resets the alerts. An alert opens Split on its adventure.
 
 ### 5.7 Tabs (expenses)
 
 - **UC-21 Add tab** (any member, never a pal). Fields:
   - Optional **Scan bill** (camera) → OCR prefills amount, date and description; the user confirms.
-  - **Amount** (required, > 0, ≤ 10,000,000 in that currency), **currency** (default adventure base currency), **date** (default today, editable, can't be later than today), **category** (10 categories from `data/`), optional **description**.
+  - **Amount** (required, > 0, ≤ 10,000,000 in that currency), **currency** (default adventure base currency), **date** (default today, editable, can't be later than today), **category** (10 categories from `data/`; the 4 most common show first, with View more), optional **description**.
   - **Paid by:** defaults to "You · 100%". A "Split payment" link reveals the payer list; payer amounts must total the tab amount exactly.
   - **Paid with** (required, per payer, set by the tab's creator): 💵 Cash, 💳 Card, 📱 UPI, 📝 Cheque, 🏦 Bank transfer, 🔖 Other. Starts on the method last used on that phone; with none yet, Save stays disabled and says why. It records how someone paid; Roamio moves no money. An unknown value shows as Other and never invalidates a tab.
   - **Split between:** multi-select of active members and pals (all ticked by default). Leads also see **+ Add pal** here to create a pal inline for this tab (the pal then joins the squad); members who aren't leads don't. Mode **Equal** (default) or **Custom %** (creator only); custom percentages must total exactly 100.00%. Save stays disabled with a live "x% of 100% assigned" counter until valid.
-  - Optional **location** (only with location permission; never for under-18 users). Scan bill reads on the phone and uploads and keeps nothing.
+  - Optional **location**: an Add location button that turns the setting on and asks Android's permission when tapped; never for under-18 users. Scan bill reads on the phone and uploads and keeps nothing.
   - **Split between** shows each person's picture.
 - **UC-21a Approval:** a tab waits for an admin unless it is personal (you paid and only you share; automatic, and it changes if someone else is added).
   - Admins see **Approve** and **Reject** (plain buttons; Reject confirms and takes an optional reason) on the waiting tab's row in the adventure's tab list, and get a push and a Needs you card. Approving needs a connection; the buttons say why when offline. It stays possible after the 7-day window for adding tabs.
@@ -192,21 +192,21 @@ Each item is written so it can become a test.
   - **Spend by category:** total spend, and a coloured bar of the top 3 categories plus Other, with percentages that add up to 100 and a 2×2 legend. Every number is also in text.
   - **Who pays whom** (minimum transfers), with pictures: the first 4, then View all. Only rows the viewer can act on have an arrow, which opens Mark as settled. Settled: "Everyone is square 🎉".
   - **See detailed breakdown** expands on the same page: balances with pictures (members and pals), Payments recorded with Undo, all categories, and a bar chart by day.
-  - **Other states:** no tabs (top card and Open adventure); only waiting tabs ("2 tabs waiting for approval", opening the tab list); rates missing (a note). "Days left" shows only during the trip.
+  - **Other states:** no tabs (top card and Open adventure); only waiting tabs ("2 tabs waiting for approval", opening the tab list); only personal tabs (your own spend by category and day, seen only by you, then Open adventure); rates missing (a note). "Days left" shows only during the trip.
 - **UC-26** All amounts appear in the **viewer's profile currency**, converted using each tab's stored FX rate date (§9.1); the "•••" menu shows the base-currency figures.
 - **UC-26a Mark as settled:** next to each suggested transfer, **Mark as settled** records that one person paid another outside the app (no money moves). Amount defaults to the suggested transfer and can be lowered for a partial payment. Either member in the transfer can record it; for a pal's transfer, the member involved or any lead records it. The other member gets a notification. Either party or a lead can undo it, and the undo appears in the activity log. Recording works offline and syncs like a tab.
 - **UC-27 Export:** PDF and Excel of the adventure split (summary, transfers, full tab list), shared via the Android share sheet. A minor's export never includes location.
 
 ### 5.9 Profile (bottom tab: You)
 
-- **UC-28** Character, name, optional description, profile currency, notification and location toggles. Everyone has a character: one of the 47 in `assets/characters/`, always on opaque white. A new account gets a default worked out from its ID, and Needs you offers to change it ("We picked this for you. Change it?"). Uploading your own picture is next phase.
+- **UC-28** Character, name, optional description, profile currency, notification and location toggles. Everyone has a character: one of the 47 in `assets/characters/`, always on opaque white. A new account gets a default worked out from its ID, and Needs you offers to change it ("We have selected your awesome Avatar", with Change and Keep). Uploading your own picture is next phase.
 - **UC-28a Picture beside every name:** wherever a person is listed or named on a screen, their picture is beside it: Home greeting, join cards, invites, squad, Activity, invite link screen, Add tab's lists, tab details, Who pays whom, balances, Payments recorded and the settle sheet. Not in pop-up messages, confirmation dialogs, push notifications or exports. A deleted user gets a plain grey icon; a neutral circle shows while loading. TalkBack reads the name, not the character.
-- **UC-29 Privacy centre:** download my data (JSON), correct my data, delete my account, nominate a person, raise a concern (grievance contact), withdraw individual consents. For parents: **Linked children** (§7).
+- **UC-29 Privacy centre:** download my data (JSON), correct my data, delete my account, nominate a person, raise a concern (grievance contact; hidden in the app for the pilot by owner's decision, 2026-10-31, and in the privacy notice meanwhile), withdraw individual consents. For parents: **Linked children** (§7).
 
 ### 5.10 Offline & sync
 
 - **UC-30** The app works fully offline after first sign-in: browse adventures, add/edit tabs.
-- **UC-31** When the device is offline, Roamio switches Firestore to offline mode. When connectivity returns, a **Sync** button appears on Home and the adventure page with the text *"We know the data might be of essence, click here to sync the adventure with your squad"*. Pressing it re-enables the network, uploads queued writes, and shows "Synced ✓" or the error.
+- **UC-31** When the device is offline, Roamio switches Firestore to offline mode and shows a card saying changes are kept on the phone. A short blip isn't offline: it takes three failed checks in a row. When connectivity returns, Roamio re-enables the network and uploads queued writes by itself, showing "Synced ✓" or the error with Try again. There is no Sync button to press while connected (owner, 2026-10-31).
 - **UC-32 Conflicts:** last write wins per tab. If a synced edit overwrote someone else's newer edit, both users see an activity entry ("Ari's offline edit replaced your change to *Dinner*").
 - **UC-33** Joining, inviting, role changes and account deletion need a connection; their buttons are disabled offline with a short reason.
 

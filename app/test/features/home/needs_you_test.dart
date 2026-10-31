@@ -52,7 +52,7 @@ const _titles = [
   '1 tab to approve',
   'Ben Roy joined your squad',
   'You’ve used 80% of your Goa trip budget',
-  'We picked this for you',
+  'We have selected your awesome Avatar',
   'Know when friends join',
 ];
 

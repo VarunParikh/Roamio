@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/auth/ui/google_logo.dart';
 import 'package:roamio/features/auth/ui/verify_email_screen.dart';
 
 import '../../../support/fake_auth_service.dart';
@@ -72,9 +73,13 @@ void main() {
   });
 
   group('sign in (UC-2)', () {
-    testWidgets('has exactly one primary button', (tester) async {
+    testWidgets('Google has its own logo and white button', (tester) async {
       await pumpRoamio(tester, FakeAuthService());
-      expect(find.byType(PrimaryButton), findsOneWidget);
+      expect(find.byType(GoogleLogo), findsOneWidget);
+      expect(
+        find.widgetWithText(PrimaryButton, 'Continue with Google'),
+        findsNothing,
+      );
     });
 
     testWidgets('Google errors are explained; a cancel is silent', (
