@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Roamio launcher icon: the "R." wordmark mark. White R, black round full stop, on the lime background. Master: design/app-icon/roamio-icon-r-dot.svg -->
+<!-- Roamio launcher icon: the "R." wordmark mark. Black R, black round full stop, on the lime background. Master: design/app-icon/roamio-icon-r-dot.svg -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="512" android:viewportHeight="512">
-    <path android:pathData="M131 366.2V145.8H215.3Q238.1 145.8 255.7 153.8Q273.3 161.8 283.4 177.4Q293.4 193.1 293.4 216.2Q293.4 238.7 283.1 254.5Q272.7 270.3 255.3 278.3L305.6 366.2H254.1L209.4 286.3H176.9V366.2ZM176.9 246.4H215.6Q230.1 246.4 238.8 238.1Q247.6 229.8 247.6 216.2Q247.6 202.3 238.8 194Q230.1 185.7 215.6 185.7H176.9Z" android:fillColor="#FFFFFFFF"/>
+    <path android:pathData="M131 366.2V145.8H215.3Q238.1 145.8 255.7 153.8Q273.3 161.8 283.4 177.4Q293.4 193.1 293.4 216.2Q293.4 238.7 283.1 254.5Q272.7 270.3 255.3 278.3L305.6 366.2H254.1L209.4 286.3H176.9V366.2ZM176.9 246.4H215.6Q230.1 246.4 238.8 238.1Q247.6 229.8 247.6 216.2Q247.6 202.3 238.8 194Q230.1 185.7 215.6 185.7H176.9Z" android:fillColor="#FF0F1115"/>
     <path android:pathData="M336.6 344A22.2 22.2 0 1 0 381 344A22.2 22.2 0 1 0 336.6 344Z" android:fillColor="#FF0F1115"/>
 </vector>
