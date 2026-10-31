@@ -96,6 +96,37 @@ class SplitReport {
   final Map<DateTime, int> myByDay;
 }
 
+/// Who pays whom, planned once from the trip-currency balances so every
+/// viewer sees the same pairs (item 11), then converted for display at the
+/// latest rates day among the tabs. A missing rate shows the trip currency.
+List<Transfer> _shownTransfers(
+  Map<ParticipantId, int>? base, {
+  required String baseCurrency,
+  required String currency,
+  required FxRates Function(String date) ratesFor,
+  required List<TabSplit> splits,
+}) {
+  if (base == null) return const [];
+  final planned = planTransfers(base, currency: baseCurrency);
+  if (currency == baseCurrency || splits.isEmpty) return planned;
+  final day = splits
+      .map((s) => s.fxDate)
+      .reduce((a, b) => a.compareTo(b) > 0 ? a : b);
+  try {
+    final rates = ratesFor(day);
+    return [
+      for (final t in planned)
+        Transfer(
+          from: t.from,
+          to: t.to,
+          amount: rates.convert(t.amount, currency),
+        ),
+    ];
+  } on MissingRateException {
+    return planned;
+  }
+}
+
 /// Builds the split for [viewer]. Each tab converts at its own day's rates
 /// ([ratesFor]); balances still sum to exactly zero (spec §6). If a rate
 /// is missing it falls back to [baseCurrency] and sets
@@ -210,7 +241,13 @@ SplitReport buildReport({
     baseBalances: base ?? const {},
     mine: balances[viewer] ?? 0,
     myShare: myShare,
-    transfers: planTransfers(balances, currency: currency),
+    transfers: _shownTransfers(
+      base,
+      baseCurrency: baseCurrency,
+      currency: currency,
+      ratesFor: ratesFor,
+      splits: splits,
+    ),
     baseTransfers: base == null
         ? const []
         : planTransfers(base, currency: baseCurrency),
