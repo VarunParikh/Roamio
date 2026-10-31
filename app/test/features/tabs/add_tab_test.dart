@@ -219,4 +219,7 @@ class _RatesFrom implements FxRepository {
   @override
   Future<FxRates?> ratesFor(String date) async =>
       FxRates(date: day, usdRates: rates);
+
+  @override
+  Future<String?> refreshLatest() async => null;
 }

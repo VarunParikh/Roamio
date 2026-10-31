@@ -17,9 +17,12 @@ import 'package:roamio/features/adventures/ui/adventure_page.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/fx_repository.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/splits/ui/update_rates_button.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
 import 'package:roamio/features/squad/ui/person.dart';
@@ -603,6 +606,11 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
               ),
             ],
           ),
+          _Conversion(
+            minor: parseAmount(_amount.text, _currency),
+            currency: _currency,
+            date: _date,
+          ),
           const SizedBox(height: 16),
           InkWell(
             borderRadius: BorderRadius.circular(16),
@@ -828,3 +836,54 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
 
 const _closedMessage =
     'Tabs closed 7 days after the trip ended, so this can’t be added.';
+
+/// What the amount comes to in the person's own currency, as they type
+/// (spec UC-21). An estimate at the rates known now; the tab keeps its own.
+class _Conversion extends ConsumerWidget {
+  const new({required this.minor, required this.currency, required this.date});
+
+  final int? minor;
+  final String currency;
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mine = ref.watch(profileCurrencyProvider).value;
+    if (mine == null || mine == currency) return const SizedBox.shrink();
+    final rates = ref.watch(fxRatesProvider(isoDate(date)));
+    if (rates.isLoading) return const SizedBox.shrink();
+    final style = Theme.of(context).textTheme.bodyMedium;
+    final slate = style?.copyWith(color: RoamioColors.slate);
+
+    String? converted;
+    try {
+      if (rates.value != null && minor != null && minor! > 0) {
+        converted = formatWithSymbol(
+          ref,
+          rates.value!.convert(Money(minor!, currency), mine),
+        );
+      }
+    } on MissingRateException {
+      converted = null;
+    }
+    final known =
+        rates.value?.hasRate(currency) == true &&
+        rates.value?.hasRate(mine) == true;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: converted != null
+                ? Text('≈ $converted in your currency', style: style)
+                : known
+                ? const SizedBox.shrink()
+                : Text('Can’t convert yet: no exchange rates.', style: slate),
+          ),
+          const UpdateRatesButton(),
+        ],
+      ),
+    );
+  }
+}

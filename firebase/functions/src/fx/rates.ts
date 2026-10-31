@@ -1,5 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
+import { HttpsError, onCall } from "firebase-functions/https";
 import { onSchedule } from "firebase-functions/scheduler";
 
 // Daily exchange rates (spec §9.1): units of each currency per 1 USD,
@@ -78,6 +79,37 @@ export async function refreshRates(fetchImpl: typeof fetch = fetch): Promise<boo
 export async function runDailyFxRates(fetchImpl: typeof fetch = fetch): Promise<void> {
   if (!(await refreshRates(fetchImpl))) throw new Error("FX rates not refreshed");
 }
+
+/** The provider updates daily, so asking it more often than this adds nothing. */
+const REFRESH_EVERY_MS = 60 * 60 * 1000;
+
+async function newestRates() {
+  const newest = await getFirestore().collection("fx_rates").orderBy("date", "desc").limit(1).get();
+  return newest.docs[0];
+}
+
+/**
+ * The app's Update rates button: the latest rates, fetched only if none were
+ * fetched in the last hour, so many people pressing it costs one request.
+ */
+export async function latestRatesOnRequest(
+  fetchImpl: typeof fetch = fetch,
+  now: Date = new Date(),
+): Promise<{ date: string | null; refreshed: boolean }> {
+  const before = await newestRates();
+  const fetchedAt = before?.get("fetchedAt")?.toMillis() as number | undefined;
+  if (before && fetchedAt && now.getTime() - fetchedAt < REFRESH_EVERY_MS) {
+    return { date: before.id, refreshed: false };
+  }
+  const refreshed = await refreshRates(fetchImpl);
+  const after = refreshed ? await newestRates() : before;
+  return { date: after?.id ?? null, refreshed };
+}
+
+export const updateFxRates = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Sign in first.");
+  return latestRatesOnRequest();
+});
 
 /** Shortly after the provider's daily update (00:00 UTC). */
 export const dailyFxRates = onSchedule(

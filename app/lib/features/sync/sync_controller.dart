@@ -79,6 +79,11 @@ final syncControllerProvider = NotifierProvider<SyncController, SyncState>(
 /// the network and sends everything that was waiting (spec UC-31).
 class SyncController extends Notifier<SyncState> {
   Future<void>? _syncing;
+  Timer? _hideSynced;
+
+  /// How long "Synced ✓" stays. Kept here, not on a screen, so it goes away
+  /// whichever screen is showing, or if none was.
+  static const syncedFor = Duration(seconds: 3);
 
   /// Completes once the starting connection has been checked.
   late final Future<void> ready;
@@ -89,7 +94,9 @@ class SyncController extends Notifier<SyncState> {
     final subscription = monitor.changes.listen(
       (online) => unawaited(_onConnectivity(online)),
     );
-    ref.onDispose(subscription.cancel);
+    ref
+      ..onDispose(subscription.cancel)
+      ..onDispose(() => _hideSynced?.cancel());
     ready = monitor.check().then(_onStart);
     return const SyncState(SyncPhase.online);
   }
@@ -136,6 +143,8 @@ class SyncController extends Notifier<SyncState> {
       await network.waitForPendingWrites();
       await ref.read(photoFlushProvider)();
       state = const SyncState(SyncPhase.synced);
+      _hideSynced?.cancel();
+      _hideSynced = Timer(syncedFor, dismissSynced);
     } on Object catch (error) {
       if (await ref.read(connectivityMonitorProvider).check()) {
         state = SyncState(SyncPhase.failed, error: '$error');

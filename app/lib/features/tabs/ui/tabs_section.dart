@@ -7,8 +7,10 @@ import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/splits/ui/update_rates_button.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
@@ -107,7 +109,14 @@ class TabsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Tabs', style: text.headlineSmall),
+        Row(
+          children: [
+            Expanded(child: Text('Tabs', style: text.headlineSmall)),
+            if (ref.watch(profileCurrencyProvider).value !=
+                adventure.baseCurrency)
+              const UpdateRatesButton(),
+          ],
+        ),
         if (!open)
           Padding(
             padding: const EdgeInsets.only(top: 4),

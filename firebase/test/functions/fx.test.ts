@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   plainDecimal,
   ratesFromBody,
+  latestRatesOnRequest,
   refreshRates,
   runDailyFxRates,
 } from "../../functions/src/fx/rates";
@@ -99,5 +100,53 @@ describe("dailyFxRates (follow-up C10)", () => {
   it("reports a failed refresh, so the scheduler's 3 retries run", async () => {
     await expect(runDailyFxRates(fakeFetch("", false))).rejects.toThrow(/not refreshed/);
     await expect(runDailyFxRates(fakeFetch(body("2026-10-28")))).resolves.toBeUndefined();
+  });
+});
+
+describe("latestRatesOnRequest (the app's Update rates button, spec §9.1)", () => {
+  const clear = async () => {
+    const all = await db().collection("fx_rates").get();
+    await Promise.all(all.docs.map((d) => d.ref.delete()));
+  };
+
+  it("fetches when there are no rates yet", async () => {
+    await clear();
+    const result = await latestRatesOnRequest(fakeFetch(body("2026-10-30")));
+    expect(result).toEqual({ date: "2026-10-30", refreshed: true });
+  });
+
+  it("doesn't ask the provider again within the hour", async () => {
+    await clear();
+    await refreshRates(fakeFetch(body("2026-10-30")));
+    let asked = false;
+    const result = await latestRatesOnRequest(async () => {
+      asked = true;
+      throw new Error("should not be called");
+    });
+    expect(asked).toBe(false);
+    expect(result).toEqual({ date: "2026-10-30", refreshed: false });
+  });
+
+  it("asks again once an hour has passed, and keeps the older day's rates", async () => {
+    await clear();
+    await refreshRates(fakeFetch(body("2026-10-30")));
+    const later = new Date(Date.now() + 61 * 60 * 1000);
+    const result = await latestRatesOnRequest(fakeFetch(body("2026-10-31")), later);
+    expect(result).toEqual({ date: "2026-10-31", refreshed: true });
+    expect((await db().doc("fx_rates/2026-10-30").get()).exists).toBe(true);
+  });
+
+  it("during an outage reports the last known day, or none", async () => {
+    await clear();
+    expect(await latestRatesOnRequest(fakeFetch("", false))).toEqual({
+      date: null,
+      refreshed: false,
+    });
+    await refreshRates(fakeFetch(body("2026-10-30")));
+    const later = new Date(Date.now() + 61 * 60 * 1000);
+    expect(await latestRatesOnRequest(fakeFetch("", false), later)).toEqual({
+      date: "2026-10-30",
+      refreshed: false,
+    });
   });
 });
