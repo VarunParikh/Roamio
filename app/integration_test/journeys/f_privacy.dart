@@ -44,6 +44,8 @@ void journeyF() {
           amountMinor: 1600000,
           participants: [ari.uid, bob.uid],
           description: 'Villa',
+          // Bob is the only admin, so his tab counts at once.
+          status: 'approved',
         ),
       ),
       200,
@@ -97,7 +99,7 @@ void journeyF() {
     expect(await getDoc('adventures/$aid/budgets/${ari.uid}'), isNull);
     final adventure = (await getDoc('adventures/$aid'))!;
     expect(adventure['memberUids'], isNot(contains(ari.uid)));
-    final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+    final tabs = await sharedTabs(aid, as: bob);
     expect(tabs.single['participants'], contains(ari.uid));
     final audit = await listDocs('auditLog');
     expect(

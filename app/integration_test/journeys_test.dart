@@ -7,6 +7,7 @@ import 'journeys/c_tabs.dart';
 import 'journeys/d_offline.dart';
 import 'journeys/e_minor.dart';
 import 'journeys/f_privacy.dart';
+import 'journeys/g_approval.dart';
 import 'support/emulators.dart';
 
 /// The spec §15 journeys A–F, end to end: the real app on an Android
@@ -27,4 +28,5 @@ void main() {
   journeyD();
   journeyE();
   journeyF();
+  journeyG();
 }
