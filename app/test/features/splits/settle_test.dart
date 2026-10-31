@@ -7,6 +7,7 @@ import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 
 import '../../support/fake_adventure_service.dart';
@@ -62,7 +63,6 @@ Future<FakeSettlementService> _openDetails(
   );
   await tester.tap(find.text('Split'));
   await tester.pumpAndSettle();
-  await _tap(tester, find.text('See the details'));
   return settlements;
 }
 
@@ -73,18 +73,32 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
-Finder _settleOn(String row) => find.descendant(
-  of: find.ancestor(of: find.text(row), matching: find.byType(Row)).first,
-  matching: find.text('Mark as settled'),
+Finder _row(String from, String to) =>
+    find.byKey(ValueKey('transfer-$from-$to'));
+
+Finder _arrowOn(String from, String to) => find.descendant(
+  of: _row(from, to),
+  matching: find.byIcon(Icons.chevron_right),
 );
+
+Future<void> _breakdown(WidgetTester tester) =>
+    _tap(tester, find.text('See detailed breakdown'));
 
 void main() {
   group('Mark as settled (spec UC-26a)', () {
     testWidgets('records a suggested transfer in full', (tester) async {
       final s = await _openDetails(tester);
 
-      await _tap(tester, _settleOn('Kiko pays you'));
+      await _tap(tester, _row('kiko', 'ari'));
       expect(find.textContaining('No money moves in Roamio'), findsOneWidget);
+      // Both people, with their pictures (spec UC-28a).
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(PersonAvatar),
+        ),
+        findsNWidgets(2),
+      );
       final amount = tester.widget<TextField>(find.byType(TextField).last);
       expect(amount.controller!.text, '500.00');
       await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
@@ -96,14 +110,15 @@ void main() {
         ('kiko', 'ari', 50000, 'INR', '2026-10-29'),
       );
       expect(find.text('All square 🎉'), findsOneWidget);
-      expect(find.text('Kiko pays you'), findsNothing);
-      expect(find.text('Kiko pays Ben Roy'), findsOneWidget);
+      expect(_row('kiko', 'ari'), findsNothing);
+      expect(_row('kiko', 'ben'), findsOneWidget);
+      await _breakdown(tester);
       expect(find.text('Kiko paid you'), findsOneWidget);
     });
 
     testWidgets('a part payment can be recorded, but not more', (tester) async {
       final s = await _openDetails(tester);
-      await _tap(tester, _settleOn('Kiko pays you'));
+      await _tap(tester, _row('kiko', 'ari'));
 
       await tester.enterText(find.byType(TextField).last, '600');
       await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
@@ -123,8 +138,8 @@ void main() {
     ) async {
       await _openDetails(tester, as: 'ben');
       // Ben is in "Kiko pays Ben" but not in "Kiko pays Ari", and isn't a lead.
-      expect(_settleOn('Kiko pays you'), findsOneWidget);
-      expect(_settleOn('Kiko pays Ari Chen'), findsNothing);
+      expect(_arrowOn('kiko', 'ben'), findsOneWidget);
+      expect(_arrowOn('kiko', 'ari'), findsNothing);
     });
 
     testWidgets('a recorded payment can be undone', (tester) async {
@@ -143,6 +158,7 @@ void main() {
         ],
       );
       expect(find.text('All square 🎉'), findsOneWidget);
+      await _breakdown(tester);
       expect(find.text('Kiko paid you'), findsOneWidget);
 
       await _tap(tester, find.byTooltip('Undo'));

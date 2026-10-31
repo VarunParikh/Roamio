@@ -110,28 +110,32 @@ void journeyC() {
     await settle(tester);
     await tapText(tester, 'Split');
     await waitFor(tester, find.text('You’re owed €65.00'));
-    await tapText(tester, 'You’re owed €65.00');
-    await waitFor(tester, find.text('In INR: You’re owed ₹6,500.00'));
-    await tapText(tester, 'See the details');
+    await tapOn(tester, find.byTooltip('More options'));
+    await tapText(tester, 'Show in INR');
+    await waitFor(tester, find.text('You’re owed ₹6,500.00'));
+    await tapOn(tester, find.byTooltip('More options'));
+    await tapText(tester, 'Show in EUR');
+    await waitFor(tester, find.text('You’re owed €65.00'));
+    await tapText(tester, 'See detailed breakdown');
     await waitFor(tester, find.text('Balances'));
     // Ari, Bob and Kiko's balances, which sum to zero.
     expect(find.text('+€65.00'), findsOneWidget);
     expect(find.text('-€29.00'), findsOneWidget);
     expect(find.text('-€36.00'), findsOneWidget);
-    expect(find.text('Kiko pays you'), findsOneWidget);
-    expect(find.text('Bob Member pays you'), findsOneWidget);
+    expect(_transfer(kiko, ari.uid), findsOneWidget);
+    expect(_transfer(bob.uid, ari.uid), findsOneWidget);
 
     // Ari records both suggested transfers (a lead records for the pal).
-    for (final row in ['Kiko pays you', 'Bob Member pays you']) {
-      await tapOn(tester, _settleOn(row));
+    for (final row in [_transfer(kiko, ari.uid), _transfer(bob.uid, ari.uid)]) {
+      await tapOn(tester, row);
       await tapOn(
         tester,
         find.widgetWithText(PrimaryButton, 'Mark as settled'),
       );
-      await waitForGone(tester, find.text(row));
+      await waitForGone(tester, row);
     }
     await waitFor(tester, find.text('All square 🎉'));
-    expect(find.text('Everyone is square.'), findsOneWidget);
+    expect(find.text('Everyone is square 🎉'), findsOneWidget);
     final paid = await listDocs('adventures/$aid/settlements', as: bob);
     expect(
       {for (final p in paid) p['from']: (p['amountMinor'], p['currency'])},
@@ -161,7 +165,5 @@ void journeyC() {
   });
 }
 
-Finder _settleOn(String row) => find.descendant(
-  of: find.ancestor(of: find.text(row), matching: find.byType(Row)).first,
-  matching: find.text('Mark as settled'),
-);
+Finder _transfer(String from, String to) =>
+    find.byKey(ValueKey('transfer-$from-$to'));

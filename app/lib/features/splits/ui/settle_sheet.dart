@@ -14,6 +14,7 @@ Future<int?> showSettleSheet(
   required int suggestedMinor,
   required String currency,
   required String? symbol,
+  required Widget people,
 }) => showModalBottomSheet<int>(
   context: context,
   useRootNavigator: true,
@@ -24,6 +25,7 @@ Future<int?> showSettleSheet(
     suggestedMinor: suggestedMinor,
     currency: currency,
     symbol: symbol,
+    people: people,
   ),
 );
 
@@ -33,12 +35,16 @@ class _SettleSheet extends StatefulWidget {
     required this.suggestedMinor,
     required this.currency,
     required this.symbol,
+    required this.people,
   });
 
   final String title;
   final int suggestedMinor;
   final String currency;
   final String? symbol;
+
+  /// Who is paying whom, with their pictures (spec UC-28a).
+  final Widget people;
 
   @override
   State<_SettleSheet> createState() => _SettleSheetState();
@@ -88,7 +94,9 @@ class _SettleSheetState extends State<_SettleSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Mark as settled', style: text.headlineSmall),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
+          widget.people,
+          const SizedBox(height: 12),
           Text(
             '${widget.title} outside the app. No money moves in Roamio; '
             'this just records it.',

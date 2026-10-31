@@ -1,11 +1,15 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/splits/ui/who_pays_whom.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
+import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
@@ -42,6 +46,36 @@ final _dinner = TabEntry(
   ),
 );
 
+ValueKey<String> _row(String from, String to) => ValueKey('transfer-$from-$to');
+
+Finder _arrowOn(String from, String to) => find.descendant(
+  of: find.byKey(_row(from, to)),
+  matching: find.byIcon(Icons.chevron_right),
+);
+
+/// A ₹[minor] tab of [status], paid by [paidBy] and shared by [among].
+TabEntry _tab(
+  String id,
+  int minor, {
+  required String paidBy,
+  required List<String> among,
+  TabStatus status = TabStatus.approved,
+  String currency = 'INR',
+}) => TabEntry(
+  id: id,
+  description: id,
+  category: 'food_dining',
+  date: DateTime(2026, 10, 27),
+  createdBy: paidBy,
+  status: status,
+  split: TabSplit(
+    amount: Money(minor, currency),
+    payers: [Payment(paidBy, minor)],
+    participants: among,
+    fxDate: '2026-10-27',
+  ),
+);
+
 Future<void> _openSplit(
   WidgetTester tester, {
   String as = 'ari',
@@ -50,6 +84,7 @@ Future<void> _openSplit(
   String currency = 'INR',
   Map<String, String> rates = const {},
   FakeSquadService? squad,
+  bool exportEnabled = true,
 }) async {
   await pumpRoamio(
     tester,
@@ -63,6 +98,7 @@ Future<void> _openSplit(
       ..palsByAdventure['bkk'] = [const Pal(id: 'kiko', nickname: 'Kiko')],
     fx: FakeFxRepository(rates),
     profileCurrency: currency,
+    exportEnabled: exportEnabled,
   );
   await tester.tap(find.text('Split'));
   await tester.pumpAndSettle();
@@ -82,15 +118,18 @@ void main() {
     ) async {
       await _openSplit(tester);
 
+      expect(find.text('₹1,500.00 spent by you'), findsOneWidget);
       expect(find.text('You’re owed ₹500.00'), findsOneWidget);
-      // Details only on request.
-      expect(find.text('Who pays whom'), findsNothing);
+      // Who pays whom is always there; the rest on request.
+      expect(find.text('Who pays whom'), findsOneWidget);
+      expect(find.byKey(_row('kiko', 'ari')), findsOneWidget);
+      expect(find.byKey(_row('kiko', 'ben')), findsOneWidget);
+      expect(find.text('Balances'), findsNothing);
 
-      await _tap(tester, find.text('See the details'));
-      expect(find.text('Kiko pays you'), findsOneWidget);
-      expect(find.text('Kiko pays Ben Roy'), findsOneWidget);
-      expect(find.text('₹500.00'), findsWidgets);
-      expect(find.text('₹250.00'), findsWidgets);
+      expect(find.text('pays ₹500.00'), findsOneWidget);
+      expect(find.text('pays ₹250.00'), findsOneWidget);
+
+      await _tap(tester, find.text('See detailed breakdown'));
       expect(find.text('+₹250.00'), findsOneWidget); // Ben's balance
       expect(find.text('-₹750.00'), findsOneWidget); // Kiko's balance
       expect(find.textContaining('Food & Dining'), findsOneWidget);
@@ -117,7 +156,7 @@ void main() {
       );
       await _openSplit(tester, tabs: [taxi], squad: squad);
 
-      await _tap(tester, find.text('See the details'));
+      await _tap(tester, find.text('See detailed breakdown'));
       expect(find.textContaining('Dan Lee'), findsWidgets);
       expect(find.textContaining('Deleted user'), findsWidgets);
       expect(find.textContaining('Left'), findsNothing);
@@ -141,9 +180,14 @@ void main() {
       // ₹500 at 84 INR and 35 THB per USD.
       expect(find.text('You’re owed ฿208.34'), findsOneWidget);
 
-      // Tapping shows the trip-currency figure.
-      await _tap(tester, find.text('You’re owed ฿208.34'));
-      expect(find.text('In INR: You’re owed ₹500.00'), findsOneWidget);
+      // The menu switches the figures to the trip's currency, and back.
+      await _tap(tester, find.byTooltip('More options'));
+      await _tap(tester, find.text('Show in INR'));
+      expect(find.text('You’re owed ₹500.00'), findsOneWidget);
+      expect(find.text('₹1,500.00 spent by you'), findsOneWidget);
+      await _tap(tester, find.byTooltip('More options'));
+      await _tap(tester, find.text('Show in THB'));
+      expect(find.text('You’re owed ฿208.34'), findsOneWidget);
     });
 
     testWidgets('without rates it shows the trip currency and says so', (
@@ -161,6 +205,276 @@ void main() {
       await _openSplit(tester, tabs: const []);
       expect(find.text('All square 🎉'), findsOneWidget);
       expect(find.text('No tabs yet in Goa trip.'), findsOneWidget);
+      expect(find.text('Open adventure'), findsOneWidget);
+    });
+
+    testWidgets('the budget sits inside the top card', (tester) async {
+      await _openSplit(tester);
+      expect(
+        find.descendant(
+          of: find.ancestor(
+            of: find.text('₹1,500.00 spent by you'),
+            matching: find.byType(Card),
+          ),
+          matching: find.text('Set a budget'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    group('Who pays whom', () {
+      testWidgets('a lead can act on a pal’s rows and their own', (
+        tester,
+      ) async {
+        await _openSplit(tester);
+        expect(_arrowOn('kiko', 'ari'), findsOneWidget);
+        expect(_arrowOn('kiko', 'ben'), findsOneWidget);
+      });
+
+      testWidgets('a member can act only on their own rows', (tester) async {
+        await _openSplit(tester, as: 'ben');
+        expect(_arrowOn('kiko', 'ben'), findsOneWidget);
+        expect(_arrowOn('kiko', 'ari'), findsNothing);
+
+        // Tapping a display-only row does nothing.
+        await _tap(tester, find.byKey(_row('kiko', 'ari')));
+        expect(find.textContaining('No money moves in Roamio'), findsNothing);
+      });
+
+      testWidgets('someone not in a row, and not a lead, can’t act on it', (
+        tester,
+      ) async {
+        final trip = Adventure(
+          id: 'bkk',
+          name: 'Goa trip',
+          countryCode: 'IN',
+          startDate: DateTime(2026, 10, 20),
+          endDate: DateTime(2026, 11, 2),
+          baseCurrency: 'INR',
+          leaderUid: 'ari',
+          memberUids: const ['ari', 'ben', 'cara'],
+        );
+        await _openSplit(
+          tester,
+          as: 'ben',
+          adventure: trip,
+          tabs: [
+            _tab('t', 100000, paidBy: 'ari', among: ['ari', 'cara']),
+          ],
+        );
+        expect(find.byKey(_row('cara', 'ari')), findsOneWidget);
+        expect(_arrowOn('cara', 'ari'), findsNothing);
+      });
+
+      testWidgets('rows show pictures and TalkBack reads the whole payment', (
+        tester,
+      ) async {
+        final semantics = tester.ensureSemantics();
+        await _openSplit(tester);
+        expect(
+          find.descendant(
+            of: find.byKey(_row('kiko', 'ari')),
+            matching: find.byType(PersonAvatar),
+          ),
+          findsNWidgets(2),
+        );
+        expect(
+          find.bySemanticsLabel('Kiko pays you ₹500.00. Mark as settled'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel('Kiko pays Ben Roy ₹250.00. Mark as settled'),
+          findsOneWidget,
+        );
+        semantics.dispose();
+      });
+
+      final everyone = ['ari', 'ben', 'p1', 'p2', 'p3', 'p4', 'p5'];
+      final squad = FakeSquadService();
+
+      testWidgets('first 4, then View all; your own rows come first', (
+        tester,
+      ) async {
+        await _openSplit(
+          tester,
+          as: 'ben',
+          tabs: [
+            _tab('big', 700000, paidBy: 'ari', among: everyone),
+            _tab('small', 10000, paidBy: 'ben', among: ['ben', 'p5']),
+          ],
+          squad: squad,
+        );
+        // Ben owes least, but his is the row he can act on, so it's on top.
+        expect(find.byType(TransferRow), findsNWidgets(4));
+        expect(
+          tester.getTopLeft(find.byKey(_row('ben', 'ari'))).dy,
+          lessThan(tester.getTopLeft(find.byType(TransferRow).at(1)).dy),
+        );
+
+        await _tap(tester, find.text('View all'));
+        expect(find.byType(TransferRow), findsNWidgets(6));
+        await _tap(tester, find.text('Show fewer'));
+        expect(find.byType(TransferRow), findsNWidgets(4));
+      });
+
+      testWidgets('no View all at 4 rows or fewer', (tester) async {
+        await _openSplit(tester);
+        expect(find.text('View all'), findsNothing);
+      });
+
+      testWidgets('settled: everyone is square', (tester) async {
+        await _openSplit(
+          tester,
+          tabs: [
+            _tab('solo', 100000, paidBy: 'ari', among: ['ari', 'ben']),
+            _tab('back', 100000, paidBy: 'ben', among: ['ari', 'ben']),
+          ],
+        );
+        expect(find.text('₹1,000.00 spent by you'), findsOneWidget);
+        expect(find.text('All square 🎉'), findsOneWidget);
+        expect(find.text('Everyone is square 🎉'), findsOneWidget);
+        expect(find.text('See detailed breakdown'), findsOneWidget);
+      });
+
+      testWidgets('long names and big amounts fit a small phone', (
+        tester,
+      ) async {
+        tester.view
+          ..physicalSize = const Size(320, 640)
+          ..devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        final long = FakeSquadService()
+          ..names['cara'] = 'Carolina Fernandez-Montgomery the Third';
+        await _openSplit(
+          tester,
+          squad: long,
+          tabs: [
+            _tab('t', 900000000, paidBy: 'ari', among: ['ari', 'cara']),
+          ],
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(_row('cara', 'ari')), findsOneWidget);
+      });
+    });
+
+    group('the "•••" menu', () {
+      testWidgets('holds Export; no currency switch when they match', (
+        tester,
+      ) async {
+        await _openSplit(tester);
+        await _tap(tester, find.byTooltip('More options'));
+        expect(find.text('Export'), findsOneWidget);
+        expect(find.textContaining('Show in'), findsNothing);
+      });
+
+      testWidgets('is gone when it would be empty', (tester) async {
+        await _openSplit(tester, exportEnabled: false);
+        expect(find.byTooltip('More options'), findsNothing);
+      });
+
+      testWidgets('with no tabs there’s nothing to export', (tester) async {
+        await _openSplit(tester, tabs: const []);
+        expect(find.byTooltip('More options'), findsNothing);
+      });
+
+      testWidgets('without rates there’s no currency to switch to', (
+        tester,
+      ) async {
+        await _openSplit(tester, currency: 'THB');
+        await _tap(tester, find.byTooltip('More options'));
+        expect(find.textContaining('Show in'), findsNothing);
+      });
+    });
+
+    group('tabs waiting for approval', () {
+      final waiting = [
+        _tab(
+          'w1',
+          30000,
+          paidBy: 'ben',
+          among: ['ari', 'ben'],
+          status: TabStatus.waiting,
+        ),
+        _tab(
+          'w2',
+          40000,
+          paidBy: 'ben',
+          among: ['ari', 'ben'],
+          status: TabStatus.waiting,
+        ),
+      ];
+
+      testWidgets('a note under the top card opens the tab list', (
+        tester,
+      ) async {
+        await _openSplit(tester, tabs: [_dinner, ...waiting]);
+        expect(find.text('₹1,500.00 spent by you'), findsOneWidget);
+        await _tap(tester, find.text('2 tabs waiting, not counted'));
+        expect(find.byType(TabsSection), findsOneWidget);
+      });
+
+      testWidgets('one tab reads in the singular', (tester) async {
+        await _openSplit(tester, tabs: [_dinner, waiting.first]);
+        expect(find.text('1 tab waiting, not counted'), findsOneWidget);
+      });
+
+      testWidgets('only waiting tabs: says so, not "No tabs yet"', (
+        tester,
+      ) async {
+        await _openSplit(tester, tabs: waiting);
+        expect(find.textContaining('No tabs yet'), findsNothing);
+        expect(find.text('Who pays whom'), findsNothing);
+        expect(find.textContaining('not counted'), findsNothing);
+        await _tap(tester, find.text('2 tabs waiting for approval'));
+        expect(find.byType(TabsSection), findsOneWidget);
+      });
+    });
+
+    testWidgets('only personal tabs: counted for you, nothing to split', (
+      tester,
+    ) async {
+      await _openSplit(
+        tester,
+        tabs: [
+          _tab(
+            'p',
+            50000,
+            paidBy: 'ari',
+            among: ['ari'],
+            status: TabStatus.personal,
+          ),
+        ],
+      );
+      expect(find.text('₹500.00 spent by you'), findsOneWidget);
+      expect(find.textContaining('No tabs yet'), findsNothing);
+      expect(find.text('Only your personal tabs so far.'), findsOneWidget);
+      expect(find.text('Open adventure'), findsOneWidget);
+    });
+
+    testWidgets('rates missing for a tab: a note, not a false ₹0', (
+      tester,
+    ) async {
+      await _openSplit(
+        tester,
+        tabs: [
+          _tab(
+            'eur',
+            9000,
+            paidBy: 'ari',
+            among: ['ari', 'ben'],
+            currency: 'EUR',
+          ),
+        ],
+      );
+      expect(find.textContaining('spent by you'), findsNothing);
+      expect(
+        find.text(
+          'We can’t work out this split yet: exchange rates aren’t '
+          'available.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('No tabs yet'), findsNothing);
       expect(find.text('Open adventure'), findsOneWidget);
     });
 

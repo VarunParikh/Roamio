@@ -10,8 +10,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_format.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
-import 'package:roamio/features/auth/ui/auth_scaffold.dart';
-import 'package:roamio/features/budget/ui/budget_card.dart';
+import 'package:roamio/features/budget/ui/budget_widget.dart';
 import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
@@ -20,7 +19,9 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/splits/ui/settle_sheet.dart';
+import 'package:roamio/features/splits/ui/who_pays_whom.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
@@ -142,10 +143,15 @@ class _AdventureSplit extends ConsumerStatefulWidget {
 class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
   bool _details = false;
 
+  /// The "•••" switch: figures in the trip's currency, not the viewer's.
+  bool _inTripCurrency = false;
+
   @override
   Widget build(BuildContext context) {
     final a = widget.adventure;
-    final report = ref.watch(splitReportProvider(a.id));
+    final report = _inTripCurrency
+        ? ref.watch(reportInProvider((a.id, a.baseCurrency)))
+        : ref.watch(splitReportProvider(a.id));
     final r = report.value;
     if (r == null && report.hasError) {
       return Padding(
@@ -178,34 +184,98 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     final slate = text.bodyMedium?.copyWith(color: RoamioColors.slate);
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     final symbol = ref.watch(countriesProvider).value?.symbolFor(r.currency);
-    final labels = squadLabels(ref, a);
-    String who(String id) => labels[id] ?? 'Left';
-    final empty = r.totalSpend == 0 && r.balances.values.every((b) => b == 0);
+    final people = squadPeople(ref, a);
+    String who(String id) => people[id]?.name ?? 'Left';
+    // Nothing counted for the squad: the tab list is the next step.
+    final nothingShared =
+        r.totalSpend == 0 && r.balances.values.every((b) => b == 0);
+    // Rates were missing even for the trip's own currency.
+    final unmeasured = r.missingRates && r.balances.isEmpty;
     final settled =
         ref.watch(settlementsProvider(a.id)).value ?? const <SettlementEntry>[];
+    void openTabs() => context.push('/adventures/${a.id}');
+    final myCurrency = ref.watch(profileCurrencyProvider).value;
+    final switchTo = myCurrency == null || myCurrency == a.baseCurrency
+        ? null
+        : _inTripCurrency
+        ? myCurrency
+        : r.missingRates
+        ? null
+        : a.baseCurrency;
+    final canExport = !nothingShared && ref.watch(exportEnabledProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: () => _showBase(r),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(a.name, style: slate),
-                  const SizedBox(height: 8),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: Text(a.name, style: slate)),
+                    if (canExport || switchTo != null)
+                      PopupMenuButton<VoidCallback>(
+                        tooltip: 'More options',
+                        icon: const Icon(
+                          Icons.more_horiz,
+                          color: RoamioColors.slate,
+                        ),
+                        onSelected: (action) => action(),
+                        itemBuilder: (_) => [
+                          if (canExport)
+                            PopupMenuItem(
+                              value: () => showExportSheet(
+                                context,
+                                ref,
+                                adventure: a,
+                                report: r,
+                              ),
+                              child: const Text('Export'),
+                            ),
+                          if (switchTo != null)
+                            PopupMenuItem(
+                              value: () => setState(
+                                () => _inTripCurrency = !_inTripCurrency,
+                              ),
+                              child: Text('Show in $switchTo'),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+                if (unmeasured)
+                  Text(
+                    'We can’t work out this split yet: exchange rates aren’t '
+                    'available.',
+                    style: text.bodyMedium?.copyWith(
+                      color: RoamioColors.coralText,
+                    ),
+                  )
+                else ...[
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: _money(ref, r.myShare, r.currency),
+                          style: text.headlineMedium,
+                        ),
+                        TextSpan(text: ' spent by you', style: slate),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Text(
                     headline(r.mine, r.currency, symbol),
-                    style: text.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Total spend ${_money(ref, r.totalSpend, r.currency)}',
-                    style: slate,
+                    style: text.titleMedium?.copyWith(
+                      color: r.mine > 0
+                          ? RoamioColors.mintText
+                          : r.mine < 0
+                          ? RoamioColors.coralText
+                          : null,
+                    ),
                   ),
                   if (r.missingRates) ...[
                     const SizedBox(height: 8),
@@ -218,121 +288,122 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
                     ),
                   ],
                 ],
-              ),
+                const SizedBox(height: 8),
+                BudgetWidget(adventure: a),
+              ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        BudgetCard(adventure: a),
+        if (r.waitingCount > 0 && !nothingShared)
+          TextButton(
+            onPressed: openTabs,
+            child: Text('${_tabCount(r.waitingCount)} waiting, not counted'),
+          ),
         const SizedBox(height: 16),
-        if (!empty && ref.watch(exportEnabledProvider))
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () =>
-                  showExportSheet(context, ref, adventure: a, report: r),
-              icon: const Icon(Icons.ios_share),
-              label: const Text('Export'),
-            ),
-          ),
-        if (empty) ...[
-          Text(
-            'No tabs yet in ${a.name}.',
-            style: slate,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
+        if (r.waitingCount > 0 && nothingShared)
           OutlinedButton(
-            onPressed: () => context.push('/adventures/${a.id}'),
+            onPressed: openTabs,
+            child: Text('${_tabCount(r.waitingCount)} waiting for approval'),
+          )
+        else if (nothingShared) ...[
+          if (!unmeasured) ...[
+            Text(
+              r.myShare > 0
+                  ? 'Only your personal tabs so far.'
+                  : 'No tabs yet in ${a.name}.',
+              style: slate,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+          ],
+          OutlinedButton(
+            onPressed: openTabs,
             child: const Text('Open adventure'),
           ),
-        ] else if (!_details)
-          OutlinedButton(
-            onPressed: () => setState(() => _details = true),
-            child: const Text('See the details'),
-          )
-        else ...[
-          Text('Who pays whom', style: text.titleMedium),
-          const SizedBox(height: 4),
-          if (r.transfers.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text('Everyone is square.', style: text.bodyLarge),
-            ),
-          for (final t in r.transfers)
-            _TransferRow(
-              label: t.from == myUid
-                  ? 'You pay ${who(t.to)}'
-                  : t.to == myUid
-                  ? '${who(t.from)} pays you'
-                  : '${who(t.from)} pays ${who(t.to)}',
-              amount: _money(ref, t.amount.minor, r.currency),
-              onSettle: _maySettle(t.from, t.to)
-                  ? () => _settle(r, t.from, t.to)
-                  : null,
-            ),
-          const SizedBox(height: 20),
-          if (settled.isNotEmpty) ...[
-            Text('Payments recorded', style: text.titleMedium),
+        ] else ...[
+          WhoPaysWhom(
+            transfers: r.transfers,
+            people: people,
+            myUid: myUid,
+            nameOf: who,
+            amountOf: (t) => _money(ref, t.amount.minor, r.currency),
+            mayAct: (t) => _maySettle(t.from, t.to),
+            onAct: (t) => _settle(r, t.from, t.to),
+          ),
+          const SizedBox(height: 16),
+          if (!_details)
+            OutlinedButton(
+              onPressed: () => setState(() => _details = true),
+              child: const Text('See detailed breakdown'),
+            )
+          else ...[
             const SizedBox(height: 4),
-            for (final p in settled)
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_paid(p.from, p.to), style: text.bodyLarge),
-                        Text(
-                          '${formatDay(parseIsoDate(p.date))} · '
-                          '${_money(ref, p.amountMinor, p.currency)}',
-                          style: slate,
-                        ),
-                      ],
+            if (settled.isNotEmpty) ...[
+              Text('Payments recorded', style: text.titleMedium),
+              const SizedBox(height: 4),
+              for (final p in settled)
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_paid(p.from, p.to), style: text.bodyLarge),
+                          Text(
+                            '${formatDay(parseIsoDate(p.date))} · '
+                            '${_money(ref, p.amountMinor, p.currency)}',
+                            style: slate,
+                          ),
+                        ],
+                      ),
                     ),
+                    if (_maySettle(p.from, p.to))
+                      IconButton(
+                        tooltip: 'Undo',
+                        icon: const Icon(Icons.undo),
+                        onPressed: () => _undo(p),
+                      ),
+                  ],
+                ),
+              const SizedBox(height: 20),
+            ],
+            _Section(
+              title: 'Balances',
+              rows: [
+                for (final MapEntry(:key, :value) in r.balances.entries)
+                  (
+                    key == myUid ? 'You' : who(key),
+                    _money(ref, value, r.currency, sign: true),
                   ),
-                  if (_maySettle(p.from, p.to))
-                    IconButton(
-                      tooltip: 'Undo',
-                      icon: const Icon(Icons.undo),
-                      onPressed: () => _undo(p),
-                    ),
-                ],
-              ),
-            const SizedBox(height: 20),
+              ],
+            ),
+            _Section(
+              title: 'By category',
+              rows: [
+                ('Total spend', _money(ref, r.totalSpend, r.currency)),
+                for (final MapEntry(:key, :value) in _sorted(r.byCategory))
+                  (_categoryLabel(key), _money(ref, value, r.currency)),
+              ],
+            ),
+            _Section(
+              title: 'By day',
+              rows: [
+                for (final day
+                    in r.byDay.keys.toList()..sort((x, y) => y.compareTo(x)))
+                  (
+                    dayLabel(day, ref.watch(todayProvider)),
+                    _money(ref, r.byDay[day]!, r.currency),
+                  ),
+              ],
+            ),
           ],
-          _Section(
-            title: 'Balances',
-            rows: [
-              for (final MapEntry(:key, :value) in r.balances.entries)
-                (
-                  key == myUid ? 'You' : who(key),
-                  _money(ref, value, r.currency, sign: true),
-                ),
-            ],
-          ),
-          _Section(
-            title: 'By category',
-            rows: [
-              for (final MapEntry(:key, :value) in _sorted(r.byCategory))
-                (_categoryLabel(key), _money(ref, value, r.currency)),
-            ],
-          ),
-          _Section(
-            title: 'By day',
-            rows: [
-              for (final day
-                  in r.byDay.keys.toList()..sort((x, y) => y.compareTo(x)))
-                (
-                  dayLabel(day, ref.watch(todayProvider)),
-                  _money(ref, r.byDay[day]!, r.currency),
-                ),
-            ],
-          ),
         ],
       ],
     );
   }
+
+  /// "1 tab", "2 tabs".
+  String _tabCount(int n) => n == 1 ? '1 tab' : '$n tabs';
 
   String get _me => ref.read(sessionFactsProvider).value?.uid ?? '';
 
@@ -377,6 +448,7 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     final amount = await showSettleSheet(
       context,
       title: _paid(from, to),
+      people: _SettlePeople(from: from, to: to, adventure: widget.adventure),
       suggestedMinor: suggested,
       currency: base,
       symbol: ref.read(countriesProvider).value?.symbolFor(base),
@@ -419,15 +491,6 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
     }
   }
 
-  /// UC-26: the figure in the trip's own currency, on tap.
-  void _showBase(SplitReport r) {
-    final base = widget.adventure.baseCurrency;
-    if (base == r.currency) return;
-    final mine = r.baseBalances[ref.read(sessionFactsProvider).value?.uid];
-    final symbol = ref.read(countriesProvider).value?.symbolFor(base);
-    showAuthMessage(context, 'In $base: ${headline(mine ?? 0, base, symbol)}');
-  }
-
   List<MapEntry<String, int>> _sorted(Map<String, int> m) =>
       m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
 
@@ -439,38 +502,34 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
   }
 }
 
-class _TransferRow extends StatelessWidget {
-  const new({required this.label, required this.amount, this.onSettle});
+/// Who a payment being recorded is between, with their pictures.
+class _SettlePeople extends ConsumerWidget {
+  const new({required this.from, required this.to, required this.adventure});
 
-  final String label;
-  final String amount;
-
-  /// Null when the viewer may not record this payment.
-  final VoidCallback? onSettle;
+  final String from;
+  final String to;
+  final Adventure adventure;
 
   @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: text.bodyLarge),
-                Text(amount, style: text.titleMedium),
-              ],
-            ),
-          ),
-          if (onSettle != null)
-            TextButton(
-              onPressed: onSettle,
-              child: const Text('Mark as settled'),
-            ),
-        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final me = ref.watch(sessionFactsProvider).value?.uid;
+    final people = squadPeople(ref, adventure);
+    Widget person(String id) => Flexible(
+      child: PersonName(
+        uid: id,
+        person: people[id],
+        name: id == me ? 'You' : null,
       ),
+    );
+    return Row(
+      children: [
+        person(from),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Icon(Icons.arrow_forward, size: 16, color: RoamioColors.slate),
+        ),
+        person(to),
+      ],
     );
   }
 }

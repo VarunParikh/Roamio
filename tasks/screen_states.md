@@ -47,8 +47,11 @@ Tests:
 | Activity | can't load | Try again | `screen_states_test` |
 | Split | no adventures | New Adventure | `screen_states_test`: Split with no adventures → New Adventure |
 | Split | no tabs | Open adventure | `split_screen_test`: no tabs: all square, with a way to add one |
+| Split | only waiting tabs | "2 tabs waiting for approval" opens the tab list | `split_screen_test`: only waiting tabs |
+| Split | only personal tabs | Open adventure | `split_screen_test`: only personal tabs |
+| Split | everyone settled | Everyone is square 🎉; the breakdown still opens | `split_screen_test`: settled |
 | Split | can't work out the split | Try again | `screen_states_test` |
-| Split | no exchange rates | shown in trip currency, with the reason | `split_screen_test` |
+| Split | no exchange rates | shown in trip currency, with the reason; if even that can't be worked out, a note and Open adventure | `split_screen_test` |
 | Budget | rates missing | says it can't measure yet | `budget_test` |
 | Sync | failed | Try again | `offline_ui_test`: a failed sync shows the error and Try again |
 | You | photo can't be read | says so (pick another) | `screen_states_test`: You: a photo that can't be read says so |
