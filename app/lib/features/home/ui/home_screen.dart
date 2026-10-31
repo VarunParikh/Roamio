@@ -3,25 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
-import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/adventures/ui/adventure_card.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
-import 'package:roamio/features/budget/ui/budget_alerts.dart';
+import 'package:roamio/features/home/ui/first_screen_cards.dart';
+import 'package:roamio/features/home/ui/needs_you.dart';
 import 'package:roamio/features/invites/ui/invites_on_home.dart';
 import 'package:roamio/features/notifications/ui/notification_prompt.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/profile/ui/character_avatar.dart';
-import 'package:roamio/features/profile/ui/character_prompt.dart';
-import 'package:roamio/features/squad/ui/join_cards.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
-import 'package:roamio/features/tabs/ui/tab_notice_cards.dart';
 
 const newAdventureRoute = '/adventures/new';
 
-/// Home (UC-5, UC-6): greeting, the hero adventure, what's coming up and
-/// what's past. With nothing yet, one pulsing New Adventure button.
+/// Home (UC-5, UC-6): greeting, the adventure card, what needs you, what's
+/// coming up and what's past. With nothing ahead, the image card instead.
 class HomeScreen extends ConsumerStatefulWidget {
   const new({super.key});
 
@@ -79,59 +76,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(height: 24),
           const SyncBanner(),
-          const CharacterPrompt(),
-          const NotificationPrompt(),
-          const BudgetAlerts(),
-          const TabNoticeCards(),
-          const JoinCardsList(),
-          const InvitesList(),
-          if (adventures.hasError)
-            _Message(
-              text: 'We couldn’t load your adventures.',
-              action: OutlinedButton(
-                onPressed: () => ref.invalidate(myAdventuresProvider),
-                child: const Text('Try again'),
-              ),
-            )
-          else if (adventures.isLoading)
+          const PushIdRefresher(),
+          if (adventures.hasError) ...[
+            Text(
+              'We couldn’t load your adventures.',
+              textAlign: TextAlign.center,
+              style: text.bodyLarge?.copyWith(color: RoamioColors.slate),
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => ref.invalidate(myAdventuresProvider),
+              child: const Text('Try again'),
+            ),
+          ] else if (adventures.isLoading)
             const Center(child: CircularProgressIndicator())
-          else if (sections.isEmpty)
-            _Message(
-              text: 'No adventures yet. Start one and invite your squad.',
-              action: PrimaryButton(
-                label: 'New Adventure',
-                icon: Icons.add,
-                pulse: true,
-                onPressed: () => context.push(newAdventureRoute),
-              ),
-            )
-          else ...[
-            if (sections.hero != null)
-              HeroAdventureCard(adventure: sections.hero!),
+          else if (sections.hero != null) ...[
+            HeroAdventureCard(adventure: sections.hero!),
+            const SizedBox(height: 24),
+            const NeedsYou(),
+            OutlinedButton.icon(
+              onPressed: () => context.push(newAdventureRoute),
+              icon: const Icon(Icons.add),
+              label: const Text('New adventure'),
+            ),
             if (sections.upcoming.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text('Coming up', style: text.headlineSmall),
               const SizedBox(height: 8),
               for (final a in sections.upcoming) AdventureTile(adventure: a),
             ],
-            if (sections.past.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(
-                  'Past adventures (${sections.past.length})',
-                  style: text.headlineSmall,
-                ),
-                children: [
-                  for (final a in sections.past) AdventureTile(adventure: a),
-                ],
-              ),
-            ],
+          ] else ...[
+            const InvitesList(),
+            const PlanAdventureCard(),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: () => context.push(newAdventureRoute),
-              icon: const Icon(Icons.add),
-              label: const Text('New adventure'),
+            const NeedsYou(withInvites: false),
+            if (sections.past.isEmpty) const NoAdventuresCard(),
+          ],
+          if (sections.past.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(
+                'Past adventures (${sections.past.length})',
+                style: text.headlineSmall,
+              ),
+              children: [
+                for (final a in sections.past) AdventureTile(adventure: a),
+              ],
             ),
           ],
           const SizedBox(height: 8),
@@ -143,33 +134,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-}
-
-class _Message extends StatelessWidget {
-  const new({required this.text, required this.action});
-
-  final String text;
-  final Widget action;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      const SizedBox(height: 40),
-      const Text(
-        '🧭',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 64),
-      ),
-      const SizedBox(height: 16),
-      Text(
-        text,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyLarge
-            ?.copyWith(color: RoamioColors.slate),
-      ),
-      const SizedBox(height: 24),
-      action,
-    ],
-  );
 }

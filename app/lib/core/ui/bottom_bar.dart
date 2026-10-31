@@ -92,10 +92,16 @@ class _BarButton extends StatelessWidget {
             children: [
               Icon(item.icon, size: 20, color: color),
               const SizedBox(width: 6),
-              Text(
-                item.label,
-                style: Theme.of(context).textTheme.labelLarge
-                    ?.copyWith(color: color),
+              // Shrinks rather than overflows on a small phone or large text.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    item.label,
+                    style: Theme.of(context).textTheme.labelLarge
+                        ?.copyWith(color: color),
+                  ),
+                ),
               ),
             ],
           ),

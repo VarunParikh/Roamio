@@ -187,6 +187,12 @@ void main() {
         FakeAuthService(initial: readyFacts),
         connectivity: FakeConnectivity(online: false),
       );
+      await tester.scrollUntilVisible(
+        find.text('Have an invite code?'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Have an invite code?'));
       await tester.pumpAndSettle();
 

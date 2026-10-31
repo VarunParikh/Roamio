@@ -10,41 +10,29 @@ import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
-/// "Name joined your squad" cards on Home for leads (spec UC-14).
-class JoinCardsList extends ConsumerWidget {
-  const new({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cards = ref.watch(joinCardsProvider).value ?? const [];
-    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
-    final adventures = <String, Adventure>{
-      for (final a
-          in ref.watch(myAdventuresProvider).value ?? const <Adventure>[])
-        a.id: a,
-    };
+/// "Name joined your squad" cards for Needs you, for leads (spec UC-14).
+List<Widget> joinCardItems(WidgetRef ref) {
+  final cards = ref.watch(joinCardsProvider).value ?? const [];
+  final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
+  final adventures = <String, Adventure>{
+    for (final a
+        in ref.watch(myAdventuresProvider).value ?? const <Adventure>[])
+      a.id: a,
+  };
+  return [
     // Only for squads the person still leads.
-    final shown = [
-      for (final c in cards)
-        if (adventures[c.adventureId]?.isLead(myUid) ?? false) c,
-    ];
-    if (shown.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final c in shown)
-          _JoinCardView(
-            card: c,
-            isLeader: adventures[c.adventureId]!.leaderUid == myUid,
-          ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
+    for (final c in cards)
+      if (adventures[c.adventureId]?.isLead(myUid) ?? false)
+        _JoinCardView(
+          key: ValueKey('join-${c.id}'),
+          card: c,
+          isLeader: adventures[c.adventureId]!.leaderUid == myUid,
+        ),
+  ];
 }
 
 class _JoinCardView extends ConsumerStatefulWidget {
-  const new({required this.card, required this.isLeader});
+  const new({required this.card, required this.isLeader, super.key});
 
   final JoinCard card;
   final bool isLeader;

@@ -38,15 +38,22 @@ class InvitesList extends ConsumerWidget {
       children: [
         Text('Invites', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
-        for (final code in codes) _InviteCard(code: code),
+        ...inviteItems(ref),
         const SizedBox(height: 16),
       ],
     );
   }
 }
 
+/// Saved invites, for Needs you (spec UC-13).
+List<Widget> inviteItems(WidgetRef ref) => [
+  for (final code
+      in ref.watch(savedInviteCodesProvider).value ?? const <String>[])
+    _InviteCard(key: ValueKey('invite-$code'), code: code),
+];
+
 class _InviteCard extends ConsumerStatefulWidget {
-  const new({required this.code});
+  const new({required this.code, super.key});
 
   final String code;
 

@@ -91,7 +91,9 @@ class _PrimaryButtonState extends ConsumerState<PrimaryButton>
                     Icon(widget.icon, size: 20),
                     const SizedBox(width: 8),
                   ],
-                  Text(widget.label),
+                  Flexible(
+                    child: Text(widget.label, textAlign: TextAlign.center),
+                  ),
                 ],
               ),
       ),

@@ -11,20 +11,17 @@ void main() {
   DateTime d(int m, int day) => DateTime(2026, m, day);
 
   group('Home (UC-5, UC-6)', () {
-    testWidgets('empty: greeting and one pulsing New Adventure button', (
+    testWidgets('empty: greeting and one pulsing Create a new adventure', (
       tester,
     ) async {
       await pumpRoamio(tester, FakeAuthService(initial: readyFacts));
 
       expect(find.text('Hey Ari 👋'), findsOneWidget);
-      expect(
-        find.text('No adventures yet. Start one and invite your squad.'),
-        findsOneWidget,
-      );
+      expect(find.text('No adventures yet'), findsOneWidget);
       expect(find.byType(PrimaryButton), findsOneWidget);
       final button = tester.widget<PrimaryButton>(find.byType(PrimaryButton));
       expect(button.pulse, isTrue);
-      expect(button.label, 'New Adventure');
+      expect(button.label, 'Create a new adventure');
     });
 
     testWidgets('hero, coming up and past sections', (tester) async {
@@ -39,7 +36,7 @@ void main() {
       );
 
       expect(find.text('Trip bkk'), findsOneWidget);
-      expect(find.text('HAPPENING NOW'), findsOneWidget);
+      expect(find.text('CURRENT ADVENTURE'), findsOneWidget);
       expect(find.text('Coming up'), findsOneWidget);
       expect(find.text('Trip goa'), findsOneWidget);
       expect(find.text('Past adventures (1)'), findsOneWidget);
@@ -74,7 +71,7 @@ void main() {
         FakeAuthService(initial: readyFacts),
         adventures: adventures,
       );
-      await tester.tap(find.text('New Adventure'));
+      await tester.tap(find.text('Create a new adventure'));
       await tester.pumpAndSettle();
       return adventures;
     }
