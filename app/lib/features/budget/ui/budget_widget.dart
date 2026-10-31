@@ -15,8 +15,9 @@ import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
 /// Your private budget for an adventure (spec UC-19, UC-20): how much of
-/// it your own share of the tabs has used. Alerts come from the server.
-class BudgetCard extends ConsumerWidget {
+/// it your own share of the tabs has used. Goes inside a card; alerts come
+/// from the server.
+class BudgetWidget extends ConsumerWidget {
   const new({required this.adventure, super.key});
 
   final Adventure adventure;
@@ -30,21 +31,14 @@ class BudgetCard extends ConsumerWidget {
     final b = budget.value;
 
     if (b == null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text('Only you can see your budget.', style: slate),
-              ),
-              TextButton(
-                onPressed: () => _edit(context, ref, null),
-                child: const Text('Set a budget'),
-              ),
-            ],
+      return Row(
+        children: [
+          Expanded(child: Text('Only you can see your budget.', style: slate)),
+          TextButton(
+            onPressed: () => _edit(context, ref, null),
+            child: const Text('Set a budget'),
           ),
-        ),
+        ],
       );
     }
 
@@ -59,72 +53,72 @@ class BudgetCard extends ConsumerWidget {
     final daysLeft = daysLeftLabel(adventure, ref.watch(todayProvider));
     String money(int m) => formatWithSymbol(ref, Money(m, b.currency));
 
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: () => _edit(context, ref, b),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: Text('Your budget', style: text.titleMedium)),
-                  const Icon(
-                    Icons.edit_outlined,
-                    size: 18,
-                    color: RoamioColors.slate,
-                    semanticLabel: 'Change your budget',
-                  ),
-                ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(RoamioRadii.base),
+      onTap: () => _edit(context, ref, b),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text('Your budget', style: text.titleMedium)),
+                const Icon(
+                  Icons.edit_outlined,
+                  size: 18,
+                  color: RoamioColors.slate,
+                  semanticLabel: 'Change your budget',
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (report == null)
+              const LinearProgressIndicator()
+            else if (!measurable)
+              Text(
+                'Can’t measure yet: exchange rates aren’t available.',
+                style: slate,
+              )
+            else ...[
+              Text(
+                left < 0
+                    ? '${money(-left)} over budget'
+                    : '${money(left)} left',
+                style: text.titleMedium?.copyWith(
+                  color: left < 0
+                      ? RoamioColors.coralText
+                      : RoamioColors.mintText,
+                ),
               ),
               const SizedBox(height: 8),
-              if (report == null)
-                const LinearProgressIndicator()
-              else if (!measurable)
-                Text(
-                  'Can’t measure yet: exchange rates aren’t available.',
-                  style: slate,
-                )
-              else ...[
-                Text(
-                  left < 0
-                      ? '${money(-left)} over budget'
-                      : '${money(left)} left',
-                  style: text.titleMedium?.copyWith(
-                    color: left < 0
-                        ? RoamioColors.coralText
-                        : RoamioColors.mintText,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: (percent / 100).clamp(0, 1).toDouble(),
-                  color: percent >= 100 ? RoamioColors.coral : RoamioColors.ink,
-                  backgroundColor: RoamioColors.hairline,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${money(used)} of ${money(b.amountMinor)} used · $percent%',
-                  style: text.bodyMedium,
-                ),
-                if (waiting > 0) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    '${money(waiting)} waiting for approval, not counted',
-                    style: slate,
-                  ),
-                ],
-              ],
-              if (daysLeft != null) ...[
+              LinearProgressIndicator(
+                value: (percent / 100).clamp(0, 1).toDouble(),
+                color: percent >= 100
+                    ? RoamioColors.coral
+                    : RoamioColors.chartreuse,
+                backgroundColor: RoamioColors.hairline,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${money(used)} of ${money(b.amountMinor)} used · $percent%',
+                style: text.bodyMedium,
+              ),
+              if (waiting > 0) ...[
                 const SizedBox(height: 2),
-                Text(daysLeft, style: slate),
+                Text(
+                  '${money(waiting)} waiting for approval, not counted',
+                  style: slate,
+                ),
               ],
-              const SizedBox(height: 4),
-              Text('Only you can see your budget.', style: text.bodySmall),
             ],
-          ),
+            if (daysLeft != null) ...[
+              const SizedBox(height: 2),
+              Text(daysLeft, style: slate),
+            ],
+            const SizedBox(height: 4),
+            Text('Only you can see your budget.', style: text.bodySmall),
+          ],
         ),
       ),
     );

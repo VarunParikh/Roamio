@@ -59,6 +59,8 @@ Future<SharedFiles> _export(
   await tester.tap(find.text('Split'));
   await tester.pumpAndSettle();
   if (!enabled) return shared;
+  await tester.tap(find.byTooltip('More options'));
+  await tester.pumpAndSettle();
   await tester.tap(find.text('Export'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(format));

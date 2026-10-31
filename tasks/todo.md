@@ -363,7 +363,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: left or over budget, percentage and bar; tap to edit; Remove with confirmation; waiting-for-approval line; plain Set a budget.
   - Verify: widget tests per state; functions test for an approval crossing a threshold.
 
-- [ ] **Task 57: Split top card and Who pays whom** — L · Deps: 54, 56 · UC-25
+- [x] **Task 57: Split top card and Who pays whom** — L · Deps: 54, 56 · UC-25
   - Acceptance: spent by you, then owed or owe; "•••" menu; waiting note; rows with pictures, first 4 and View all, arrows only where you can act; every state in UC-25.
   - Verify: widget tests per state and role.
 
