@@ -3,9 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
+import '../../support/fake_tab_service.dart';
 
 /// Spec §12: touch targets ≥ 48 dp, labels on every control, text
 /// contrast ≥ 4.5:1. Checked on each main screen.
@@ -65,6 +69,50 @@ void main() {
       semantics.dispose();
     });
   }
+
+  testWidgets('Split with tabs and the breakdown open', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final trip = Adventure(
+      id: 'bkk',
+      name: 'Goa trip',
+      countryCode: 'IN',
+      startDate: DateTime(2026, 10, 20),
+      endDate: DateTime(2026, 11, 2),
+      baseCurrency: 'INR',
+      leaderUid: 'ari',
+      memberUids: const ['ari', 'ben'],
+    );
+    await pumpRoamio(
+      tester,
+      FakeAuthService(initial: readyFacts),
+      adventures: FakeAdventureService([trip]),
+      tabs: FakeTabService([
+        TabEntry(
+          id: 't',
+          description: 'Dinner',
+          category: 'food_dining',
+          date: DateTime(2026, 10, 27),
+          createdBy: 'ben',
+          split: TabSplit(
+            amount: Money(100000, 'INR'),
+            payers: const [Payment('ben', 100000)],
+            participants: const ['ari', 'ben'],
+            fxDate: '2026-10-27',
+          ),
+        ),
+      ]),
+    );
+    GoRouter.of(tester.element(find.byType(Scaffold).first)).go('/split');
+    await tester.pumpAndSettle();
+    final open = find.text('See detailed breakdown');
+    await tester.ensureVisible(open);
+    await tester.pumpAndSettle();
+    await tester.tap(open);
+    await tester.pumpAndSettle();
+    expect(find.text('Spend by day'), findsOneWidget);
+    await _meetsGuidelines(tester);
+    semantics.dispose();
+  });
 
   testWidgets('Sign in', (tester) async {
     final semantics = tester.ensureSemantics();

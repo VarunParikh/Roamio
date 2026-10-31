@@ -4,6 +4,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/splits/ui/split_charts.dart';
 import 'package:roamio/features/splits/ui/who_pays_whom.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
@@ -132,8 +133,8 @@ void main() {
       await _tap(tester, find.text('See detailed breakdown'));
       expect(find.text('+₹250.00'), findsOneWidget); // Ben's balance
       expect(find.text('-₹750.00'), findsOneWidget); // Kiko's balance
-      expect(find.textContaining('Food & Dining'), findsOneWidget);
-      expect(find.text('Tue, 27 Oct 2026'), findsOneWidget);
+      expect(find.text('Food & Dining'), findsWidgets);
+      expect(find.text('Tue, 27 Oct 2026 · ₹3,000.00'), findsOneWidget);
     });
 
     testWidgets('someone who left keeps their name; a deleted account '
@@ -354,6 +355,251 @@ void main() {
         );
         expect(tester.takeException(), isNull);
         expect(find.byKey(_row('cara', 'ari')), findsOneWidget);
+      });
+    });
+
+    group('Spend by category', () {
+      TabEntry spent(String id, String category, int minor) => TabEntry(
+        id: id,
+        description: id,
+        category: category,
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ari',
+        split: TabSplit(
+          amount: Money(minor, 'INR'),
+          payers: [Payment('ari', minor)],
+          participants: const ['ari', 'ben'],
+          fxDate: '2026-10-27',
+        ),
+      );
+
+      testWidgets('total, top 3 and Other, every number in text', (
+        tester,
+      ) async {
+        await _openSplit(
+          tester,
+          tabs: [
+            spent('a', 'food_dining', 400000),
+            spent('b', 'local_transportation', 300000),
+            spent('c', 'accommodation', 200000),
+            spent('d', 'shopping_souvenirs', 60000),
+            spent('e', 'activities_sightseeing', 40000),
+          ],
+        );
+        expect(find.text('Spend by category'), findsOneWidget);
+        expect(find.text('Total spend ₹10,000.00'), findsOneWidget);
+        for (final (label, percent, money) in [
+          ('Food & Dining', '40%', '₹4,000.00'),
+          ('Other', '10%', '₹1,000.00'),
+        ]) {
+          expect(find.text(label), findsOneWidget);
+          expect(find.text(percent), findsOneWidget);
+          expect(find.text(money), findsOneWidget);
+        }
+        // Four segments in the bar, in a 2×2 legend.
+        expect(find.byKey(const ValueKey('category-bar')), findsOneWidget);
+        expect(find.byType(CategoryLegendEntry), findsNWidgets(4));
+        final first = tester.getTopLeft(find.byType(CategoryLegendEntry).at(0));
+        final second = tester.getTopLeft(
+          find.byType(CategoryLegendEntry).at(1),
+        );
+        final third = tester.getTopLeft(find.byType(CategoryLegendEntry).at(2));
+        expect(first.dy, second.dy);
+        expect(third.dy, greaterThan(first.dy));
+      });
+
+      testWidgets('a tiny category still gets a visible slice', (tester) async {
+        await _openSplit(
+          tester,
+          tabs: [
+            spent('a', 'food_dining', 10000000),
+            spent('b', 'shopping_souvenirs', 100),
+          ],
+        );
+        final slice = find.byKey(const ValueKey('category-slice-1'));
+        expect(tester.getSize(slice).width, greaterThanOrEqualTo(6));
+      });
+
+      testWidgets('not shown when nothing has been shared', (tester) async {
+        await _openSplit(tester, tabs: const []);
+        expect(find.text('Spend by category'), findsNothing);
+      });
+
+      testWidgets('personal tabs stay out of squad totals', (tester) async {
+        await _openSplit(
+          tester,
+          tabs: [
+            _dinner,
+            _tab(
+              'p',
+              50000,
+              paidBy: 'ari',
+              among: ['ari'],
+              status: TabStatus.personal,
+            ),
+          ],
+        );
+        expect(find.text('₹2,000.00 spent by you'), findsOneWidget);
+        expect(find.text('Total spend ₹3,000.00'), findsOneWidget);
+      });
+
+      testWidgets('fits a small phone', (tester) async {
+        tester.view
+          ..physicalSize = const Size(320, 640)
+          ..devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await _openSplit(
+          tester,
+          tabs: [
+            spent('a', 'food_dining', 990000000),
+            spent('b', 'local_transportation', 300000000),
+            spent('c', 'accommodation', 200000000),
+            spent('d', 'shopping_souvenirs', 60000000),
+            spent('e', 'activities_sightseeing', 40000000),
+          ],
+        );
+        expect(tester.takeException(), isNull);
+        expect(find.byType(CategoryLegendEntry), findsNWidgets(4));
+      });
+    });
+
+    group('See detailed breakdown', () {
+      testWidgets('expands and folds in place', (tester) async {
+        await _openSplit(tester);
+        await _tap(tester, find.text('See detailed breakdown'));
+        expect(find.text('Balances'), findsOneWidget);
+        expect(find.text('All categories'), findsOneWidget);
+        expect(find.text('Spend by day'), findsOneWidget);
+
+        await _tap(tester, find.text('Hide breakdown'));
+        expect(find.text('Balances'), findsNothing);
+      });
+
+      testWidgets('balances have pictures, pals included, you say You', (
+        tester,
+      ) async {
+        await _openSplit(tester);
+        await _tap(tester, find.text('See detailed breakdown'));
+        for (final (id, name) in [
+          ('ari', 'You'),
+          ('ben', 'Ben Roy'),
+          ('kiko', 'Kiko'),
+        ]) {
+          final row = find.byKey(ValueKey('balance-$id'));
+          expect(
+            find.descendant(of: row, matching: find.byType(PersonAvatar)),
+            findsOneWidget,
+          );
+          expect(
+            find.descendant(of: row, matching: find.text(name)),
+            findsOneWidget,
+          );
+        }
+      });
+
+      testWidgets('all categories are listed, even past the top 3', (
+        tester,
+      ) async {
+        TabEntry spent(String id, String category) => TabEntry(
+          id: id,
+          description: id,
+          category: category,
+          date: DateTime(2026, 10, 27),
+          createdBy: 'ari',
+          split: TabSplit(
+            amount: Money(10000, 'INR'),
+            payers: const [Payment('ari', 10000)],
+            participants: const ['ari', 'ben'],
+            fxDate: '2026-10-27',
+          ),
+        );
+        await _openSplit(
+          tester,
+          tabs: [
+            spent('a', 'food_dining'),
+            spent('b', 'local_transportation'),
+            spent('c', 'accommodation'),
+            spent('d', 'shopping_souvenirs'),
+            spent('e', 'activities_sightseeing'),
+          ],
+        );
+        await _tap(tester, find.text('See detailed breakdown'));
+        final list = find.byKey(const ValueKey('all-categories'));
+        await tester.ensureVisible(list);
+        expect(
+          find.descendant(
+            of: list,
+            matching: find.textContaining(RegExp('₹100.00')),
+          ),
+          findsNWidgets(5),
+        );
+      });
+
+      group('bars by day', () {
+        final twoDays = [
+          TabEntry(
+            id: 'x',
+            description: 'x',
+            category: 'food_dining',
+            date: DateTime(2026, 10, 25),
+            createdBy: 'ari',
+            split: TabSplit(
+              amount: Money(10000, 'INR'),
+              payers: const [Payment('ari', 10000)],
+              participants: const ['ari', 'ben'],
+              fxDate: '2026-10-25',
+            ),
+          ),
+          _dinner,
+        ];
+
+        testWidgets('tapping a bar says its day and amount', (tester) async {
+          await _openSplit(tester, tabs: twoDays);
+          await _tap(tester, find.text('See detailed breakdown'));
+          // Starts on the latest day; the empty day between still has a bar.
+          expect(find.text('Tue, 27 Oct 2026 · ₹3,000.00'), findsOneWidget);
+          expect(find.byKey(const ValueKey('day-2026-10-26')), findsOneWidget);
+
+          await _tap(tester, find.byKey(const ValueKey('day-2026-10-25')));
+          expect(find.text('Sun, 25 Oct 2026 · ₹100.00'), findsOneWidget);
+        });
+
+        testWidgets('TalkBack reads each bar’s day and amount', (tester) async {
+          final semantics = tester.ensureSemantics();
+          await _openSplit(tester, tabs: twoDays);
+          await _tap(tester, find.text('See detailed breakdown'));
+          expect(
+            find.bySemanticsLabel('Sun, 25 Oct 2026: ₹100.00'),
+            findsOneWidget,
+          );
+          semantics.dispose();
+        });
+
+        testWidgets('a long trip scrolls, starting at the latest day', (
+          tester,
+        ) async {
+          final long = [
+            for (var d = 1; d <= 28; d++)
+              TabEntry(
+                id: 'd$d',
+                description: 'd$d',
+                category: 'food_dining',
+                date: DateTime(2026, 10, d),
+                createdBy: 'ari',
+                split: TabSplit(
+                  amount: Money(1000 * d, 'INR'),
+                  payers: [Payment('ari', 1000 * d)],
+                  participants: const ['ari', 'ben'],
+                  fxDate: '2026-10-${d.toString().padLeft(2, '0')}',
+                ),
+              ),
+          ];
+          await _openSplit(tester, tabs: long);
+          await _tap(tester, find.text('See detailed breakdown'));
+          expect(find.byKey(const ValueKey('day-2026-10-28')), findsOneWidget);
+          expect(find.byKey(const ValueKey('day-2026-10-01')), findsNothing);
+          expect(tester.takeException(), isNull);
+        });
       });
     });
 
