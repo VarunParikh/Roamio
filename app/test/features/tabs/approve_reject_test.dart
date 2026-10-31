@@ -136,6 +136,19 @@ void main() {
       expect(canDecideTab(_solo, _tab(by: 'ari'), 'ari'), isTrue);
     });
 
+    test(
+      'the count you can decide leaves out your own while another admin exists',
+      () {
+        final tabs = [
+          _tab(by: 'ari'),
+          _tab(id: 't2'),
+          _tab(id: 't3', status: TabStatus.approved),
+        ];
+        expect(tabsYouCanDecide(_team, tabs, 'ari').map((t) => t.id), ['t2']);
+        expect(tabsYouCanDecide(_solo, [_tab(by: 'ari')], 'ari'), hasLength(1));
+      },
+    );
+
     test('only while it’s waiting', () {
       for (final s in [
         TabStatus.approved,

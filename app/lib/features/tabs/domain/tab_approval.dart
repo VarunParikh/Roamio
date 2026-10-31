@@ -97,6 +97,17 @@ bool canDecideTab(Adventure adventure, TabEntry tab, String uid) =>
     adventure.isLead(uid) &&
     (tab.createdBy != uid || adventure.isOnlyAdmin(uid));
 
+/// The waiting tabs [uid] can approve or reject: what the expanded card counts
+/// as waiting for them, so it matches Needs you (spec UC-21a).
+List<TabEntry> tabsYouCanDecide(
+  Adventure adventure,
+  List<TabEntry> tabs,
+  String uid,
+) => [
+  for (final t in tabs)
+    if (canDecideTab(adventure, t, uid)) t,
+];
+
 /// Who can delete a tab: admins, or its creator for a personal one, which
 /// admins can't see, or a rejected one (spec UC-21a, UC-22).
 bool canDeleteTab(Adventure adventure, TabEntry tab, String uid) =>
