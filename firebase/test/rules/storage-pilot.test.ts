@@ -8,6 +8,7 @@ import {
 import { doc, setDoc } from "firebase/firestore";
 import { getBytes, ref, uploadBytes } from "firebase/storage";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
+import { clearFirestore } from "../support/clear";
 
 /**
  * Phase 1 uploads no pictures (spec §10): the rules as they ship deny every
@@ -38,7 +39,7 @@ beforeAll(async () => {
 afterAll(() => env.cleanup());
 
 beforeEach(async () => {
-  await env.clearFirestore();
+  await clearFirestore(env);
   await env.clearStorage();
   await env.withSecurityRulesDisabled(async (ctx) => {
     const db = ctx.firestore();
