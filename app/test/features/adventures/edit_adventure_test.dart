@@ -74,12 +74,14 @@ void main() {
 
       final (id, edit) = adventures.edits.single;
       expect(id, 'bkk');
+      // Only what changed is sent, so the other fields can't overwrite
+      // a co-lead's change to them (item 6).
       expect(edit.name, '  Bangkok & Krabi  ');
       expect(edit.description, 'Food and beaches');
-      expect(edit.city, 'Bangkok');
-      expect(edit.startDate, DateTime(2026, 12));
-      expect(edit.endDate, DateTime(2026, 12, 8));
-      expect(edit.baseCurrency, 'THB');
+      expect(edit.city, isNull);
+      expect(edit.startDate, isNull);
+      expect(edit.endDate, isNull);
+      expect(edit.baseCurrency, isNull);
       // Back on the adventure, showing the new name.
       expect(find.text('Bangkok & Krabi'), findsWidgets);
     });
