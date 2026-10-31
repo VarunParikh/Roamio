@@ -40,6 +40,18 @@ void main() {
     percentTexts: percents,
   );
 
+  group('payerTextsOf (item 5: someone removed while the form is open)', () {
+    test('keeps only the people still on the squad', () {
+      expect(payerTextsOf({'ari': '100', 'bob': '50'}, ['ari', 'cara']), {
+        'ari': '100',
+      });
+    });
+
+    test('keeps everything when everyone is still there', () {
+      expect(payerTextsOf({'ari': '1'}, ['ari']), {'ari': '1'});
+    });
+  });
+
   group('fxDateFor (follow-up C4: a tab keeps the rates it used)', () {
     final oct29 = DateTime(2026, 10, 29);
 

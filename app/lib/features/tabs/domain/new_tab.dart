@@ -70,6 +70,20 @@ List<Payment> payersFrom(
       Payment(key, minor, method: methodOf?.call(key) ?? PaymentMethod.other),
 ];
 
+/// The amounts typed for the people still on the squad. Someone removed
+/// while the form was open is dropped rather than saved as a payer, which
+/// the server would refuse (spec UC-16).
+Map<String, String> payerTextsOf(
+  Map<String, String> texts,
+  Iterable<String> people,
+) {
+  final on = people.toSet();
+  return {
+    for (final MapEntry(:key, :value) in texts.entries)
+      if (on.contains(key)) key: value,
+  };
+}
+
 /// What the phone remembers from a new tab: your own method, or the first
 /// payer's if you didn't pay.
 PaymentMethod rememberedMethod(List<Payment> payers, String myUid) =>
