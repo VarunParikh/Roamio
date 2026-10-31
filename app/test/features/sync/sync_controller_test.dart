@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
 import '../../support/fake_sync.dart';
@@ -30,6 +31,27 @@ void main() {
   }
 
   SyncPhase phase() => container.read(syncControllerProvider).phase;
+
+  setUp(refusedWrites.clear);
+
+  test(
+    'a refused offline change is reported, not called synced (item 2)',
+    () async {
+      await start(online: true);
+      refusedWrites.add('a tab');
+      await container.read(syncControllerProvider.notifier).sync();
+      expect(phase(), SyncPhase.failed);
+      expect(container.read(syncControllerProvider).error, contains('a tab'));
+      expect(refusedWrites.refused.value, isEmpty);
+    },
+  );
+
+  test('a refusal shows at once, even when no sync runs (item 2)', () async {
+    await start(online: true);
+    refusedWrites.add('a pal');
+    expect(phase(), SyncPhase.failed);
+    expect(container.read(syncControllerProvider).error, contains('a pal'));
+  });
 
   test('online at start: normal, and the network is switched on', () async {
     await start(online: true);

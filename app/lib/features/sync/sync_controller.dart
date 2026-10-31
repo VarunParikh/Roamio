@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 
 /// Where the app stands with the squad's data (spec UC-30–UC-31).
 enum SyncPhase {
@@ -94,8 +95,16 @@ class SyncController extends Notifier<SyncState> {
     final subscription = monitor.changes.listen(
       (online) => unawaited(_onConnectivity(online)),
     );
+    // Shown at once, but kept until a sync has reported it.
+    void onRefused() {
+      final refused = refusedWrites.pending;
+      if (refused.isNotEmpty) state = _refusalState(refused);
+    }
+
+    refusedWrites.refused.addListener(onRefused);
     ref
       ..onDispose(subscription.cancel)
+      ..onDispose(() => refusedWrites.refused.removeListener(onRefused))
       ..onDispose(() => _hideSynced?.cancel());
     ready = monitor.check().then(_onStart);
     return const SyncState(SyncPhase.online);
@@ -142,6 +151,8 @@ class SyncController extends Notifier<SyncState> {
       await network.enable();
       await network.waitForPendingWrites();
       await ref.read(photoFlushProvider)();
+      // The server refused changes made offline: say so, never "Synced ✓".
+      if (_reportRefusals()) return;
       state = const SyncState(SyncPhase.synced);
       _hideSynced?.cancel();
       _hideSynced = Timer(syncedFor, dismissSynced);
@@ -152,6 +163,23 @@ class SyncController extends Notifier<SyncState> {
         await _goOffline();
       }
     }
+  }
+
+  /// Shows what the server refused, and takes it so it's shown once. Returns
+  /// whether there was anything to show.
+  bool _reportRefusals() {
+    final refused = refusedWrites.take();
+    if (refused.isEmpty) return false;
+    state = _refusalState(refused);
+    return true;
+  }
+
+  static SyncState _refusalState(List<String> refused) {
+    final again = refused.length == 1 ? 'it' : 'them';
+    return SyncState(
+      SyncPhase.failed,
+      error: "Couldn't save ${refused.join(', ')}. Please make $again again.",
+    );
   }
 
   /// Hides the "Synced ✓" message.
