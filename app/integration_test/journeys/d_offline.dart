@@ -35,17 +35,17 @@ void journeyD() {
     }
     // Kept on the phone: the squad can't see them yet.
     await settle(tester, const Duration(seconds: 2));
-    expect(await listDocs('adventures/$aid/tabs', as: bob), isEmpty);
+    expect(await sharedTabs(aid, as: bob), isEmpty);
 
     // Back online: Sync sends everything.
     connection.set(online: true);
     await tapOn(tester, find.text('Sync'));
     await waitFor(tester, find.text('Synced ✓'));
     await eventually('Bob sees the 3 tabs', () async {
-      final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+      final tabs = await sharedTabs(aid, as: bob);
       return tabs.length == 3 && tabs.every((t) => t['deleted'] == false);
     });
-    final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+    final tabs = await sharedTabs(aid, as: bob);
     expect(
       tabs.map((t) => t['description']),
       unorderedEquals(['Fuel', 'Momos', 'Permit']),

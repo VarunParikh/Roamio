@@ -74,12 +74,12 @@ void journeyC() {
     // Both are on the server and the checkTab trigger kept them.
     await eventually('two tabs saved and checked', () async {
       final adventure = await getDoc('adventures/$aid');
-      final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+      final tabs = await sharedTabs(aid, as: bob);
       return adventure?['hasTabs'] == true &&
           tabs.length == 2 &&
           tabs.every((t) => t['deleted'] == false);
     });
-    final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+    final tabs = await sharedTabs(aid, as: bob);
     final dinner = tabs.singleWhere((t) => t['description'] == 'Dinner');
     expect(dinner['amountMinor'], 300000);
     expect(dinner['currency'], 'INR');

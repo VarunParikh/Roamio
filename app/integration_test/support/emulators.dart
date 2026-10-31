@@ -294,6 +294,46 @@ Future<List<Map<String, Object?>>> listDocs(
   ];
 }
 
+/// The tabs [as] may list, through the rules: the rules refuse a list that
+/// could include someone's personal or rejected tab (spec UC-21a).
+Future<List<Map<String, Object?>>> sharedTabs(
+  String adventureId, {
+  required Person as,
+}) async {
+  final res = await _send(
+    'POST',
+    '$_docsBase/adventures/$adventureId:runQuery',
+    token: as.idToken,
+    body: {
+      'structuredQuery': {
+        'from': [
+          {'collectionId': 'tabs'},
+        ],
+        'where': {
+          'fieldFilter': {
+            'field': {'fieldPath': 'status'},
+            'op': 'IN',
+            'value': {
+              'arrayValue': {
+                'values': [
+                  {'stringValue': 'waiting'},
+                  {'stringValue': 'approved'},
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  );
+  return [
+    for (final row in (res['list'] as List<dynamic>? ?? const []))
+      if ((row as Map<String, dynamic>)['document']
+          case final Map<String, dynamic> d)
+        {'id': (d['name'] as String).split('/').last, ..._fields(d)},
+  ];
+}
+
 // ---------------------------------------------------------------- Functions
 
 /// Calls a callable Cloud Function as [as]; throws on an error result.
@@ -390,6 +430,7 @@ Map<String, Object?> tabDoc({
   String currency = 'INR',
   String description = '',
   Map<String, Object?>? location,
+  String status = 'waiting',
 }) {
   final today = isoDay(DateTime.now());
   final now = DateTime.now().toUtc();
@@ -411,5 +452,6 @@ Map<String, Object?> tabDoc({
     'createdAt': now,
     'updatedAt': now,
     'deleted': false,
+    'status': status,
   };
 }
