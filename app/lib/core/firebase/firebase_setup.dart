@@ -3,12 +3,17 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:roamio/core/config/flavor.dart';
+import 'package:roamio/core/crash/crash_reporter.dart';
 
 /// `--dart-define=USE_EMULATORS=true` points a dev build at the local
 /// Firebase emulators (docs/SETUP.md) instead of the roamio-dev project.
 const _useEmulators = bool.fromEnvironment('USE_EMULATORS');
+
+/// Whether Firebase runs against the local emulators (no crash reports then).
+bool get firebaseUsesEmulators => _useEmulators;
 
 /// The Android emulator reaches the Mac's localhost at this address.
 const _emulatorHost = '10.0.2.2';
@@ -27,6 +32,11 @@ bool usesAppCheck(Flavor flavor, {required bool useEmulators}) =>
 /// Initialises Firebase from the flavor's `google-services.json`.
 Future<void> setUpFirebase() async {
   await Firebase.initializeApp();
+  if (!_useEmulators) {
+    // Crash reports stay off until the age is known (crashCollectionProvider).
+    installCrashHandlers();
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+  }
   if (usesAppCheck(currentFlavor, useEmulators: _useEmulators)) {
     // Play Integrity is the default Android provider.
     await FirebaseAppCheck.instance.activate();

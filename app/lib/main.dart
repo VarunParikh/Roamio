@@ -11,6 +11,7 @@ import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/config/remote_config.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/core/crash/crash_reporter.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/router/app_router.dart';
@@ -69,6 +70,10 @@ Future<void> runRoamio({
           minorsEnabledProvider.overrideWithValue(true),
           nomineeEnabledProvider.overrideWithValue(true),
         ],
+        if (!firebaseUsesEmulators)
+          crashReporterProvider.overrideWithValue(
+            const FirebaseCrashReporter(),
+          ),
         photoPipelineProvider.overrideWithValue(pipeline),
         photoFlushProvider.overrideWithValue(flush),
         connectivityMonitorProvider.overrideWithValue(
@@ -204,6 +209,7 @@ class _RoamioAppState extends ConsumerState<RoamioApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(crashCollectionProvider);
     return MaterialApp.router(
       title: 'Roamio',
       theme: buildRoamioTheme(),
