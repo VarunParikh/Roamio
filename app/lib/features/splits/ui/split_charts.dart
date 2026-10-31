@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/splits/domain/category_shares.dart';
 
+// Chartreuse is for the one primary button, not for graphs.
 const List<Color> _sliceColors = [
-  RoamioColors.chartreuse,
   RoamioColors.cobalt,
+  RoamioColors.mint,
   RoamioColors.muted,
   RoamioColors.slate,
 ];
@@ -167,7 +168,8 @@ class CategoryLegendEntry extends StatelessWidget {
 }
 
 /// Spending as a bar per day, latest at the right with earlier days a swipe
-/// away. The latest is in chartreuse, with its day and amount under the chart.
+/// away. The latest stands out in blue, with its day and amount under the
+/// chart.
 /// Without [visibleDays], tapping a bar moves that to the bar tapped; with it,
 /// each bar is a [visibleDays]th of the width, too narrow to tap.
 class DayBars extends StatefulWidget {
@@ -235,7 +237,7 @@ class _DayBarsState extends State<DayBars> {
                           : max(4, _barsHeight * amount / top),
                       decoration: BoxDecoration(
                         color: day == selected
-                            ? RoamioColors.chartreuse
+                            ? RoamioColors.cobalt
                             : amount <= 0
                             ? RoamioColors.hairline
                             : RoamioColors.muted,
