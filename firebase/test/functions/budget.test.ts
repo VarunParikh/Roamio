@@ -127,6 +127,18 @@ describe("checkBudget (spec UC-20)", () => {
     });
   });
 
+  it("a tab dated before any rates uses the earliest rates after it, as the app does", async () => {
+    const { ari, id, tab } = await trip(15_800); // ₹7,900
+    await tab.update({ date: "2026-09-15", fxDate: "2026-09-15" });
+    await db().doc("fx_rates/2026-09-20").set({ date: "2026-09-20", rates: { INR: "84", THB: "35" } });
+    // ฿4,000 budget: ₹7,900 = ฿3,291.67 → 82%, so the alert must still go out.
+    await db().doc(`adventures/${id}/budgets/${ari.uid}`).set({ amountMinor: 400_000, currency: "THB" });
+    await checkBudget(id, ari.uid);
+    await eventually(async () => {
+      expect(await sent(id, ari.uid)).toEqual([80]);
+    });
+  });
+
   it("waiting and rejected tabs don't count", async () => {
     for (const status of ["waiting", "rejected"]) {
       const { ari, id } = await trip(16_000, false, status);
