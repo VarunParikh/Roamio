@@ -7,6 +7,11 @@ import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 
+/// Whether a list can be shown: an empty one from the phone's own copy only
+/// means the server hasn't answered yet, not that there are no adventures.
+bool isKnownAdventureList({required bool isEmpty, required bool isFromCache}) =>
+    !isEmpty || !isFromCache;
+
 class FirebaseAdventureService implements AdventureService {
   new(this._auth, this._db);
 
@@ -19,7 +24,14 @@ class FirebaseAdventureService implements AdventureService {
   Stream<List<Adventure>> myAdventures() => _db
       .collection('adventures')
       .where('memberUids', arrayContains: _uid)
-      .snapshots()
+      // Also tells when an empty answer stops being only the phone's copy.
+      .snapshots(includeMetadataChanges: true)
+      .where(
+        (q) => isKnownAdventureList(
+          isEmpty: q.docs.isEmpty,
+          isFromCache: q.metadata.isFromCache,
+        ),
+      )
       .map((q) => q.docs.map(_fromDoc).toList());
 
   // Not awaited: the server's answer never comes offline, and the stream

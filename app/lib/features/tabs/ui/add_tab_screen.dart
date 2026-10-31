@@ -376,7 +376,12 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     setState(() => _tried = true);
     final problems = _problems(pals, myUid);
     if (problems.contains(TabProblem.closed)) {
-      showAuthMessage(context, _closedMessage);
+      showAuthMessage(
+        context,
+        _a.tabsOpenOn(ref.read(todayProvider))
+            ? 'Only squad leads can add tabs after the trip ends.'
+            : _closedMessage,
+      );
       return;
     }
     if (problems.isNotEmpty) return;

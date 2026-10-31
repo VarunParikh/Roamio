@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/core/sync/refused_writes.dart';
+import 'package:roamio/features/auth/data/auth_service.dart';
 
 /// What's sent to the crash log, once reports are allowed. While they aren't,
 /// nothing leaves this class. Nothing here names a person or a tab.
@@ -73,9 +74,13 @@ final crashReporterProvider = Provider<CrashReporter>(
   (ref) => const NoCrashReporter(),
 );
 
-/// Crash reports are sent only for a confirmed adult (privacy policy). Off
-/// until the age is known, and switched off again for anyone else.
+/// Crash reports are sent only for a confirmed adult (privacy policy), and
+/// switched off for anyone else. Until it's known who this is, the setting is
+/// left as the last run left it: a native crash uploads on the next launch, so
+/// switching off here would delete it. A new install starts off (manifest).
 final crashCollectionProvider = Provider<void>((ref) {
+  final facts = ref.watch(sessionFactsProvider).value;
+  if (facts == null || !facts.authLoaded || !facts.accountLoaded) return;
   final allowed = ref.watch(privacyPolicyProvider).allowsCrashReports;
   ref.read(crashReporterProvider).setEnabled(on: allowed);
 });

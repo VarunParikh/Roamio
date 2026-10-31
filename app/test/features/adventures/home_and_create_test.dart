@@ -4,6 +4,7 @@ import 'package:roamio/core/ui/primary_button.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
+import '../../support/fake_sync.dart';
 import 'adventure_test.dart' show trip;
 
 void main() {
@@ -22,6 +23,34 @@ void main() {
       final button = tester.widget<PrimaryButton>(find.byType(PrimaryButton));
       expect(button.pulse, isTrue);
       expect(button.label, 'Create a new adventure');
+    });
+
+    testWidgets('never says no adventures before it knows', (tester) async {
+      await pumpRoamio(
+        tester,
+        FakeAuthService(initial: readyFacts),
+        adventures: FakeAdventureService()..neverAnswer = true,
+        settle: false,
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('No adventures yet'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('offline with nothing known: says so, and can still create', (
+      tester,
+    ) async {
+      await pumpRoamio(
+        tester,
+        FakeAuthService(initial: readyFacts),
+        adventures: FakeAdventureService()..neverAnswer = true,
+        connectivity: FakeConnectivity(online: false),
+        settle: false,
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('No adventures yet'), findsNothing);
+      expect(find.textContaining('when you’re back online'), findsOneWidget);
+      expect(find.text('Create a new adventure'), findsOneWidget);
     });
 
     testWidgets('hero, coming up and past sections', (tester) async {

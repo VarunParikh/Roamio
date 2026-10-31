@@ -14,11 +14,12 @@ The older "Where things stand" below is out of date. Audit items are numbered as
 - **Burst after deploy (21):** at 11:39 UTC each function's new revision got unauthenticated requests just after it rolled out. Source not found and it hasn't been seen since. All callables require sign-in; `health` and `invitePreview` are public by design and show nothing private.
 - **Item 22:** `updateFxRates` is proven on dev: pressing Update rates on the phone stored 165 rates dated 2026-10-31 at 18:30 UTC. Still unproven: the scheduled `dailyFxRates` (first look after 00:30 UTC), and `joinAdventure` and `settlementActivity`, which need the two-phone checks below.
 - **Prod logs (24):** prod has no functions deployed, so its logs can't be proven readable until the first deploy. Check straight after it.
+- **Crashlytics:** on for dev, and a test crash reached the console. Prod still to switch on. The Android crash-symbol Gradle plugin isn't added, so native crashes won't have readable stack traces.
+- **Real-device checks, 1 November 2026, phone plus an Android emulator on dev Firebase, all passed:** offline add and sync (owner); join from an invite code (not the link); rename shows live; who pays whom matches, settle and undo live on both; someone leaving while Add tab is open; refused change with the app open and with it closed; member and lead add-tab window; resubmitting a rejected tab after the trip. Not covered: two real networks, pushes on a second device, a low-end phone, a connection drop during "Syncing…", and the "left the squad" pop-up, which is only covered by a widget test.
+- **False "No adventures yet" on first load:** Firestore's empty answer from the phone's own copy, on a fresh install with the server out of reach. No data was lost. Fixed in #119.
+- **Left on dev by this testing:** the test account `roamio-test-b@example.com` and a trip called Test trip on the owner's account. Delete the account when it's no longer needed.
 - **Deployed:** functions are on dev from `cbd8efd`, including the new `budgetOnRates` trigger. Prod has nothing deployed.
-- **Item 7 still to confirm on real Firebase:** `budgetOnRates` hasn't yet run on real rates; read its log after the next 00:30 UTC job or Update rates.
-- **Crashlytics:** switch it on in the Firebase console for dev and prod. The Android crash-symbol Gradle plugin isn't added, so native crashes won't have readable stack traces.
-- **Phone build:** the owner's phone has a debug dev build of `cbd8efd`. Only opening the app, Home, a trip page, Split and Update rates have been tried on a real phone.
-- **First-load question:** on a fresh install with the phone locked, Home showed "No adventures yet" for a few minutes before the trips appeared. Unproven whether the lock explains it; check that an unlocked fresh install doesn't show it.
+- **Item 7 on real Firebase:** `budgetOnRates` fired one second after rates were stored, with nothing waiting. A real run with a missing-rate tab is only tested on the emulators, because every currency in the picker has a rate.
 
 ## Where things stand
 
