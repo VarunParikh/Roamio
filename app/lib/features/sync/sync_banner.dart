@@ -49,6 +49,7 @@ class SyncBanner extends ConsumerWidget {
         'Couldn’t sync: ${state.error}',
         'Try again',
       ),
+      SyncPhase.refused => (Icons.error_outline_rounded, state.error, 'OK'),
     };
     if (message == null) return const SizedBox.shrink();
 
@@ -75,7 +76,9 @@ class SyncBanner extends ConsumerWidget {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(88, 48),
                   ),
-                  onPressed: sync,
+                  onPressed: state.phase == SyncPhase.refused
+                      ? ref.read(syncControllerProvider.notifier).dismissRefused
+                      : sync,
                   child: Text(action),
                 ),
               ],

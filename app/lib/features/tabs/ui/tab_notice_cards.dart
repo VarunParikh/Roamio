@@ -20,11 +20,14 @@ List<Widget> tabNoticeItems(BuildContext context, WidgetRef ref) {
   // Waiting cards only for squads the person still leads.
   final waiting = <String, int>{};
   final rejected = <TabNotice>[];
+  final removed = <TabNotice>[];
   for (final n in notices) {
     final adventure = adventures[n.adventureId];
     if (adventure == null) continue;
     if (n.kind == TabNoticeKind.rejected) {
       rejected.add(n);
+    } else if (n.kind == TabNoticeKind.removed) {
+      removed.add(n);
     } else if (adventure.isLead(myUid)) {
       waiting.update(n.adventureId, (c) => c + 1, ifAbsent: () => 1);
     }
@@ -50,6 +53,18 @@ List<Widget> tabNoticeItems(BuildContext context, WidgetRef ref) {
         onOpen: () =>
             context.push('/adventures/${n.adventureId}/tabs/${n.tabId}'),
         onDismiss: () => ref.read(tabNoticeServiceProvider).dismiss(n.id),
+      ),
+    for (final n in removed)
+      _NoticeCard(
+        key: ValueKey('notice-${n.id}'),
+        title: 'A tab couldn’t be saved',
+        subtitle: [
+          if (n.description.isNotEmpty) n.description,
+          '🎒 ${adventures[n.adventureId]!.name}',
+          'Please add it again.',
+        ].join(' · '),
+        action: 'OK',
+        onOpen: () => ref.read(tabNoticeServiceProvider).dismiss(n.id),
       ),
   ];
 }

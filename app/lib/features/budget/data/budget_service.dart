@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 
 /// A personal budget for one adventure; only its owner can read it
 /// (spec UC-19, enforced by the security rules).
@@ -83,16 +84,18 @@ class FirebaseBudgetService implements BudgetService {
   // Writes aren't awaited: they're queued offline and the stream shows them.
   @override
   Future<void> set(String adventureId, Budget budget) async {
-    _doc(adventureId).set({
-      'amountMinor': budget.amountMinor,
-      'currency': budget.currency,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true)).ignore();
+    _doc(adventureId)
+        .set({
+          'amountMinor': budget.amountMinor,
+          'currency': budget.currency,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true))
+        .keepOrReport('your budget');
   }
 
   @override
   Future<void> remove(String adventureId) async {
-    _doc(adventureId).delete().ignore();
+    _doc(adventureId).delete().keepOrReport('your budget');
   }
 
   CollectionReference<Map<String, dynamic>> get _notifications =>

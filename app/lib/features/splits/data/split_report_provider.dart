@@ -52,7 +52,8 @@ reportInProvider = Provider.family<AsyncValue<SplitReport>, (String, String)>((
     for (final s in settled.value!) s.date,
   }) {
     final day = ref.watch(fxRatesProvider(date));
-    if (day.isLoading) return const AsyncLoading();
+    // Newer rates coming in keep today's numbers on screen until they land.
+    if (day.isLoading && !day.hasValue) return const AsyncLoading();
     rates[date] = day.value;
   }
   return AsyncData(

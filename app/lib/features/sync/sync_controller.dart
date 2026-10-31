@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/core/sync/refused_writes.dart';
 
 /// Where the app stands with the squad's data (spec UC-30–UC-31).
 enum SyncPhase {
@@ -16,6 +17,9 @@ enum SyncPhase {
   syncing,
   synced,
   failed,
+
+  /// The server refused changes: they need making again (item 2).
+  refused,
 }
 
 @immutable
@@ -24,7 +28,8 @@ class SyncState {
 
   final SyncPhase phase;
 
-  /// What went wrong, when [phase] is [SyncPhase.failed].
+  /// What went wrong, when [phase] is [SyncPhase.failed] or
+  /// [SyncPhase.refused].
   final String? error;
 
   /// Joining, inviting, role changes and deleting an account need a
@@ -44,6 +49,14 @@ abstract interface class NetworkSwitch {
 final networkSwitchProvider = Provider<NetworkSwitch>(
   (ref) => throw UnimplementedError('networkSwitchProvider must be overridden'),
 );
+
+/// Whether a write from an earlier run reached the server; null if that can't
+/// be read yet. Overridden in `main.dart`.
+final queuedWriteCheckProvider =
+    Provider<Future<bool?> Function(QueuedWrite write)>(
+      (ref) =>
+          (_) async => true,
+    );
 
 /// Uploads photos that are waiting. Overridden in `main.dart`.
 final photoFlushProvider = Provider<Future<void> Function()>(
@@ -79,7 +92,17 @@ final syncControllerProvider = NotifierProvider<SyncController, SyncState>(
 /// the network and sends everything that was waiting (spec UC-31).
 class SyncController extends Notifier<SyncState> {
   Future<void>? _syncing;
+
+  /// Counts the syncs started, so a sync left hanging by a drop can't later
+  /// overwrite the state of a newer one (item 9).
+  int _run = 0;
   Timer? _hideSynced;
+
+  /// How long a sync waits for the server before saying it's taking too long.
+  /// The writes stay queued. Without this, a connection that looks fine but
+  /// can't reach the database would stay on "Syncing…".
+  @visibleForTesting
+  static Duration writesTimeout = const Duration(seconds: 60);
 
   /// How long "Synced ✓" stays. Kept here, not on a screen, so it goes away
   /// whichever screen is showing, or if none was.
@@ -94,8 +117,19 @@ class SyncController extends Notifier<SyncState> {
     final subscription = monitor.changes.listen(
       (online) => unawaited(_onConnectivity(online)),
     );
+    // Shown at once, unless a sync is running: that shows it when it ends.
+    void onRefused() {
+      if (state.phase == SyncPhase.syncing ||
+          state.phase == SyncPhase.offline) {
+        return;
+      }
+      _reportRefusals();
+    }
+
+    refusedWrites.refused.addListener(onRefused);
     ref
       ..onDispose(subscription.cancel)
+      ..onDispose(() => refusedWrites.refused.removeListener(onRefused))
       ..onDispose(() => _hideSynced?.cancel());
     ready = monitor.check().then(_onStart);
     return const SyncState(SyncPhase.online);
@@ -115,12 +149,33 @@ class SyncController extends Notifier<SyncState> {
     } on Object {
       // Never block the app from starting; the Sync button can try again.
     }
+    unawaited(_checkEarlierWrites());
+  }
+
+  /// Once the queue has gone up, checks the writes an earlier run left: their
+  /// answers went with that run (item 2).
+  Future<void> _checkEarlierWrites() async {
+    if (!refusedWrites.hasEarlier) return;
+    try {
+      await ref
+          .read(networkSwitchProvider)
+          .waitForPendingWrites()
+          .timeout(writesTimeout);
+      await refusedWrites.checkEarlier(ref.read(queuedWriteCheckProvider));
+    } on Object {
+      // Not this time: the list stays on the phone for the next sync.
+    }
   }
 
   Future<void> _onConnectivity(bool online) async {
-    if (_syncing != null) return; // sync() settles its own outcome
     if (!online) {
-      if (state.phase != SyncPhase.offline) await _goOffline();
+      // A drop mid-sync abandons that sync: its writes can't finish offline,
+      // so it must not leave the phone on "Syncing…".
+      if (state.phase != SyncPhase.offline) {
+        _run++;
+        _syncing = null;
+        await _goOffline();
+      }
     } else if (state.phase == SyncPhase.offline) {
       await sync();
     }
@@ -132,25 +187,59 @@ class SyncController extends Notifier<SyncState> {
   }
 
   /// Re-enables the network and uploads queued tabs, settlements and photos.
-  Future<void> sync() =>
-      _syncing ??= _runSync().whenComplete(() => _syncing = null);
+  Future<void> sync() => _syncing ??= _runSync();
 
   Future<void> _runSync() async {
+    final run = ++_run;
     final network = ref.read(networkSwitchProvider);
     state = const SyncState(SyncPhase.syncing);
     try {
       await network.enable();
-      await network.waitForPendingWrites();
+      await network.waitForPendingWrites().timeout(writesTimeout);
       await ref.read(photoFlushProvider)();
+      await refusedWrites.checkEarlier(ref.read(queuedWriteCheckProvider));
+      if (run != _run) return; // abandoned by a drop; that outcome stands
+      // The server refused changes made offline: say so, never "Synced ✓".
+      if (_reportRefusals()) return;
       state = const SyncState(SyncPhase.synced);
       _hideSynced?.cancel();
       _hideSynced = Timer(syncedFor, dismissSynced);
+    } on TimeoutException {
+      if (run != _run) return;
+      state = const SyncState(
+        SyncPhase.failed,
+        error: 'It’s taking too long. Your changes are safe on this phone.',
+      );
     } on Object catch (error) {
+      if (run != _run) return;
       if (await ref.read(connectivityMonitorProvider).check()) {
         state = SyncState(SyncPhase.failed, error: '$error');
       } else {
         await _goOffline();
       }
+    } finally {
+      if (run == _run) _syncing = null;
+    }
+  }
+
+  /// Shows what the server refused, which stays until the person says OK.
+  /// Returns whether there was anything to show.
+  bool _reportRefusals() {
+    final refused = refusedWrites.pending;
+    if (refused.isEmpty) return false;
+    final again = refused.length == 1 ? 'it' : 'them';
+    state = SyncState(
+      SyncPhase.refused,
+      error: 'Couldn’t save ${refused.join(', ')}. Please make $again again.',
+    );
+    return true;
+  }
+
+  /// The person has seen what wasn't saved.
+  void dismissRefused() {
+    refusedWrites.clear();
+    if (state.phase == SyncPhase.refused) {
+      state = const SyncState(SyncPhase.online);
     }
   }
 

@@ -87,5 +87,9 @@ final sessionStageProvider = Provider<AsyncValue<SessionStage>>(
   (ref) => ref.watch(sessionFactsProvider).whenData(stageFor),
 );
 
-/// Today's date; overridden in tests so age checks are deterministic.
-final todayProvider = Provider<DateTime>((ref) => DateTime.now());
+/// The clock; overridden in tests so age checks are deterministic.
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
+
+/// Today's date. It is recomputed when the app comes back to the front or
+/// passes midnight (see TodayRefresher), so it never goes stale.
+final todayProvider = Provider<DateTime>((ref) => ref.watch(clockProvider)());

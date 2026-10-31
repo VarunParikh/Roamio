@@ -21,6 +21,7 @@ class InviteDetails {
     required this.endDate,
     this.leaderUid = '',
     this.leaderCharacterId,
+    this.expiresAt,
   });
 
   final String code;
@@ -32,6 +33,9 @@ class InviteDetails {
   final String countryCode;
   final DateTime startDate;
   final DateTime endDate;
+
+  /// When it stops working, so a card can check again then.
+  final DateTime? expiresAt;
 }
 
 /// An invite action failed; [message] is safe to show as-is.
