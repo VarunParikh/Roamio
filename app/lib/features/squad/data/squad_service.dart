@@ -63,8 +63,9 @@ abstract interface class SquadService {
   /// they're alone, which archives the adventure (spec UC-17).
   Future<void> leave(String adventureId);
 
-  /// Display names for [uids], from their public profiles.
-  Future<Map<String, SquadPerson>> peopleOf(List<String> uids);
+  /// Display names for [uids], from their public profiles, live: a change to
+  /// a profile arrives as it happens (item 4).
+  Stream<Map<String, SquadPerson>> peopleOf(List<String> uids);
 
   /// The adventure's active pals, A to Z.
   Stream<List<Pal>> pals(String adventureId);
@@ -116,17 +117,20 @@ class SquadPerson {
 
 /// Names and characters for a squad, keyed by the comma-joined uids so it
 /// reloads when the squad changes.
-final FutureProviderFamily<Map<String, SquadPerson>, String>
-squadPeopleProvider = FutureProvider.family<Map<String, SquadPerson>, String>(
+final StreamProviderFamily<Map<String, SquadPerson>, String>
+squadPeopleProvider = StreamProvider.family<Map<String, SquadPerson>, String>(
   (ref, uids) => ref.watch(squadServiceProvider).peopleOf(uids.split(',')),
 );
 
 /// Just the names, for the many places that show only those.
-final FutureProviderFamily<Map<String, String>, String> squadNamesProvider =
-    FutureProvider.family<Map<String, String>, String>((ref, uids) async {
-      final people = await ref.watch(squadPeopleProvider(uids).future);
-      return {for (final e in people.entries) e.key: e.value.name};
-    });
+final ProviderFamily<AsyncValue<Map<String, String>>, String>
+squadNamesProvider = Provider.family<AsyncValue<Map<String, String>>, String>(
+  (ref, uids) => ref
+      .watch(squadPeopleProvider(uids))
+      .whenData(
+        (people) => {for (final e in people.entries) e.key: e.value.name},
+      ),
+);
 
 final StreamProviderFamily<List<Pal>, String> palsProvider =
     StreamProvider.family<List<Pal>, String>(
