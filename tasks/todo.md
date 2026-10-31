@@ -339,7 +339,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: optional reason; creator can edit and resubmit or delete; money edits return to waiting, description, category and method don't. Own activity type, since `tab_rejected` already means `checkTab` rejected a tab.
   - Verify: rules tests; journey for reject and resubmit.
 
-- [ ] **Task 51: Approval notifications** — S · Deps: 48 · UC-21a
+- [x] **Task 51: Approval notifications** — S · Deps: 48 · UC-21a
   - Acceptance: push to admins for a waiting tab, to the creator on rejection; Home card opens the tab list.
   - Verify: functions tests (only admins, never the creator).
 
