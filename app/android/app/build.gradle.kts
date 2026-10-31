@@ -32,6 +32,14 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    // Direct-download APK, so what counts is the size of the file: phones
+    // unpack these when they install it, instead of the APK carrying them raw.
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -103,4 +111,14 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+// x86_64 is only for emulators, which run debug builds, so no release carries it.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.packaging.jniLibs.excludes.add("lib/x86_64/**")
+        if (project.findProperty("roamio.arm64Only") == "true") {
+            variant.packaging.jniLibs.excludes.add("lib/armeabi-v7a/**")
+        }
+    }
 }

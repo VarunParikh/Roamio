@@ -170,6 +170,10 @@ To try a release first without offering it to anyone, use a test tag such as
 5. On a phone with the older version, open Roamio: the update popup appears
    (it checks at most once a day, so it may take until the next day).
 
+### Why the APK is the size it is
+
+Almost all of it is native code (Flutter, the app, and ML Kit for Scan bill), one copy per phone type. Release builds leave out `x86_64`, which only emulators use, and compress the rest in the file; phones unpack it when they install. To leave out 32-bit phones too, build with `-Proamio.arm64Only=true`.
+
 ### If a release went wrong
 
 - Wrong notes: edit the release on GitHub; the popup shows the new text.
