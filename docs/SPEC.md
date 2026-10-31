@@ -201,7 +201,7 @@ Each item is written so it can become a test.
 
 - **UC-28** Character, name, optional description, profile currency, notification and location toggles. Everyone has a character: one of the 47 in `assets/characters/`, always on opaque white. A new account gets a default worked out from its ID, and Needs you offers to change it ("We have selected your awesome Avatar", with Change and Keep). Uploading your own picture is next phase.
 - **UC-28a Picture beside every name:** wherever a person is listed or named on a screen, their picture is beside it: Home greeting, join cards, invites, squad, Activity, invite link screen, Add tab's lists, tab details, Who pays whom, balances, Payments recorded and the settle sheet. Not in pop-up messages, confirmation dialogs, push notifications or exports. A deleted user gets a plain grey icon; a neutral circle shows while loading. TalkBack reads the name, not the character.
-- **UC-29 Privacy centre:** download my data (JSON), correct my data, delete my account, nominate a person, raise a concern (grievance contact), withdraw individual consents. For parents: **Linked children** (§7).
+- **UC-29 Privacy centre:** download my data (JSON), correct my data, delete my account, nominate a person, raise a concern (grievance contact; hidden in the app for the pilot by owner's decision, 2026-10-31, and in the privacy notice meanwhile), withdraw individual consents. For parents: **Linked children** (§7).
 
 ### 5.10 Offline & sync
 

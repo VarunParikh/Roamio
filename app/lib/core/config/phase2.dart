@@ -13,6 +13,11 @@ final minorsEnabledProvider = Provider<bool>((ref) => false);
 /// Nominate a person in the Privacy centre (spec UC-29, DPDP §14).
 final nomineeEnabledProvider = Provider<bool>((ref) => false);
 
+/// Raise a concern in the Privacy centre, with the grievance officer's email
+/// (spec UC-29). Off for the pilot (owner, 2026-10-31), until the real address
+/// is set; see docs/ROADMAP.md.
+final grievanceEnabledProvider = Provider<bool>((ref) => false);
+
 /// Uploading pictures: your display picture, an adventure's banner and photos
 /// on tabs, with Scan bill attaching the bill to its tab. Off (the pilot):
 /// people choose a character, adventures keep their country photo and Scan bill

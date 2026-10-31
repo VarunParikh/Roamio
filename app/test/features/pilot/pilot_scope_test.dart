@@ -151,6 +151,7 @@ void main() {
       scrollable: list,
     );
     expect(find.text('Nominate a person', skipOffstage: false), findsNothing);
+    expect(find.text('Raise a concern', skipOffstage: false), findsNothing);
     expect(find.text('Download Mia’s data', skipOffstage: false), findsNothing);
     expect(find.text('Linked children', skipOffstage: false), findsNothing);
   });

@@ -294,6 +294,7 @@ Future<void> pumpRoamio(
         ),
         minorsEnabledProvider.overrideWithValue(phase2),
         nomineeEnabledProvider.overrideWithValue(phase2),
+        grievanceEnabledProvider.overrideWithValue(phase2),
         photoUploadsEnabledProvider.overrideWithValue(phase2),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),

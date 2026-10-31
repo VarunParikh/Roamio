@@ -214,25 +214,26 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
             'Change your name, character and description on the You page.',
           ),
           if (ref.watch(nomineeEnabledProvider)) const _NomineeSection(),
-          section(
-            'Raise a concern',
-            'Write to our grievance officer at $grievanceEmail. We reply '
-                'within 7 days.',
-            [
-              TextButton.icon(
-                onPressed: () async {
-                  await Clipboard.setData(
-                    const ClipboardData(text: grievanceEmail),
-                  );
-                  if (context.mounted) {
-                    showAuthMessage(context, 'Email address copied.');
-                  }
-                },
-                icon: const Icon(Icons.copy_outlined),
-                label: const Text('Copy email address'),
-              ),
-            ],
-          ),
+          if (ref.watch(grievanceEnabledProvider))
+            section(
+              'Raise a concern',
+              'Write to our grievance officer at $grievanceEmail. We reply '
+                  'within 7 days.',
+              [
+                TextButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(
+                      const ClipboardData(text: grievanceEmail),
+                    );
+                    if (context.mounted) {
+                      showAuthMessage(context, 'Email address copied.');
+                    }
+                  },
+                  icon: const Icon(Icons.copy_outlined),
+                  label: const Text('Copy email address'),
+                ),
+              ],
+            ),
           section(
             'Delete your account',
             'Removes your profile and budgets. If you lead a squad '
