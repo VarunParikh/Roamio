@@ -10,15 +10,13 @@ import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 
 /// Saves a banner on the phone, in the cache the adventure banner reads from.
-/// A photo that can't be fetched stays quiet: the card keeps its fallback.
+/// Completes with an error when the photo can't be fetched, so it's tried
+/// again (see [BannerPreloader]).
 final saveBannerProvider =
     Provider<Future<void> Function(BuildContext, String url)>(
       (ref) =>
-          (context, url) => precacheImage(
-            CachedNetworkImageProvider(url),
-            context,
-            onError: (_, _) {},
-          ),
+          (context, url) =>
+              precacheImage(CachedNetworkImageProvider(url), context),
     );
 
 /// Saves the banner of every current and upcoming trip while there's a
@@ -33,7 +31,36 @@ class BannerPreloader extends ConsumerStatefulWidget {
 }
 
 class _BannerPreloaderState extends ConsumerState<BannerPreloader> {
+  /// How long a banner that failed to save waits before it's tried again.
+  static const retryAfter = Duration(minutes: 5);
+
   final _saved = <String>{};
+
+  /// A retry timer per banner, so one failing banner can't cancel another's.
+  final _retries = <String, Timer>{};
+
+  @override
+  void dispose() {
+    for (final t in _retries.values) {
+      t.cancel();
+    }
+    super.dispose();
+  }
+
+  /// A banner that doesn't save is forgotten after [retryAfter], so the next
+  /// build tries it again (item 15). Saved ones are never retried.
+  void _save(BuildContext context, String url) {
+    unawaited(
+      ref.read(saveBannerProvider)(context, url).catchError((_) {
+        _retries[url]?.cancel();
+        _retries[url] = Timer(retryAfter, () {
+          if (!mounted) return;
+          _saved.remove(url);
+          setState(() {});
+        });
+      }),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +77,7 @@ class _BannerPreloaderState extends ConsumerState<BannerPreloader> {
           a.bannerUrl ?? ref.watch(bannerProvider(a.countryCode)).value?.url;
       if (url == null || !_saved.add(url)) continue;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(ref.read(saveBannerProvider)(context, url));
+        if (mounted) _save(context, url);
       });
     }
     return const SizedBox.shrink();
