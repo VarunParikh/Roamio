@@ -24,6 +24,8 @@ import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
+import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/tab_approval.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
@@ -145,8 +147,8 @@ class _TabsWaiting extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
     if (!adventure.isLead(myUid)) return const SizedBox.shrink();
-    final count =
-        ref.watch(splitReportProvider(adventure.id)).value?.waitingCount ?? 0;
+    final tabs = ref.watch(tabsProvider(adventure.id)).value ?? const [];
+    final count = tabsYouCanDecide(adventure, tabs, myUid).length;
     if (count == 0) return const SizedBox.shrink();
     final label = count == 1
         ? '1 tab waiting for approval'
