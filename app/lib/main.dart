@@ -22,6 +22,7 @@ import 'package:roamio/features/adventures/data/firebase_adventure_service.dart'
 import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/data/firebase_auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/auth/ui/today_refresher.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
 import 'package:roamio/features/banners/data/firebase_banner_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
@@ -208,13 +209,15 @@ class _RoamioAppState extends ConsumerState<RoamioApp> {
       theme: buildRoamioTheme(),
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
-      builder: (context, child) => currentFlavor == Flavor.dev
-          ? Banner(
-              message: 'DEV',
-              location: BannerLocation.topEnd,
-              child: child,
-            )
-          : child!,
+      builder: (context, child) => TodayRefresher(
+        child: currentFlavor == Flavor.dev
+            ? Banner(
+                message: 'DEV',
+                location: BannerLocation.topEnd,
+                child: child,
+              )
+            : child!,
+      ),
     );
   }
 }
