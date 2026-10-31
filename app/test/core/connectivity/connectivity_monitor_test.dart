@@ -53,4 +53,24 @@ void main() {
       expect(await m.check(), isFalse);
     });
   });
+
+  test('a slow lookup never has two polls running at once (item 18)', () async {
+    var running = 0;
+    var mostAtOnce = 0;
+    final monitor = DeviceConnectivityMonitor(
+      every: const Duration(milliseconds: 10),
+      timeout: const Duration(seconds: 1),
+      lookup: (_) async {
+        running++;
+        mostAtOnce = running > mostAtOnce ? running : mostAtOnce;
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+        running--;
+        return [InternetAddress('142.250.0.1')];
+      },
+    );
+    final sub = monitor.changes.listen((_) {});
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    await sub.cancel();
+    expect(mostAtOnce, 1);
+  });
 }

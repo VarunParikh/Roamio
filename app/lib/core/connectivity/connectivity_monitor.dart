@@ -56,15 +56,24 @@ class DeviceConnectivityMonitor implements ConnectivityMonitor {
     AppLifecycleListener? lifecycle;
     bool? last;
     var failures = 0;
+    var polling = false;
 
     Future<void> poll() async {
-      final found = await check();
-      if (controller.isClosed) return;
-      failures = found ? 0 : failures + 1;
-      if (!found && failures < offlineAfter) return;
-      if (found == last) return;
-      last = found;
-      controller.add(found);
+      // A slow lookup must not pile up polls behind it (item 18): the next
+      // one waits for this to finish, and the timer or resume picks it up.
+      if (polling) return;
+      polling = true;
+      try {
+        final found = await check();
+        if (controller.isClosed) return;
+        failures = found ? 0 : failures + 1;
+        if (!found && failures < offlineAfter) return;
+        if (found == last) return;
+        last = found;
+        controller.add(found);
+      } finally {
+        polling = false;
+      }
     }
 
     controller = StreamController<bool>(
