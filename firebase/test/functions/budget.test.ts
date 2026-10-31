@@ -153,6 +153,18 @@ describe("checkBudget (spec UC-20)", () => {
 });
 
 describe("budget triggers", () => {
+  it("approving a tab that crosses a threshold sends the alert (spec UC-20)", async () => {
+    const { ari, id, tab } = await trip(16_000, false, "waiting");
+    await new Promise((r) => setTimeout(r, 1000));
+    expect(await alerts(ari.uid, id)).toEqual([]);
+
+    await tab.update({ status: "approved", decidedBy: "someone" });
+
+    await eventually(async () => {
+      expect(await alerts(ari.uid, id)).toHaveLength(1);
+    });
+  });
+
   it("a new tab alerts; changing the budget resets the alerts", async () => {
     const { ari, id } = await trip(16_000);
     await eventually(async () => {

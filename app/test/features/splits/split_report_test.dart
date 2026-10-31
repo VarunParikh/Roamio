@@ -86,6 +86,32 @@ void main() {
       expect(both.myShare, alone.myShare);
     });
 
+    test('says what your share of waiting tabs would be', () {
+      final r = _report([_with(_dinner, TabStatus.waiting)]);
+      expect(r.waitingMyShare, 150000);
+      expect(r.myShare, 0);
+    });
+
+    test('a waiting tab you’re not on adds nothing', () {
+      final r = _report([_with(_dinner, TabStatus.waiting)], viewer: 'zed');
+      expect(r.waitingMyShare, 0);
+    });
+
+    test('a waiting tab with no rate doesn’t break the report', () {
+      final r = buildReport(
+        tabs: [_dinner, _with(_taxi, TabStatus.waiting)],
+        baseCurrency: 'INR',
+        viewerCurrency: 'INR',
+        viewer: 'ari',
+        ratesFor: (date) => date == '2026-10-28'
+            ? FxRates(date: date, usdRates: const {})
+            : _rates(date),
+      );
+      expect(r.missingRates, isFalse);
+      expect(r.waitingCount, 1);
+      expect(r.waitingMyShare, 0);
+    });
+
     test('says how many tabs are waiting, not rejected ones', () {
       final r = _report([
         _dinner,
