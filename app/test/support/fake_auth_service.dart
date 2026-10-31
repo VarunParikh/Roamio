@@ -18,6 +18,7 @@ import 'package:roamio/features/auth/data/auth_service.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/auth/ui/login_screen.dart';
 import 'package:roamio/features/banners/data/banner_service.dart';
+import 'package:roamio/features/banners/ui/banner_preloader.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 import 'package:roamio/features/consent/data/consent_service.dart';
 import 'package:roamio/features/home/data/home_card_memory.dart';
@@ -204,6 +205,7 @@ Future<void> pumpRoamio(
   // Remembers Cash, so tests about other things can save a tab straight away.
   FakePaymentMemory? paymentMemory,
   FakeHomeCardMemory? homeCardMemory,
+  List<String>? savedBanners,
   Map<String, String>? remoteConfig,
   // Phase 2 features (under-18s, nominee) are off in the pilot app; most
   // feature tests still exercise them. Pilot tests pass `phase2: false`.
@@ -297,6 +299,9 @@ Future<void> pumpRoamio(
         nomineeEnabledProvider.overrideWithValue(phase2),
         grievanceEnabledProvider.overrideWithValue(phase2),
         panSplashPhotoProvider.overrideWithValue(false),
+        saveBannerProvider.overrideWithValue(
+          (_, url) async => savedBanners?.add(url),
+        ),
         photoUploadsEnabledProvider.overrideWithValue(phase2),
         privacyServiceProvider.overrideWithValue(
           privacy ?? FakePrivacyService(),

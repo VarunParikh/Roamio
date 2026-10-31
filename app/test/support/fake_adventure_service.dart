@@ -12,6 +12,12 @@ class FakeAdventureService implements AdventureService {
   final _changes = StreamController<List<Adventure>>.broadcast();
   bool failNext = false;
 
+  /// Someone joined a trip elsewhere; it arrives on the stream.
+  void arrive(Adventure adventure) {
+    adventures.add(adventure);
+    _changes.add([...adventures]);
+  }
+
   /// The adventure list can't be loaded (Home's error state).
   bool failToLoad = false;
 

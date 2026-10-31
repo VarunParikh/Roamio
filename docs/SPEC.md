@@ -306,7 +306,7 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 
 ### 9.2 Banner
 - When an adventure is shown, the app looks up `banners/{countryCode}`. If missing, the `getBanner` function searches Unsplash for the country's landmark (from the dataset), and caches the photo link and photographer credit in `banners/{countryCode}` for everyone.
-- **Unsplash's API terms require photos to stay on Unsplash's CDN**, so instead of re-hosting, Roamio stores Unsplash's link with resize and compression parameters (1600 px, WebP, quality 80). The app caches the image on the device, so it loads instantly after the first time.
+- **Unsplash's API terms require photos to stay on Unsplash's CDN**, so instead of re-hosting, Roamio stores Unsplash's link with resize and compression parameters (1600 px, WebP, quality 80). As soon as someone has a current or upcoming trip and a connection, the app saves its banner on the phone (the device's cache of that link), so it still shows while travelling. Android can clear this cache if the phone runs low on storage; the card then shows the flag until the next connection.
 - The photographer is credited on the banner, bottom-left on Home's adventure card, with a link to their Unsplash page.
 - If nothing is found or Unsplash is unreachable, a gradient banner with the flag emoji is shown and the lookup is tried again later.
 
