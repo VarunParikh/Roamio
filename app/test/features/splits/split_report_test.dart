@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/splits/domain/settlement_planner.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/domain/tab_status.dart';
@@ -120,6 +121,26 @@ void main() {
         _with(_taxi, TabStatus.rejected),
       ]);
       expect(r.waitingCount, 2);
+    });
+  });
+
+  group('who pays whom (item 11)', () {
+    test('pairs are planned once, in the trip currency, for every viewer', () {
+      final tabs = [_dinner, _taxi, _with(_lunch, TabStatus.approved)];
+      List<(String, String)> pairs(List<Transfer> ts) => [
+        for (final t in ts) (t.from, t.to),
+      ];
+      SplitReport inThb(String viewer) => buildReport(
+        tabs: tabs,
+        baseCurrency: 'INR',
+        viewerCurrency: 'THB',
+        viewer: viewer,
+        ratesFor: _rates,
+      );
+      final shown = inThb('ari'); // planned in INR, shown in THB
+      expect(shown.currency, 'THB');
+      expect(pairs(shown.transfers), pairs(shown.baseTransfers));
+      expect(pairs(inThb('zed').transfers), pairs(shown.baseTransfers));
     });
   });
 
