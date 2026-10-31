@@ -98,7 +98,9 @@ class _AddTabForm extends ConsumerStatefulWidget {
 }
 
 class _AddTabFormState extends ConsumerState<_AddTabForm> {
-  late final Adventure _a = widget.adventure;
+  // Read from the screen each time, so a squad change while the form is
+  // open is used (item 5).
+  Adventure get _a => widget.adventure;
   final _amount = TextEditingController();
   final _description = TextEditingController();
   late String _currency = _a.baseCurrency;
@@ -132,10 +134,17 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   PaymentMethod? _methodOf(String id) => _methods[id] ?? _lastUsed;
 
   /// Who paid, as the form stands.
-  List<String> _payerIds(String myUid) => switch (_texts(_payerFields)) {
-    final texts? => [for (final p in payersFrom(texts, _currency)) p.payer],
-    null => [_old?.createdBy ?? myUid],
-  };
+  /// The payer amounts typed for people still on the squad (see payerTextsOf).
+  Map<String, String>? _livePayerTexts(List<Pal> pals) {
+    final texts = _texts(_payerFields);
+    return texts == null ? null : payerTextsOf(texts, _everyone(pals));
+  }
+
+  List<String> _payerIds(String myUid, List<Pal> pals) =>
+      switch (_livePayerTexts(pals)) {
+        final texts? => [for (final p in payersFrom(texts, _currency)) p.payer],
+        null => [_old?.createdBy ?? myUid],
+      };
 
   void _setMethod(String id, PaymentMethod method) {
     _doneTyping();
@@ -282,9 +291,9 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     today: ref.read(todayProvider),
     category: _category,
     participants: _ticked(pals),
-    payerTexts: _texts(_payerFields),
+    payerTexts: _livePayerTexts(pals),
     percentTexts: _texts(_percentFields),
-    paymentMethods: _payerIds(myUid).map(_methodOf).toList(),
+    paymentMethods: _payerIds(myUid, pals).map(_methodOf).toList(),
   );
 
   /// Moving on from the amount closes the keyboard, so the form stops
@@ -342,7 +351,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
               method: _methodOf(_old?.createdBy ?? myUid)!,
             ),
           ]
-        : payersFrom(_texts(_payerFields)!, _currency, methodOf: _methodOf);
+        : payersFrom(_livePayerTexts(pals)!, _currency, methodOf: _methodOf);
     final sharing = _ticked(pals);
     final tab = NewTab(
       status: old0 == null
