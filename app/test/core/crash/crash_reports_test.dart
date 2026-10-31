@@ -20,6 +20,42 @@ void main() {
       expect(PrivacyPolicy.forAgeStatus(null).allowsCrashReports, isFalse);
     });
 
+    test('leaves reports alone until it knows who this is', () async {
+      // Switching off here would delete a crash waiting to upload from the
+      // last run, when an adult was using the app.
+      final reporter = _Recording();
+      final container = ProviderContainer(
+        overrides: [
+          crashReporterProvider.overrideWithValue(reporter),
+          sessionFactsProvider.overrideWith(
+            (ref) => Stream.value(const SessionFacts.loading()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(crashCollectionProvider, (_, _) {});
+      await container.read(sessionFactsProvider.future);
+      await Future<void>.delayed(Duration.zero);
+      expect(reporter.enabled, isNull);
+    });
+
+    test('signing out switches reports off', () async {
+      final reporter = _Recording();
+      final container = ProviderContainer(
+        overrides: [
+          crashReporterProvider.overrideWithValue(reporter),
+          sessionFactsProvider.overrideWith(
+            (ref) => Stream.value(const SessionFacts.signedOut()),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(crashCollectionProvider, (_, _) {});
+      await container.read(sessionFactsProvider.future);
+      await Future<void>.delayed(Duration.zero);
+      expect(reporter.enabled, isFalse);
+    });
+
     test('a confirmed adult switches reports on', () async {
       final reporter = _Recording();
       final container = ProviderContainer(
