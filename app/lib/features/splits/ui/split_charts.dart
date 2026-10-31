@@ -60,7 +60,7 @@ class SpendByCategory extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Spend by category', style: text.titleLarge),
+        Text('Spend by category', style: text.headlineSmall),
         const SizedBox(height: 2),
         Text(
           'Total spend $total',
@@ -80,6 +80,7 @@ class SpendByCategory extends StatelessWidget {
                     child: SizedBox(
                       height: 16,
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: 2,
                         children: [
                           for (final (i, s) in shares.indexed)
@@ -149,7 +150,7 @@ class CategoryLegendEntry extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            Text('$percent%', style: text.titleLarge),
+            Text('$percent%', style: text.headlineSmall),
             Text(
               money,
               style: text.bodySmall?.copyWith(color: RoamioColors.slate),

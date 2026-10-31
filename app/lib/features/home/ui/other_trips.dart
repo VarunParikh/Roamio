@@ -64,7 +64,7 @@ class OtherTripCard extends ConsumerWidget {
                             adventure.name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: text.titleLarge?.copyWith(
+                            style: text.headlineSmall?.copyWith(
                               color: RoamioColors.surface,
                             ),
                           ),

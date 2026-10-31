@@ -76,7 +76,7 @@ class PlanAdventureCard extends ConsumerWidget {
               children: [
                 Text(
                   'Plan your next adventure',
-                  style: text.displaySmall?.copyWith(
+                  style: text.displayLarge?.copyWith(
                     color: RoamioColors.surface,
                   ),
                 ),
@@ -119,7 +119,7 @@ class NoAdventuresCard extends StatelessWidget {
             Text(
               'No adventures yet',
               textAlign: TextAlign.center,
-              style: text.titleLarge,
+              style: text.headlineSmall,
             ),
             const SizedBox(height: 4),
             Text(

@@ -51,7 +51,7 @@ class _WhoPaysWhomState extends State<WhoPaysWhom> {
       children: [
         Row(
           children: [
-            Expanded(child: Text('Who pays whom', style: text.titleLarge)),
+            Expanded(child: Text('Who pays whom', style: text.headlineSmall)),
             if (ordered.length > _collapsedRows)
               TextButton(
                 style: TextButton.styleFrom(minimumSize: const Size(48, 48)),

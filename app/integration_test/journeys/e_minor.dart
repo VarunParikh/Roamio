@@ -60,6 +60,7 @@ void journeyE() {
     final consent = (await getDoc('parentalConsents/$uid'))!;
     expect(consent['status'], 'granted');
     expect(consent['parentUid'], pat.uid);
+    await scrollTo(tester, find.text('Have an invite code?'));
     await tapText(tester, 'Have an invite code?');
     await typeInto(tester, 'Code or invite link', invite['code']! as String);
     await tapText(tester, 'Find invite');
