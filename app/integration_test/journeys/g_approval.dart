@@ -78,7 +78,8 @@ void journeyG() {
     await openAdventure(tester, 'Goa weekend');
     await scrollTo(tester, find.text('Rejected: Wrong trip'));
     await tapOn(tester, rowButton('Taxi', 'Edit and resubmit'));
-    await saveTab(tester);
+    await tapText(tester, 'Save changes');
+    await waitForGone(tester, find.text('Save changes'));
     await eventually('Taxi waits again, with no old reason', () async {
       final tab = await getDoc('adventures/$aid/tabs/$taxi');
       return tab?['status'] == 'waiting' && tab?['rejectReason'] == null;
