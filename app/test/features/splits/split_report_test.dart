@@ -125,6 +125,36 @@ void main() {
   });
 
   group('who pays whom (item 11)', () {
+    test('what you pay adds up to what you owe, when rates differ by day', () {
+      TabSplit split(String day, String payer) => TabSplit(
+        amount: Money(100000, 'THB'),
+        payers: [Payment(payer, 100000)],
+        participants: const ['ari', 'bob', 'cara'],
+        fxDate: day,
+      );
+      ReportTab paid(String day, String payer) => ReportTab(
+        category: 'food_dining',
+        date: DateTime(2026, 10, 20),
+        split: split(day, payer),
+      );
+      final r = buildReport(
+        tabs: [paid('2026-10-20', 'ari'), paid('2026-10-21', 'bob')],
+        baseCurrency: 'THB',
+        viewerCurrency: 'INR',
+        viewer: 'cara',
+        ratesFor: (date) => FxRates(
+          date: date,
+          usdRates: {'THB': '35', 'INR': date == '2026-10-20' ? '84' : '70'},
+        ),
+      );
+      final cara = r.transfers.where((t) => t.from == 'cara');
+      expect(cara, isNotEmpty);
+      expect(
+        cara.fold(0, (sum, t) => sum + t.amount.minor),
+        -r.balances['cara']!,
+      );
+    });
+
     test('pairs are planned once, in the trip currency, for every viewer', () {
       final tabs = [_dinner, _taxi, _with(_lunch, TabStatus.approved)];
       List<(String, String)> pairs(List<Transfer> ts) => [

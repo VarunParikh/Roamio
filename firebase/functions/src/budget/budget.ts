@@ -138,8 +138,13 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
       if (!tab.participants?.includes(uid)) continue;
       const rates = rateCache.get(tab.fxDate) ?? (await ratesOn(tab.fxDate));
       rateCache.set(tab.fxDate, rates);
-      const converted = convertMinor(tab.amountMinor, tab.currency, currency, rates);
-      share += shareOf(tab, converted, uid);
+      // A tab with no rate yet counts for nothing rather than blocking this
+      // person's alerts for every other tab (item 7).
+      try {
+        share += shareOf(tab, convertMinor(tab.amountMinor, tab.currency, currency, rates), uid);
+      } catch (e) {
+        logger.warn("Budget skipped a tab: rate missing", { aid, tab: doc.id, error: String(e) });
+      }
     }
   } catch (e) {
     logger.warn("Budget not checked: rates missing", { aid, error: String(e) });

@@ -116,7 +116,7 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
 
   it("keeps a tab saved with an old offline rates day, when those rates exist", async () => {
     const { ari, id } = await squad();
-    await db().doc("fx_rates/2026-09-01").set({ date: "2026-09-01" });
+    await db().doc("fx_rates/2026-09-01").set({ date: "2026-09-01", rates: { INR: "84", THB: "35" } });
     const ref = db().collection(`adventures/${id}/tabs`).doc();
     await ref.set(tab(ari.uid, { date: "2026-12-02", fxDate: "2026-09-01" }));
 
