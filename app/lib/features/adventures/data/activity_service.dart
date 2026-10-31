@@ -32,6 +32,9 @@ class ActivityEntry {
 abstract interface class ActivityService {
   /// The latest entries, newest first.
   Stream<List<ActivityEntry>> recent(String adventureId);
+
+  /// Just the newest entry, which is all Home needs (one record per trip).
+  Stream<ActivityEntry?> latest(String adventureId);
 }
 
 final activityServiceProvider = Provider<ActivityService>(
@@ -43,6 +46,12 @@ final StreamProviderFamily<List<ActivityEntry>, String> activityProvider =
     StreamProvider.family<List<ActivityEntry>, String>(
       (ref, adventureId) =>
           ref.watch(activityServiceProvider).recent(adventureId),
+    );
+
+final StreamProviderFamily<ActivityEntry?, String> latestActivityProvider =
+    StreamProvider.family<ActivityEntry?, String>(
+      (ref, adventureId) =>
+          ref.watch(activityServiceProvider).latest(adventureId),
     );
 
 /// The sentence for [e], or null for a type this version doesn't know.

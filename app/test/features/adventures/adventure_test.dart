@@ -111,7 +111,8 @@ void main() {
       final newer = trip('newer', d(10, 27), d(11, 3));
       final s = homeSectionsFor([older, newer], today);
       expect(s.hero?.id, 'newer');
-      expect(s.upcoming.map((a) => a.id), ['older']);
+      expect(s.alsoNow.map((a) => a.id), ['older']);
+      expect(s.upcoming, isEmpty);
     });
 
     test('past trips are newest first; empty when there are none', () {

@@ -72,12 +72,20 @@ DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// How Home lays out someone's adventures (UC-5).
 class HomeSections {
-  const new({required this.hero, required this.upcoming, required this.past});
+  const new({
+    required this.hero,
+    required this.alsoNow,
+    required this.upcoming,
+    required this.past,
+  });
 
-  /// The adventure happening now, or else the next one.
+  /// The adventure happening now (the latest started), or else the next one.
   final Adventure? hero;
 
-  /// Other current and future adventures, soonest relevant first.
+  /// Other adventures happening now, latest started first.
+  final List<Adventure> alsoNow;
+
+  /// Other future adventures, soonest first.
   final List<Adventure> upcoming;
 
   /// Finished adventures, newest first.
@@ -97,10 +105,10 @@ HomeSections homeSectionsFor(List<Adventure> all, DateTime today) {
   final past = where(AdventureStatus.past)
     ..sort((a, b) => b.endDate.compareTo(a.endDate));
 
-  final ahead = [...active, ...upcoming];
   return HomeSections(
-    hero: ahead.isEmpty ? null : ahead.first,
-    upcoming: ahead.skip(1).toList(),
+    hero: active.firstOrNull ?? upcoming.firstOrNull,
+    alsoNow: active.skip(1).toList(),
+    upcoming: active.isEmpty ? upcoming.skip(1).toList() : upcoming,
     past: past,
   );
 }

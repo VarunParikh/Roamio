@@ -37,9 +37,14 @@ void main() {
 
       expect(find.text('Trip bkk'), findsOneWidget);
       expect(find.text('CURRENT ADVENTURE'), findsOneWidget);
-      expect(find.text('Coming up'), findsOneWidget);
+      expect(find.text('Upcoming adventures'), findsOneWidget);
       expect(find.text('Trip goa'), findsOneWidget);
-      expect(find.text('Past adventures (1)'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Past adventures (1)'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
       expect(find.text('Trip old'), findsNothing);
 
       await tester.tap(find.text('Past adventures (1)'));

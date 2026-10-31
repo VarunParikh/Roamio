@@ -147,9 +147,15 @@ class _ActivityRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final latest = latestActivity(ref, adventure);
-    if (latest == null) return const SizedBox.shrink();
-    final (line, actor) = latest;
+    final entry = ref.watch(latestActivityProvider(adventure.id)).value;
+    if (entry == null) return const SizedBox.shrink();
+    final people = squadWithoutTabs(ref, adventure);
+    final line = describeActivity(
+      entry,
+      myUid: ref.watch(sessionFactsProvider).value?.uid ?? '',
+      who: (id) => people[id]?.name ?? 'Someone',
+    );
+    if (line == null) return const SizedBox.shrink();
     return _LinkRow(
       key: const ValueKey('hero-activity'),
       label: line,
@@ -157,8 +163,8 @@ class _ActivityRow extends ConsumerWidget {
       child: Row(
         children: [
           PersonAvatar(
-            uid: actor,
-            person: squadWithoutTabs(ref, adventure)[actor],
+            uid: entry.actorUid,
+            person: people[entry.actorUid],
             radius: 14,
           ),
           const SizedBox(width: 8),
@@ -174,24 +180,6 @@ class _ActivityRow extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// The newest activity line for [adventure] that this version can describe,
-/// with who did it. Null with none yet, or while it loads.
-(String, String)? latestActivity(WidgetRef ref, Adventure adventure) {
-  final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
-  final people = squadWithoutTabs(ref, adventure);
-  for (final e
-      in ref.watch(activityProvider(adventure.id)).value ??
-          const <ActivityEntry>[]) {
-    final line = describeActivity(
-      e,
-      myUid: myUid,
-      who: (id) => people[id]?.name ?? 'Someone',
-    );
-    if (line != null) return (line, e.actorUid);
-  }
-  return null;
 }
 
 /// A tappable row with an arrow, read as one by TalkBack.

@@ -7,8 +7,19 @@ class FakeActivityService implements ActivityService {
 
   final Map<String, List<ActivityEntry>> byAdventure;
 
+  /// How many trips were read in full, and which ones just for their latest.
+  int recentReads = 0;
+  final List<String> latestReads = [];
+
   @override
   Stream<List<ActivityEntry>> recent(String adventureId) async* {
+    recentReads++;
     yield byAdventure[adventureId] ?? const [];
+  }
+
+  @override
+  Stream<ActivityEntry?> latest(String adventureId) async* {
+    latestReads.add(adventureId);
+    yield byAdventure[adventureId]?.firstOrNull;
   }
 }

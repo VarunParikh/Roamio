@@ -14,14 +14,22 @@ class FirebaseActivityService implements ActivityService {
   };
 
   @override
-  Stream<List<ActivityEntry>> recent(String adventureId) => _db
+  Stream<List<ActivityEntry>> recent(String adventureId) =>
+      _entries(adventureId, 50);
+
+  @override
+  Stream<ActivityEntry?> latest(String adventureId) =>
+      _entries(adventureId, 1).map((entries) => entries.firstOrNull);
+
+  Stream<List<ActivityEntry>> _entries(String adventureId, int limit) => _db
       .collection('adventures/$adventureId/activity')
       .orderBy('createdAt', descending: true)
-      .limit(50)
+      .limit(limit)
       .snapshots()
       .asyncMap((q) async {
         // Deleted and rejected tabs aren't in the tab list, so read their
-        // names here (members may read every tab, deleted or not).
+        // names here. Someone else's personal tab refuses the read, and stays
+        // nameless ("a tab").
         final tabIds = {
           for (final d in q.docs)
             if (_tabTypes.contains(d['type'])) d['subject'] as String,

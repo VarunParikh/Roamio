@@ -379,7 +379,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: expand arrow, remembered; budget, daily spend, squad and activity rows, each with a working link; tabs load only when expanded.
   - Verify: widget tests incl. a long trip and no tabs.
 
-- [ ] **Task 61: Recent activity and other trips** — M · Deps: 59 · UC-5
+- [x] **Task 61: Recent activity and other trips** — M · Deps: 59 · UC-5
   - Acceptance: newest event across current and upcoming trips (one record per trip); "Also happening now"; Upcoming with dates.
   - Verify: widget tests; two trips at once; private tabs don't leak.
 
