@@ -30,6 +30,7 @@ void main() {
     Map<String, String>? percents,
   }) => tabProblems(
     adventure: _trip,
+    myUid: 'ari',
     amountText: amount,
     currency: currency,
     date: date ?? DateTime(2026, 10, 24),
@@ -117,6 +118,25 @@ void main() {
       expect(check(category: null), {TabProblem.noCategory});
       expect(check(participants: const []), {TabProblem.nobodySharing});
     });
+
+    test(
+      'members stop on the last day; leads keep the extra week (item 17)',
+      () {
+        Set<TabProblem> asBob(DateTime on) => tabProblems(
+          adventure: _trip,
+          myUid: 'bob',
+          amountText: '100',
+          currency: 'INR',
+          date: DateTime(2026, 10, 24),
+          today: on,
+          category: 'food_dining',
+          participants: const ['ari', 'bob'],
+        );
+        expect(asBob(DateTime(2026, 10, 25)), isEmpty);
+        expect(asBob(DateTime(2026, 10, 26)), {TabProblem.closed});
+        expect(check(on: DateTime(2026, 10, 26)), isEmpty); // ari leads
+      },
+    );
 
     test('tabs close 7 days after the adventure ends (UC-11)', () {
       expect(check(on: DateTime(2026, 11)), isEmpty);
