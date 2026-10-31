@@ -136,6 +136,18 @@ Future<void> tapOn(WidgetTester tester, Finder finder) async {
 Future<void> tapText(WidgetTester tester, String text) =>
     tapOn(tester, find.text(text));
 
+/// Scrolls to [text] and taps it, scrolling again if something loading above
+/// it (a prompt on Home, say) pushes it back out of the list while waiting.
+Future<void> scrollAndTapText(WidgetTester tester, String text) async {
+  final finder = find.text(text);
+  for (var attempt = 1; attempt <= 5; attempt++) {
+    await scrollTo(tester, finder);
+    await settle(tester, const Duration(seconds: 1));
+    if (finder.evaluate().isNotEmpty) break;
+  }
+  await tapOn(tester, finder);
+}
+
 /// Scrolls the screen's main list until [finder] is built.
 Future<void> scrollTo(WidgetTester tester, Finder finder) async {
   for (var i = 0; i < 30 && finder.evaluate().isEmpty; i++) {

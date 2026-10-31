@@ -31,6 +31,9 @@ abstract interface class PhotoPipeline {
   /// Lets the person take ([camera]) or choose a photo; null if cancelled.
   Future<String?> pick({required bool camera});
 
+  /// Deletes a picked photo that won't be uploaded. Quiet if it can't.
+  Future<void> discard(String path);
+
   /// Compresses [path] and queues it for `storageDir/<id>.webp`; once
   /// uploaded, its link is written to [docPath].[field]. Returns once queued,
   /// so it works offline.
@@ -104,6 +107,15 @@ class DevicePhotoPipeline implements PhotoPipeline {
       (await _picker.pickImage(
         source: camera ? ImageSource.camera : ImageSource.gallery,
       ))?.path;
+
+  @override
+  Future<void> discard(String path) async {
+    try {
+      await File(path).delete();
+    } on FileSystemException {
+      // Already gone, or it stays in the app's cache until Android clears it.
+    }
+  }
 
   @override
   Future<void> queueUpload({

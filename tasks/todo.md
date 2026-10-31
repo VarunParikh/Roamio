@@ -383,7 +383,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: newest event across current and upcoming trips (one record per trip); "Also happening now"; Upcoming with dates.
   - Verify: widget tests; two trips at once; private tabs don't leak.
 
-- [ ] **Task 62: Remove the remaining uploads** — M · Deps: 49, 52 · §10
+- [x] **Task 62: Remove the remaining uploads** — M · Deps: 49, 52 · §10
   - Acceptance: no banner upload or tab photos in the pilot; Scan bill uploads and keeps nothing; Storage rules deny writes; code stays behind `photoUploadsEnabledProvider`.
   - Verify: rules deny tests; pilot-scope widget tests; journeys.
 

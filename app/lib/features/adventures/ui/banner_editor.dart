@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:roamio/core/config/phase2.dart';
 import 'package:roamio/core/data/countries.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
 import 'package:roamio/core/images/upload_queue.dart';
@@ -83,13 +84,14 @@ class BannerEditor extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        if (adventure.bannerUrl == null)
-          OutlinedButton.icon(
-            onPressed: () => _useOwnPhoto(context, ref),
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            label: const Text('Use my own photo'),
-          )
-        else
+        if (adventure.bannerUrl == null) ...[
+          if (ref.watch(photoUploadsEnabledProvider))
+            OutlinedButton.icon(
+              onPressed: () => _useOwnPhoto(context, ref),
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              label: const Text('Use my own photo'),
+            ),
+        ] else
           OutlinedButton.icon(
             onPressed: () =>
                 ref.read(adventureServiceProvider).resetBanner(adventure.id),

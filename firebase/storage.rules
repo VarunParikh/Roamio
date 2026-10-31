@@ -1,12 +1,15 @@
 rules_version = '2';
 
-// Photo storage (spec §10). Every file is a compressed WebP of at most 1 MB,
-// written once (no overwrite or delete from the app) to a place the
+// Photo storage (spec §10). Phase 1 uploads no pictures, so uploadsOpen() is
+// false and every write is denied (test/rules/storage-pilot.test.ts).
+// For the next phase, turn it on: every file is then a compressed WebP of at
+// most 1 MB, written once (no overwrite or delete from the app) to a place the
 // uploader may write. Checks the uploader's Firestore records, so the same
 // people can see a photo as can see what it belongs to.
 // Allow + deny tests: test/rules/storage.test.ts. Anything else is denied.
 service firebase.storage {
   match /b/{bucket}/o {
+    function uploadsOpen() { return false; }
     function signedIn() { return request.auth != null; }
     function me() { return request.auth.uid; }
     function doc(path) { return /databases/(default)/documents/$(path); }
@@ -35,7 +38,7 @@ service firebase.storage {
     // Memories on a tab: added by the tab's creator (spec UC-21).
     match /adventures/{aid}/tabs/{tid}/{file} {
       allow read: if isMember(aid);
-      allow create: if isMember(aid) && isPhoto()
+      allow create: if uploadsOpen() && isMember(aid) && isPhoto()
         && firestore.exists(doc('adventures/' + aid + '/tabs/' + tid))
         && firestore.get(doc('adventures/' + aid + '/tabs/' + tid)).data.createdBy == me();
     }
@@ -43,7 +46,7 @@ service firebase.storage {
     // A lead's own banner photo (spec UC-10).
     match /adventures/{aid}/banner/{file} {
       allow read: if isMember(aid);
-      allow create: if isLead(aid) && isPhoto();
+      allow create: if uploadsOpen() && isLead(aid) && isPhoto();
     }
 
     // Profile photos (spec UC-28): profiles are visible to active users.
@@ -51,7 +54,7 @@ service firebase.storage {
     // file name like the app's random ids.
     match /users/{uid}/avatar/{file} {
       allow read: if signedIn() && (me() == uid || isActive());
-      allow create: if signedIn() && me() == uid && isPhoto()
+      allow create: if uploadsOpen() && signedIn() && me() == uid && isPhoto()
         && file.matches('^[A-Za-z0-9_-]{1,40}[.]webp$')
         && firestore.exists(doc('users/' + uid + '/private/account'));
     }

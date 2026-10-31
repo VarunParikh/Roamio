@@ -418,6 +418,12 @@ void main() {
         );
         final slice = find.byKey(const ValueKey('category-slice-1'));
         expect(tester.getSize(slice).width, greaterThanOrEqualTo(6));
+        // The slices fill the bar's height, or there's nothing to see.
+        final colour = find.descendant(
+          of: slice,
+          matching: find.byType(ColoredBox),
+        );
+        expect(tester.getSize(colour).height, 16);
       });
 
       testWidgets('not shown when nothing has been shared', (tester) async {

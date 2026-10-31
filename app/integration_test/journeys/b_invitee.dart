@@ -25,7 +25,7 @@ void journeyB() {
     await waitFor(tester, find.text('Hey Cara 👋'));
 
     // Paste the link, find the invite, join.
-    await tapText(tester, 'Have an invite code?');
+    await scrollAndTapText(tester, 'Have an invite code?');
     await typeInto(tester, 'Code or invite link', link);
     await tapText(tester, 'Find invite');
     await waitFor(tester, find.text('🇮🇳  Goa getaway'));
