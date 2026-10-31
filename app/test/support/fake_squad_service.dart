@@ -60,9 +60,9 @@ class FakeSquadService implements SquadService {
   final Map<String, String> characters = {};
 
   @override
-  Future<Map<String, SquadPerson>> peopleOf(List<String> uids) async {
+  Stream<Map<String, SquadPerson>> peopleOf(List<String> uids) {
     lookups.add(uids);
-    return {
+    Map<String, SquadPerson> now() => {
       for (final uid in uids)
         uid: SquadPerson(
           name: deleted.contains(uid) ? deletedUserName : names[uid] ?? uid,
@@ -70,6 +70,18 @@ class FakeSquadService implements SquadService {
           deleted: deleted.contains(uid),
         ),
     };
+    final out = StreamController<Map<String, SquadPerson>>()..add(now());
+    final sub = _peopleChanges.stream.listen((_) => out.add(now()));
+    out.onCancel = sub.cancel;
+    return out.stream;
+  }
+
+  final _peopleChanges = StreamController<void>.broadcast();
+
+  /// Changes someone's display name, as their profile listener would see it.
+  void rename(String uid, String name) {
+    names[uid] = name;
+    _peopleChanges.add(null);
   }
 
   /// Active pals per adventure.
