@@ -32,6 +32,9 @@ describe("Firestore default deny", () => {
     const db = env.authenticatedContext("alice").firestore();
     await assertFails(getDoc(doc(db, "secrets/x")));
     await assertFails(setDoc(doc(db, "secrets/x"), { a: 1 }));
+    // Budget rechecks say who has a budget, so they stay server-only.
+    await assertFails(getDoc(doc(db, "rate_rechecks/a1_alice")));
+    await assertFails(setDoc(doc(db, "rate_rechecks/a1_alice"), { aid: "a1", uid: "alice" }));
   });
 });
 

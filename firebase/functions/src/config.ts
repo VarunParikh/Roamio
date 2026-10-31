@@ -53,7 +53,42 @@ export function parseServerConfig(values: Values): ServerConfig {
 }
 
 const KEEP_MS = 10 * 60 * 1000;
-let cached: { at: number; config: ServerConfig } | undefined;
+
+type ReadValues = () => Promise<Partial<Record<keyof typeof SERVER_CONFIG_DEFAULTS, string>>>;
+type Warn = (message: string, details: { error: string }) => void;
+
+/**
+ * Keeps the answer of [read] for 10 minutes per instance. A failure, such as
+ * no server template having been published, keeps the defaults just as long,
+ * so it isn't asked for and warned about on every call.
+ */
+export function cachedConfig(read: ReadValues, warn: Warn) {
+  let cached: { at: number; config: ServerConfig } | undefined;
+  return async (now = Date.now()): Promise<ServerConfig> => {
+    if (cached && now - cached.at < KEEP_MS) return cached.config;
+    let config: ServerConfig;
+    try {
+      config = parseServerConfig(await read());
+    } catch (e) {
+      warn("Remote Config unavailable; using defaults", { error: String(e) });
+      config = parseServerConfig({});
+    }
+    cached = { at: now, config };
+    return config;
+  };
+}
+
+const liveConfig = cachedConfig(
+  async () => {
+    const template = await getRemoteConfig().getServerTemplate({
+      defaultConfig: SERVER_CONFIG_DEFAULTS,
+    });
+    const live = template.evaluate();
+    const keys = Object.keys(SERVER_CONFIG_DEFAULTS) as (keyof typeof SERVER_CONFIG_DEFAULTS)[];
+    return Object.fromEntries(keys.map((k) => [k, live.getString(k)]));
+  },
+  (message, details) => logger.warn(message, details),
+);
 
 /**
  * The live values, read at most every 10 minutes per instance. The
@@ -61,18 +96,5 @@ let cached: { at: number; config: ServerConfig } | undefined;
  */
 export async function serverConfig(): Promise<ServerConfig> {
   if (process.env.FUNCTIONS_EMULATOR === "true") return parseServerConfig({});
-  if (cached && Date.now() - cached.at < KEEP_MS) return cached.config;
-  try {
-    const template = await getRemoteConfig().getServerTemplate({
-      defaultConfig: SERVER_CONFIG_DEFAULTS,
-    });
-    const live = template.evaluate();
-    const keys = Object.keys(SERVER_CONFIG_DEFAULTS) as (keyof typeof SERVER_CONFIG_DEFAULTS)[];
-    const config = parseServerConfig(Object.fromEntries(keys.map((k) => [k, live.getString(k)])));
-    cached = { at: Date.now(), config };
-    return config;
-  } catch (e) {
-    logger.warn("Remote Config unavailable; using defaults", { error: String(e) });
-    return parseServerConfig({});
-  }
+  return liveConfig();
 }

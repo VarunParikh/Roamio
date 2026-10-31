@@ -96,6 +96,51 @@ class SplitReport {
   final Map<DateTime, int> myByDay;
 }
 
+/// Who pays whom, planned once from the trip-currency balances so every
+/// viewer sees the same pairs (item 11). Each person's payments are then
+/// shared out of what they owe in [currency], in the same proportions, so they
+/// add up to the balance on the same screen. What someone receives can differ
+/// by a little when rates moved during the trip.
+List<Transfer> _shownTransfers(
+  Map<ParticipantId, int>? base,
+  Map<ParticipantId, int> shown, {
+  required String baseCurrency,
+  required String currency,
+}) {
+  if (base == null) return const [];
+  final planned = planTransfers(base, currency: baseCurrency);
+  if (currency == baseCurrency) return planned;
+  final byPayer = <ParticipantId, List<Transfer>>{};
+  for (final t in planned) {
+    (byPayer[t.from] ??= []).add(t);
+  }
+  // For someone who owes in one currency but not the other (rates moved a
+  // lot), the whole squad's ratio gives a fair figure.
+  final baseTotal = planned.fold(0, (sum, t) => sum + t.amount.minor);
+  final shownTotal = shown.values.where((v) => v < 0).fold(0, (a, v) => a - v);
+  final amounts = <Transfer, int>{};
+  byPayer.forEach((payer, transfers) {
+    final paid = transfers.fold(0, (sum, t) => sum + t.amount.minor);
+    final owed = -(shown[payer] ?? 0);
+    final parts = allocate(
+      owed > 0
+          ? owed
+          : baseTotal == 0
+          ? 0
+          : (paid * shownTotal / baseTotal).round(),
+      [for (final t in transfers) t.amount.minor],
+    );
+    for (final (i, t) in transfers.indexed) {
+      amounts[t] = parts[i];
+    }
+  });
+  return [
+    for (final t in planned)
+      if (amounts[t]! > 0)
+        Transfer(from: t.from, to: t.to, amount: Money(amounts[t]!, currency)),
+  ];
+}
+
 /// Builds the split for [viewer]. Each tab converts at its own day's rates
 /// ([ratesFor]); balances still sum to exactly zero (spec §6). If a rate
 /// is missing it falls back to [baseCurrency] and sets
@@ -210,7 +255,12 @@ SplitReport buildReport({
     baseBalances: base ?? const {},
     mine: balances[viewer] ?? 0,
     myShare: myShare,
-    transfers: planTransfers(balances, currency: currency),
+    transfers: _shownTransfers(
+      base,
+      balances,
+      baseCurrency: baseCurrency,
+      currency: currency,
+    ),
     baseTransfers: base == null
         ? const []
         : planTransfers(base, currency: baseCurrency),

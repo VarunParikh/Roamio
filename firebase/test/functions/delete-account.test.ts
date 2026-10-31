@@ -38,12 +38,14 @@ describe("eraseAccount (spec §8: erasure)", () => {
     await db().doc(`users/${bob.uid}/notifications/n1`).set({ type: "budget_alert" });
     const f = files();
 
+    await db().doc(`rate_rechecks/${id}_${bob.uid}`).set({ aid: id, uid: bob.uid });
     await eraseAccount(bob.uid, f);
 
     expect((await db().doc(`users/${bob.uid}`).get()).exists).toBe(false);
     expect((await db().doc(`users/${bob.uid}/private/account`).get()).exists).toBe(false);
     expect((await db().doc(`users/${bob.uid}/notifications/n1`).get()).exists).toBe(false);
     expect((await db().doc(`adventures/${id}/budgets/${bob.uid}`).get()).exists).toBe(false);
+    expect((await db().doc(`rate_rechecks/${id}_${bob.uid}`).get()).exists).toBe(false);
     await expect(getAuth().getUser(bob.uid)).rejects.toThrow();
     expect(f.removed).toEqual([bob.uid]);
 

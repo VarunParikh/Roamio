@@ -93,15 +93,27 @@ export function thresholdsReached(
 }
 
 /** The latest stored rates on or before [date] (Task 28). */
+/**
+ * The rates for [date], falling back to the earliest rates after it when none
+ * are older, exactly as the app does (FirebaseFxRepository.ratesFor), so a tab
+ * dated before any rates still counts.
+ */
 async function ratesOn(date: string): Promise<Record<string, string>> {
-  const q = await db()
+  const older = await db()
     .collection("fx_rates")
     .where("date", "<=", date)
     .orderBy("date", "desc")
     .limit(1)
     .get();
-  return (q.docs[0]?.get("rates") as Record<string, string>) ?? {};
+  const doc =
+    older.docs[0] ??
+    (await db().collection("fx_rates").where("date", ">", date).orderBy("date").limit(1).get())
+      .docs[0];
+  return (doc?.get("rates") as Record<string, string>) ?? {};
 }
+
+/** Server-only: budgets to check again when new rates arrive. */
+const RATE_RECHECKS = "rate_rechecks";
 
 /** Tabs that count towards a budget: waiting and rejected ones don't (spec UC-20). */
 const COUNTED_STATUSES = ["approved", "personal"];
@@ -120,6 +132,7 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
   const currency = budget.get("currency") as string;
 
   let share = 0;
+  let skippedTab = false;
   try {
     const tabs = await adventureRef.collection("tabs").where("deleted", "==", false).get();
     const rateCache = new Map<string, Record<string, string>>();
@@ -129,12 +142,26 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
       if (!tab.participants?.includes(uid)) continue;
       const rates = rateCache.get(tab.fxDate) ?? (await ratesOn(tab.fxDate));
       rateCache.set(tab.fxDate, rates);
-      const converted = convertMinor(tab.amountMinor, tab.currency, currency, rates);
-      share += shareOf(tab, converted, uid);
+      // A tab with no rate yet counts for nothing rather than blocking this
+      // person's alerts for every other tab (item 7).
+      try {
+        share += shareOf(tab, convertMinor(tab.amountMinor, tab.currency, currency, rates), uid);
+      } catch (e) {
+        logger.warn("Budget skipped a tab: rate missing", { aid, tab: doc.id, error: String(e) });
+        skippedTab = true;
+      }
     }
   } catch (e) {
     logger.warn("Budget not checked: rates missing", { aid, error: String(e) });
     return [];
+  }
+  // New rates look at this budget again (item 7).
+  if (skippedTab) {
+    await db().doc(`${RATE_RECHECKS}/${aid}_${uid}`).set({
+      aid,
+      uid,
+      createdAt: FieldValue.serverTimestamp(),
+    });
   }
 
   const adventureName = String((await adventureRef.get()).get("name") ?? "your adventure");
@@ -172,6 +199,26 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
   }
   return fresh;
 }
+
+/**
+ * New rates arrived: checks again only the budgets that skipped a tab for want
+ * of a rate, so this costs one read when there are none. A budget still missing
+ * a rate marks itself again.
+ */
+export async function recheckBudgets(): Promise<void> {
+  const waiting = await db().collection(RATE_RECHECKS).get();
+  for (const doc of waiting.docs) {
+    await doc.ref.delete();
+    try {
+      await checkBudget(doc.get("aid"), doc.get("uid"));
+    } catch (e) {
+      logger.warn("Budget recheck failed", { aid: doc.get("aid"), error: String(e) });
+      await doc.ref.set(doc.data());
+    }
+  }
+}
+
+export const budgetOnRates = onDocumentWritten("fx_rates/{date}", recheckBudgets);
 
 /** A tab changed: check the budgets of everyone sharing it, before and after. */
 export const budgetOnTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (event) => {

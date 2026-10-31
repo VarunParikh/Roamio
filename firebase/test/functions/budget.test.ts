@@ -127,6 +127,64 @@ describe("checkBudget (spec UC-20)", () => {
     });
   });
 
+  it("a tab dated before any rates uses the earliest rates after it, as the app does", async () => {
+    const { ari, id, tab } = await trip(15_800); // ₹7,900
+    await tab.update({ date: "2020-01-15", fxDate: "2020-01-15" });
+    await db().doc("fx_rates/2020-01-20").set({ date: "2020-01-20", rates: { INR: "84", THB: "35" } });
+    // ฿4,000 budget: ₹7,900 = ฿3,291.67 → 82%, so the alert must still go out.
+    await db().doc(`adventures/${id}/budgets/${ari.uid}`).set({ amountMinor: 400_000, currency: "THB" });
+    await checkBudget(id, ari.uid);
+    await eventually(async () => {
+      expect(await sent(id, ari.uid)).toEqual([80]);
+    });
+  });
+
+  it("a tab with no rate doesn't stop the rest counting (item 7)", async () => {
+    const { ari, ben, id } = await trip(16_000); // Ari's half: ₹8,000 → 80%
+    await db().collection(`adventures/${id}/tabs`).add({
+      amountMinor: 50_000,
+      currency: "XXX",
+      date: "2026-10-27",
+      fxDate: "2026-10-27",
+      payers: [{ id: ben.uid, amountMinor: 50_000 }],
+      participants: [ari.uid, ben.uid],
+      percentBp: null,
+      createdBy: ben.uid,
+      deleted: false,
+    });
+    await checkBudget(id, ari.uid);
+    await eventually(async () => {
+      expect(await sent(id, ari.uid)).toEqual([80]);
+    });
+  });
+
+  it("a tab added before its rate exists still alerts once the rate arrives (item 7)", async () => {
+    const { ari, ben, id } = await trip(1);
+    // ฿-style tab in a currency with no rate yet: Ari's half is ₹8,400 once known.
+    await db().collection(`adventures/${id}/tabs`).add({
+      amountMinor: 20_000,
+      currency: "XXX",
+      date: "2019-03-01",
+      fxDate: "2019-03-01",
+      payers: [{ id: ben.uid, amountMinor: 20_000 }],
+      participants: [ari.uid, ben.uid],
+      percentBp: null,
+      createdBy: ben.uid,
+      deleted: false,
+    });
+    const flag = db().doc(`rate_rechecks/${id}_${ari.uid}`);
+    await eventually(async () => {
+      expect((await flag.get()).exists).toBe(true);
+    });
+    expect(await sent(id, ari.uid)).toEqual([]);
+
+    await db().doc("fx_rates/2019-03-01").set({ date: "2019-03-01", rates: { INR: "84", XXX: "1" } });
+    await eventually(async () => {
+      expect(await sent(id, ari.uid)).toEqual([80]);
+      expect((await flag.get()).exists).toBe(false);
+    });
+  });
+
   it("waiting and rejected tabs don't count", async () => {
     for (const status of ["waiting", "rejected"]) {
       const { ari, id } = await trip(16_000, false, status);

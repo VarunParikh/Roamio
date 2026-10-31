@@ -66,6 +66,9 @@ export async function eraseAccount(uid: string, deps: EraseDeps): Promise<void> 
     );
   }
 
+  const rechecks = await db().collection("rate_rechecks").where("uid", "==", uid).get();
+  await Promise.all(rechecks.docs.map((d) => d.ref.delete()));
+
   // Leave every squad the way leaving does: Left if on a tab, otherwise gone.
   for (const adventure of memberships.docs) {
     await db().runTransaction(async (tx) => {

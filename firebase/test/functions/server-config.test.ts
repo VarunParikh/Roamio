@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+  cachedConfig,
   parseServerConfig,
   SERVER_CONFIG_DEFAULTS,
   serverConfig,
@@ -10,6 +11,30 @@ import { isExpired } from "../../functions/src/consent/rules";
 const DAY = 86_400_000;
 
 describe("server Remote Config (spec §11)", () => {
+  it("with no template, warns once and doesn't ask again on every call (item 19)", async () => {
+    const warn = vi.fn();
+    const read = vi.fn(async () => {
+      throw new Error("Template not found");
+    });
+    const config = cachedConfig(read, warn);
+    const first = await config(1_000);
+    await config(2_000);
+    expect(first).toEqual(parseServerConfig({}));
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledTimes(1);
+    // It looks again later, in case a template has been published.
+    await config(1_000 + 11 * 60 * 1000);
+    expect(read).toHaveBeenCalledTimes(2);
+  });
+
+  it("reads the live values at most every 10 minutes", async () => {
+    const read = vi.fn(async () => ({ invite_validity_days: "30" }));
+    const config = cachedConfig(read, vi.fn());
+    expect((await config(1_000)).inviteDays).toBe(30);
+    await config(2_000);
+    expect(read).toHaveBeenCalledTimes(1);
+  });
+
   it("has a default for every server key", () => {
     expect(parseServerConfig({})).toEqual({
       budgetThresholds: [80, 100],

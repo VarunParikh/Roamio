@@ -164,7 +164,7 @@ Each item is written so it can become a test.
 ### 5.6 Personal budget
 
 - **UC-19** Each member can set a personal budget for an adventure (amount + currency, default their profile currency), at any time, including before and after the trip. **Only they can read it** — enforced by security rules, not just hidden in the UI. It appears as a widget on the expanded Home card, on the adventure page and in Split's top card: "₹768 left" or "₹500 over budget", the percentage and a bar. Tapping it opens the edit sheet, which has Save and Remove budget (with a confirmation). With no budget it offers a plain Set a budget. When tabs are waiting: "₹1,200 waiting for approval, not counted".
-- **UC-20** The budget is measured against the user's **own share** of approved tabs plus their personal tabs (not what they paid). A push + in-app alert fires once at 80% and once at 100% (thresholds from remote config), including when an approval crosses a threshold. Changing the budget resets the alerts. An alert opens Split on its adventure.
+- **UC-20** The budget is measured against the user's **own share** of approved tabs plus their personal tabs (not what they paid). A tab with no exchange rate yet counts for nothing until its rate arrives, when the budget is checked again, so it can still trigger its alert. A push + in-app alert fires once at 80% and once at 100% (thresholds from remote config), including when an approval crosses a threshold. Changing the budget resets the alerts. An alert opens Split on its adventure.
 
 ### 5.7 Tabs (expenses)
 
