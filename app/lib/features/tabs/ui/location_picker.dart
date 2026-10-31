@@ -91,7 +91,7 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
         children: [
           Expanded(
             child: Text(
-              '📍 Location added',
+              '📍 ${widget.point!.label}',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),

@@ -7,6 +7,9 @@ class MapPoint {
 
   final double lat;
   final double lng;
+
+  /// As text, to about 10 metres: "13.7563, 100.5018".
+  String get label => '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
 }
 
 /// What asking for the current location gave.

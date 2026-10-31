@@ -229,6 +229,11 @@ class _Details extends ConsumerWidget {
         ],
         if (location != null) ...[
           const SizedBox(height: 24),
+          Text(
+            '📍 ${location.label}',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () => ref.read(openLinkProvider)(
               Uri.https('www.google.com', '/maps/search/', {
