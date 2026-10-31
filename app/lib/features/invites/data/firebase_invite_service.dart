@@ -35,6 +35,8 @@ class FirebaseInviteService implements InviteService {
       adventureId: data['adventureId'] as String,
       adventureName: data['adventureName'] as String,
       leaderName: data['leaderName'] as String,
+      leaderUid: (data['leaderUid'] as String?) ?? '',
+      leaderCharacterId: data['leaderCharacterId'] as String?,
       countryCode: data['countryCode'] as String,
       startDate: parseIsoDate(data['startDate'] as String),
       endDate: parseIsoDate(data['endDate'] as String),

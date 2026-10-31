@@ -19,12 +19,16 @@ class InviteDetails {
     required this.countryCode,
     required this.startDate,
     required this.endDate,
+    this.leaderUid = '',
+    this.leaderCharacterId,
   });
 
   final String code;
   final String adventureId;
   final String adventureName;
   final String leaderName;
+  final String leaderUid;
+  final String? leaderCharacterId;
   final String countryCode;
   final DateTime startDate;
   final DateTime endDate;

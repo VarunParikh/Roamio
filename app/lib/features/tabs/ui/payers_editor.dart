@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/splits/domain/money.dart';
+import 'package:roamio/features/squad/data/squad_service.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/domain/payment_method.dart';
 
 /// Paid with for one payer (spec UC-21). Empty until there's a method.
@@ -48,12 +50,14 @@ class PayersEditor extends StatelessWidget {
     required this.onChanged,
     required this.methodOf,
     required this.onMethod,
+    this.people = const {},
     super.key,
   });
 
   /// One amount field per member id, in squad order.
   final Map<String, TextEditingController> fields;
   final Map<String, String> labels;
+  final Map<String, SquadPerson> people;
   final String currency;
   final int amountMinor;
   final String? symbol;
@@ -88,6 +92,10 @@ class PayersEditor extends StatelessWidget {
               ],
               decoration: InputDecoration(
                 labelText: labels[id],
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: PersonAvatar(uid: id, person: people[id], radius: 14),
+                ),
                 suffixText: currency,
               ),
               onChanged: (_) => onChanged(),

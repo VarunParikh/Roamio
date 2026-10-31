@@ -21,6 +21,7 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/pals.dart';
+import 'package:roamio/features/squad/ui/person.dart';
 import 'package:roamio/features/tabs/data/payment_memory.dart';
 import 'package:roamio/features/tabs/data/receipt_parser.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
@@ -503,6 +504,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     final symbol = countries?.symbolFor(_currency);
     final each = _eachLabel(pals, countries?.symbolFor(_currency));
 
+    final people = squadPeople(ref, _a);
     String label(String id) {
       if (id == myUid) return '${names[id] ?? 'You'} (you)';
       return names[id] ?? '…';
@@ -661,6 +663,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             PayersEditor(
               fields: fields,
               labels: {for (final id in fields.keys) id: label(id)},
+              people: people,
               currency: _currency,
               amountMinor: parseAmount(_amount.text, _currency) ?? 0,
               symbol: symbol,
@@ -715,6 +718,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: !_unticked.contains(id),
+              secondary: PersonAvatar(uid: id, person: people[id]),
               title: Text(label(id)),
               subtitle: _a.memberUids.contains(id) ? null : const Text('Pal'),
               onChanged: (on) {
@@ -761,6 +765,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
             PercentEditor(
               fields: fields,
               labels: {for (final id in fields.keys) id: label(id)},
+              people: people,
               onChanged: () => setState(() {}),
             ),
           ],

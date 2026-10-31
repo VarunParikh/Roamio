@@ -68,7 +68,11 @@ export const createInvite = onCall(async (request) => {
 
   const { inviteDays } = await serverConfig();
   const expiresAt = Timestamp.fromMillis(Date.now() + inviteDays * 86_400_000);
-  const leaderName = await firstNameOf(adventure.get("leaderUid"));
+  const leaderUid: string = adventure.get("leaderUid");
+  const leaderName = await firstNameOf(leaderUid);
+  // Invitees can't read the leader's profile, so the picture goes on the invite.
+  const leaderCharacterId: string | null =
+    (await db().doc(`users/${leaderUid}`).get()).get("characterId") ?? null;
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = newCode();
     const created = await db()
@@ -80,6 +84,8 @@ export const createInvite = onCall(async (request) => {
         startDate: adventure.get("startDate"),
         endDate: adventure.get("endDate"),
         leaderName,
+        leaderUid,
+        leaderCharacterId,
         createdBy: uid,
         createdAt: FieldValue.serverTimestamp(),
         expiresAt,
@@ -142,6 +148,8 @@ export const lookupInvite = onCall(async (request) => {
     adventureId: invite.get("adventureId"),
     adventureName: invite.get("adventureName"),
     leaderName: invite.get("leaderName"),
+    leaderUid: invite.get("leaderUid") ?? null,
+    leaderCharacterId: invite.get("leaderCharacterId") ?? null,
     countryCode: invite.get("countryCode"),
     startDate: invite.get("startDate"),
     endDate: invite.get("endDate"),
