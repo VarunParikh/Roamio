@@ -79,6 +79,10 @@ final syncControllerProvider = NotifierProvider<SyncController, SyncState>(
 /// the network and sends everything that was waiting (spec UC-31).
 class SyncController extends Notifier<SyncState> {
   Future<void>? _syncing;
+
+  /// Counts the syncs started, so a sync left hanging by a drop can't later
+  /// overwrite the state of a newer one (item 9).
+  int _run = 0;
   Timer? _hideSynced;
 
   /// How long "Synced ✓" stays. Kept here, not on a screen, so it goes away
@@ -118,9 +122,14 @@ class SyncController extends Notifier<SyncState> {
   }
 
   Future<void> _onConnectivity(bool online) async {
-    if (_syncing != null) return; // sync() settles its own outcome
     if (!online) {
-      if (state.phase != SyncPhase.offline) await _goOffline();
+      // A drop mid-sync abandons that sync: its writes can't finish offline,
+      // so it must not leave the phone on "Syncing…".
+      if (state.phase != SyncPhase.offline) {
+        _run++;
+        _syncing = null;
+        await _goOffline();
+      }
     } else if (state.phase == SyncPhase.offline) {
       await sync();
     }
@@ -132,25 +141,29 @@ class SyncController extends Notifier<SyncState> {
   }
 
   /// Re-enables the network and uploads queued tabs, settlements and photos.
-  Future<void> sync() =>
-      _syncing ??= _runSync().whenComplete(() => _syncing = null);
+  Future<void> sync() => _syncing ??= _runSync();
 
   Future<void> _runSync() async {
+    final run = ++_run;
     final network = ref.read(networkSwitchProvider);
     state = const SyncState(SyncPhase.syncing);
     try {
       await network.enable();
       await network.waitForPendingWrites();
       await ref.read(photoFlushProvider)();
+      if (run != _run) return; // abandoned by a drop; that outcome stands
       state = const SyncState(SyncPhase.synced);
       _hideSynced?.cancel();
       _hideSynced = Timer(syncedFor, dismissSynced);
     } on Object catch (error) {
+      if (run != _run) return;
       if (await ref.read(connectivityMonitorProvider).check()) {
         state = SyncState(SyncPhase.failed, error: '$error');
       } else {
         await _goOffline();
       }
+    } finally {
+      if (run == _run) _syncing = null;
     }
   }
 
