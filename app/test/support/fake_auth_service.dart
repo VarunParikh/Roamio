@@ -32,8 +32,11 @@ import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
+import 'package:roamio/features/tabs/data/payment_memory.dart';
 import 'package:roamio/features/tabs/data/receipt_scanner.dart';
+import 'package:roamio/features/tabs/data/tab_notice_service.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/features/updates/update_checker.dart';
 import 'package:roamio/main.dart';
 
@@ -46,6 +49,7 @@ import 'fake_fx_repository.dart';
 import 'fake_invite_service.dart';
 import 'fake_location_service.dart';
 import 'fake_notification_service.dart';
+import 'fake_payment_memory.dart';
 import 'fake_photo_pipeline.dart';
 import 'fake_privacy_service.dart';
 import 'fake_profile_service.dart';
@@ -54,6 +58,7 @@ import 'fake_settlement_service.dart';
 import 'fake_share_files.dart';
 import 'fake_squad_service.dart';
 import 'fake_sync.dart';
+import 'fake_tab_notice_service.dart';
 import 'fake_tab_service.dart';
 import 'fake_update_store.dart';
 
@@ -187,11 +192,14 @@ Future<void> pumpRoamio(
   FakeConnectivity? connectivity,
   FakeNetworkSwitch? network,
   FakeBudgetService? budgets,
+  FakeTabNoticeService? tabNotices,
   FakePrivacyService? privacy,
   FakeActivityService? activity,
   FetchJson? weatherFetch,
   bool weatherEnabled = true,
   UpdateChecker? updates,
+  // Remembers Cash, so tests about other things can save a tab straight away.
+  FakePaymentMemory? paymentMemory,
   Map<String, String>? remoteConfig,
   // Phase 2 features (under-18s, nominee) are off in the pilot app; most
   // feature tests still exercise them. Pilot tests pass `phase2: false`.
@@ -207,6 +215,9 @@ Future<void> pumpRoamio(
         countriesProvider.overrideWith((ref) => testCountries),
         categoriesProvider.overrideWith((ref) => testCategories),
         tabServiceProvider.overrideWithValue(tabs ?? FakeTabService()),
+        paymentMemoryProvider.overrideWithValue(
+          paymentMemory ?? FakePaymentMemory(PaymentMethod.cash),
+        ),
         notificationServiceProvider.overrideWithValue(
           notifications ?? FakeNotificationService(answer: false),
         ),
@@ -227,6 +238,9 @@ Future<void> pumpRoamio(
         ),
         exportEnabledProvider.overrideWithValue(exportEnabled),
         budgetServiceProvider.overrideWithValue(budgets ?? FakeBudgetService()),
+        tabNoticeServiceProvider.overrideWithValue(
+          tabNotices ?? FakeTabNoticeService(),
+        ),
         profileServiceProvider.overrideWithValue(
           profile ?? FakeProfileService(currency: profileCurrency),
         ),

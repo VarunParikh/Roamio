@@ -40,6 +40,12 @@ Since the previous handover:
   Both need the Blaze plan.
 - Files over 30 MB can't be sent to the owner's phone through Remote Control; use a private draft release.
 
+## Paused schedules (owner, 2026-10-31)
+Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then:
+- GitHub nightly journeys: `gh workflow enable "E2E journeys" --repo VarunParikh/Roamio`. While it's off, it can't be started by hand on GitHub either; `tool/e2e.sh` still runs journeys locally.
+- Claude routine "Roamio nightly journey check" (`trig_01R2owk9VvzgSEVEXcTfDRtL`): set it enabled again, after the workflow, so it doesn't report a missing run.
+- Firebase has nothing to pause: functions aren't deployed on dev or prod, so the three scheduled functions (`dailyFxRates`, `consentSweep`, `birthdaySweep`) don't run yet. They start with the first deploy.
+
 ## Waiting on the owner
 1. **Deploy** dev (for the APK test) and later prod: `firebase deploy --only firestore,functions,storage[,hosting] -P dev|prod`.
 2. **The manual test session** (list below), then report issues.
@@ -78,12 +84,22 @@ Since the previous handover:
   - delete my account on the dev project (leader message, sign-out);
   - no Nominate section and no Linked children (hidden for the pilot);
   - the privacy notice link.
+- Approval notifications (two phones, notifications on):
+  - a member's tab pushes to each admin but not the creator, and Home shows "1 tab to approve", which opens the adventure;
+  - one admin approves: the card goes from both admins' Home within a moment;
+  - rejecting pushes to the creator, and Home's card opens the tab;
+  - with notifications off, the card still appears and no push arrives;
+  - tapping a push opens the app, not the adventure: nothing routes pushes yet.
 - Names and activity: "Deleted user" and a left member's name on real tabs; the activity screen.
 - Hero card: the weather pill; text readable over real banner photos.
 - UX: TalkBack reading order and wording; the pulse's feel.
 - Remote Config: set the keys in the console and see the flags change.
 - Releases: the release workflow on the first tag; the update popup on the previous version.
+- **Added 2026-10-31, pals (Task 53):** a lead adds a pal from the squad and from Add tab, on one screen; Add is disabled with the reason until there's a nickname and a character; the picker's title has the nickname, and closing it keeps what was typed; characters already used look dimmed but can be chosen, and the dimming is easy to see on a real screen; Edit changes both; a member sees the "Ask a squad lead" hint on Add tab; a pal added in airplane mode appears at once and reaches a second phone after Sync; a removed pal keeps their name on old tabs (their picture shows there once Task 54 adds pictures to rows); TalkBack reads "already used" on dimmed characters.
 - **Added 2026-10-31, characters:** a new account shows its default character and the Home card offers a change; pick one on You; pictures look sharp and on white on a real screen; a squadmate sees yours in the squad list and Activity; a deleted account shows the grey icon; Google sign-up doesn't bring your Google photo.
+- **Added 2026-10-31, rejected tabs and personal tabs:** a rejected tab shows its reason to its creator and the admins only; Edit and resubmit sends it back to waiting; changing an approved tab's amount sends it back, changing its description doesn't; a personal tab is invisible on a second phone and its creator can delete it.
+- **Added 2026-10-31, approvals:** a member's tab shows Waiting for approval and an admin's Approve puts it in the split; Reject asks first; a leader with no co-lead has their tab counted at once; two admins pressing at once, the second is told it's decided.
+- **Added 2026-10-31, Paid with:** on a fresh install Save stays disabled and says why until a method is chosen; the next tab starts on that method, also after a restart; Split payment shows one menu per person who paid; a tab row reads category and amount, description and your share, then the emoji, and looks right on a small phone; TalkBack says "Paid with Cash" on the row, on tab details and in the menu; the emoji shows on the phone's font; an exported PDF and Excel show the method's name.
 - **Added 2026-10-30:**
   - Exchange-rate day: a foreign-currency tab added before 06:00 India time keeps its total after that day's rates arrive. The tab screen shows *Converted at exchange rates from …*.
   - Profiles are private: a new member sees the squad's names right after joining; someone outside the squad can't see them.

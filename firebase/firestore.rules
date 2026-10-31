@@ -66,6 +66,8 @@ service cloud.firestore {
         && (m.size() < 3 || isStoredPhoto(m[2], aid, 'tabs'))
         && (m.size() < 4 || isStoredPhoto(m[3], aid, 'tabs'));
     }
+    // A display picture's id; the app shows a default for one it doesn't know.
+    function isCharacterId(v) { return v is string && v.matches('^[a-z0-9_]{1,30}$'); }
     // The 10 tab categories in app/assets/data/categories.json.
     function isCategory(v) {
       return v in ['pre_trip_preparation', 'primary_transportation', 'accommodation',
@@ -80,8 +82,7 @@ service cloud.firestore {
           && isText(incoming().name, 1, 60)
           && (incoming().get('photoUrl', null) == null || incoming().photoUrl is string)
           && (incoming().get('characterId', null) == null
-              || (incoming().characterId is string
-                  && incoming().characterId.matches('^[a-z0-9_]{1,30}$')))
+              || isCharacterId(incoming().characterId))
           && isText(incoming().get('bio', ''), 0, 200);
       }
       // Someone who shares, or shared, a squad (profileReaders, kept by the
@@ -185,13 +186,16 @@ service cloud.firestore {
       match /pals/{pid} {
         allow read: if isMember(aid);
         allow create: if isLead(aid)
-          && incoming().keys().hasOnly(['nickname', 'addedBy', 'status', 'createdAt'])
+          && incoming().keys().hasOnly(['nickname', 'characterId', 'addedBy', 'status', 'createdAt'])
           && isText(incoming().nickname, 1, 30)
+          && isCharacterId(incoming().characterId)
           && incoming().addedBy == me()
           && incoming().status == 'active';
         allow update: if isLead(aid)
-          && changed().hasOnly(['nickname', 'status'])
+          && changed().hasOnly(['nickname', 'characterId', 'status'])
           && isText(incoming().nickname, 1, 30)
+          // Older pals have none, and can still be edited and removed.
+          && (!('characterId' in changed()) || isCharacterId(incoming().characterId))
           && incoming().status in ['active', 'left'];
       }
 
@@ -203,7 +207,10 @@ service cloud.firestore {
           return t.keys().hasOnly(['description', 'category', 'amountMinor', 'currency',
                    'date', 'fxDate', 'payers', 'participants', 'percentBp', 'memories',
                    'location', 'createdBy', 'createdAt', 'updatedAt', 'deleted',
-                   'baseUpdatedAt'])
+                   'baseUpdatedAt', 'status', 'decidedBy', 'decidedAt', 'rejectReason'])
+            && isText(t.get('rejectReason', ''), 0, 200)
+            && t.status in ['waiting', 'approved', 'rejected', 'personal']
+            && (t.status != 'personal' || isOwnShape(t))
             && t.get('baseUpdatedAt', request.time) is timestamp
             && isAmount(t.amountMinor)
             && isCategory(t.get('category', ''))
@@ -218,19 +225,61 @@ service cloud.firestore {
             && (!('location' in t) || (isAdult() && isPoint(t.location)));
         }
 
-        allow read: if isMember(aid);
+        // You paid and only you share: a personal tab's shape (spec UC-21a).
+        function isOwnShape(t) {
+          return t.participants == [t.createdBy] && t.payers.size() == 1
+            && t.payers[0].id == t.createdBy;
+        }
+        // The one lead, with no co-lead: nobody else could approve their tab.
+        function isOnlyAdmin() {
+          return isLead(aid) && adventure(aid).coLeadUids.size() == 0;
+        }
+
+        // A personal tab is only for its creator, not even for admins; a
+        // rejected one is for its creator and the admins (spec UC-21a).
+        allow read: if isMember(aid)
+          && (resource.data.status in ['waiting', 'approved']
+            || resource.data.createdBy == me()
+            || (resource.data.status == 'rejected' && isLead(aid)));
         allow create: if isMember(aid)
           && validTab()
           && incoming().createdBy == me()
-          && incoming().deleted == false;
+          && incoming().deleted == false
+          && (incoming().status in ['waiting', 'personal']
+              || (incoming().status == 'approved' && isOnlyAdmin()));
         allow update: if isMember(aid) && (
           // the creator edits their own tab, but deleting (and undoing a
           // delete) stays with leads, so it always shows in the activity
           (resource.data.createdBy == me() && validTab()
             && incoming().createdBy == resource.data.createdBy
-            && incoming().deleted == resource.data.deleted)
+            && incoming().deleted == resource.data.deleted
+            && (incoming().status == resource.data.status
+              // left with only you, it's personal; add someone and it needs
+              // approving like any new tab
+              || incoming().status == 'personal'
+              || (resource.data.status in ['personal', 'rejected']
+                && (incoming().status == 'waiting'
+                  || (incoming().status == 'approved' && isOnlyAdmin())))
+              // a money edit needs approving again; checkTab enforces it
+              || (resource.data.status == 'approved' && incoming().status == 'waiting')))
+          // its creator deletes a personal tab, since admins can't see it, or
+          // a rejected one
+          || (resource.data.createdBy == me()
+            && resource.data.status in ['personal', 'rejected']
+            && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
+            && incoming().deleted == true && incoming().get('deletedBy', '') == me())
+          // an admin decides a waiting tab, once, and never their own while
+          // another admin could (spec UC-21a)
+          || (isLead(aid) && resource.data.status == 'waiting'
+            && changed().hasOnly(['status', 'decidedBy', 'decidedAt', 'updatedAt', 'rejectReason'])
+            && incoming().status in ['approved', 'rejected']
+            && (incoming().status == 'rejected' || !('rejectReason' in incoming()))
+            && isText(incoming().get('rejectReason', ''), 0, 200)
+            && incoming().decidedBy == me()
+            && (resource.data.createdBy != me() || isOnlyAdmin()))
           // a lead soft-deletes any tab, saying who did it (shown in activity)
-          || (isLead(aid) && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
+          || (isLead(aid) && resource.data.status != 'personal'
+            && changed().hasOnly(['deleted', 'deletedBy', 'updatedAt'])
             && incoming().deleted == true && incoming().get('deletedBy', '') == me())
         );
       }

@@ -54,6 +54,9 @@ class Adventure {
 
   bool isLead(String uid) => uid == leaderUid || coLeadUids.contains(uid);
 
+  /// The leader, with no co-lead to share decisions with.
+  bool isOnlyAdmin(String uid) => uid == leaderUid && coLeadUids.isEmpty;
+
   /// Active from the first to the last day; past from the day after (UC-11).
   AdventureStatus statusOn(DateTime today) {
     final day = _day(today);

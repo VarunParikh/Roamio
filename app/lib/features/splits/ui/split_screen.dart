@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/data/countries.dart';
+import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
@@ -28,7 +29,10 @@ import 'package:roamio/features/tabs/ui/tabs_section.dart';
 /// Overall when nothing is happening now. Headline first; details on
 /// request; everything in the viewer's profile currency.
 class SplitScreen extends ConsumerStatefulWidget {
-  const new({super.key});
+  const new({this.adventureId, super.key});
+
+  /// The adventure to open on; unknown or no longer visible ids are ignored.
+  final String? adventureId;
 
   @override
   ConsumerState<SplitScreen> createState() => _SplitScreenState();
@@ -39,10 +43,35 @@ class _SplitScreenState extends ConsumerState<SplitScreen> {
   String? _picked;
   bool _hasPicked = false;
 
-  void _pick(String? adventureId) => setState(() {
+  @override
+  void initState() {
+    super.initState();
+    _open(widget.adventureId);
+  }
+
+  @override
+  void didUpdateWidget(SplitScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.adventureId != old.adventureId) _open(widget.adventureId);
+  }
+
+  void _open(String? adventureId) {
+    if (adventureId == null) return;
     _picked = adventureId;
     _hasPicked = true;
-  });
+  }
+
+  /// Picking a chip also moves the address, so opening the adventure that was
+  /// first asked for later still counts as a change.
+  void _pick(String? adventureId) {
+    setState(() {
+      _picked = adventureId;
+      _hasPicked = true;
+    });
+    context.go(
+      adventureId == null ? Routes.split : Routes.splitFor(adventureId),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +82,11 @@ class _SplitScreenState extends ConsumerState<SplitScreen> {
     final active = adventures
         .where((a) => a.statusOn(today) == AdventureStatus.active)
         .firstOrNull;
-    final selected = _hasPicked ? _picked : active?.id;
-    final adventure = adventures.where((a) => a.id == selected).firstOrNull;
+    final picked = adventures.where((a) => a.id == _picked).firstOrNull;
+    // Overall is a pick too; only an id we can't show falls back to default.
+    final adventure = _hasPicked && (_picked == null || picked != null)
+        ? picked
+        : active;
 
     return SafeArea(
       child: ListView(

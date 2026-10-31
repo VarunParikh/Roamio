@@ -16,6 +16,7 @@ import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/profile/ui/character_prompt.dart';
 import 'package:roamio/features/squad/ui/join_cards.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/tabs/ui/tab_notice_cards.dart';
 
 const newAdventureRoute = '/adventures/new';
 
@@ -81,6 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const CharacterPrompt(),
           const NotificationPrompt(),
           const BudgetAlerts(),
+          const TabNoticeCards(),
           const JoinCardsList(),
           const InvitesList(),
           if (adventures.hasError)

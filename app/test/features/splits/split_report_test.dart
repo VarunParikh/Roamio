@@ -3,6 +3,7 @@ import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 /// Spec §6 worked example: ₹3,000 paid by Ari ₹2,000 + Ben ₹1,000; shares
 /// Ari 50%, Ben 25%, pal Kiko 25%.
@@ -34,7 +35,99 @@ final _taxi = ReportTab(
 FxRates _rates(String date) =>
     FxRates(date: date, usdRates: const {'INR': '84', 'THB': '35'});
 
+ReportTab _with(ReportTab t, TabStatus status) => ReportTab(
+  category: t.category,
+  date: t.date,
+  split: t.split,
+  status: status,
+);
+
+/// ₹500 lunch Ari paid for and only Ari shares.
+final _lunch = ReportTab(
+  category: 'food_dining',
+  date: DateTime(2026, 10, 27),
+  status: TabStatus.personal,
+  split: TabSplit(
+    amount: Money(50000, 'INR'),
+    payers: const [Payment('ari', 50000)],
+    participants: const ['ari'],
+    fxDate: '2026-10-27',
+  ),
+);
+
+SplitReport _report(List<ReportTab> tabs, {String viewer = 'ari'}) =>
+    buildReport(
+      tabs: tabs,
+      baseCurrency: 'INR',
+      viewerCurrency: 'INR',
+      viewer: viewer,
+      ratesFor: _rates,
+    );
+
 void main() {
+  group('only approved tabs count (spec UC-21a)', () {
+    for (final status in [TabStatus.waiting, TabStatus.rejected]) {
+      test('a ${status.name} tab counts towards nothing', () {
+        final r = _report([_with(_dinner, status)]);
+        expect(r.balances.values.where((b) => b != 0), isEmpty);
+        expect(r.transfers, isEmpty);
+        expect(r.totalSpend, 0);
+        expect(r.myShare, 0);
+        expect(r.byCategory, isEmpty);
+        expect(r.byDay, isEmpty);
+      });
+    }
+
+    test('approved tabs count as before, with waiting ones left out', () {
+      final alone = _report([_dinner]);
+      final both = _report([_dinner, _with(_taxi, TabStatus.waiting)]);
+      expect(both.balances, alone.balances);
+      expect(both.totalSpend, alone.totalSpend);
+      expect(both.myShare, alone.myShare);
+    });
+
+    test('says how many tabs are waiting, not rejected ones', () {
+      final r = _report([
+        _dinner,
+        _with(_taxi, TabStatus.waiting),
+        _with(_taxi, TabStatus.waiting),
+        _with(_taxi, TabStatus.rejected),
+      ]);
+      expect(r.waitingCount, 2);
+    });
+  });
+
+  group('personal tabs (spec UC-21a, §6)', () {
+    test('count in your share, not balances or squad totals', () {
+      final alone = _report([_dinner]);
+      final both = _report([_dinner, _lunch]);
+      expect(both.myShare, alone.myShare + 50000);
+      expect(both.balances, alone.balances);
+      expect(both.transfers.length, alone.transfers.length);
+      expect(both.totalSpend, alone.totalSpend);
+      expect(both.byCategory, alone.byCategory);
+      expect(both.byDay, alone.byDay);
+    });
+
+    test('balances still sum to zero', () {
+      final r = _report([_dinner, _taxi, _lunch]);
+      expect(r.balances.values.reduce((a, b) => a + b), 0);
+    });
+
+    test('a personal tab with no rate falls back like any tab', () {
+      final r = buildReport(
+        tabs: [_lunch],
+        baseCurrency: 'INR',
+        viewerCurrency: 'EUR',
+        viewer: 'ari',
+        ratesFor: _rates,
+      );
+      expect(r.currency, 'INR');
+      expect(r.missingRates, isTrue);
+      expect(r.myShare, 50000);
+    });
+  });
+
   group('buildReport (spec §6, UC-25, UC-26)', () {
     test('skips a broken tab instead of failing (follow-up C5)', () {
       // A tab the server will reject (payments don't add up), still in the

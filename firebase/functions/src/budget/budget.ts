@@ -103,6 +103,9 @@ async function ratesOn(date: string): Promise<Record<string, string>> {
   return (q.docs[0]?.get("rates") as Record<string, string>) ?? {};
 }
 
+/** Tabs that count towards a budget: waiting and rejected ones don't (spec UC-20). */
+const COUNTED_STATUSES = ["approved", "personal"];
+
 /**
  * Sends any budget alerts [uid] is now due on adventure [aid]; returns the
  * thresholds newly alerted. Safe to run twice: a transaction records each
@@ -121,7 +124,8 @@ export async function checkBudget(aid: string, uid: string): Promise<number[]> {
     const tabs = await adventureRef.collection("tabs").where("deleted", "==", false).get();
     const rateCache = new Map<string, Record<string, string>>();
     for (const doc of tabs.docs) {
-      const tab = doc.data() as TabDoc & { currency: string; fxDate: string };
+      const tab = doc.data() as TabDoc & { currency: string; fxDate: string; status?: string };
+      if (!COUNTED_STATUSES.includes(tab.status ?? "approved")) continue;
       if (!tab.participants?.includes(uid)) continue;
       const rates = rateCache.get(tab.fxDate) ?? (await ratesOn(tab.fxDate));
       rateCache.set(tab.fxDate, rates);

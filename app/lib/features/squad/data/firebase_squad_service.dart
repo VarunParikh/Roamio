@@ -85,26 +85,41 @@ class FirebaseSquadService implements SquadService {
   CollectionReference<Map<String, dynamic>> _pals(String adventureId) =>
       _db.collection('adventures/$adventureId/pals');
 
+  static Pal _pal(QueryDocumentSnapshot<Map<String, dynamic>> d) => Pal(
+    id: d.id,
+    nickname: d['nickname'] as String,
+    characterId: d.data()['characterId'] as String?,
+  );
+
   @override
   Stream<List<Pal>> pals(String adventureId) => _pals(adventureId)
       .where('status', isEqualTo: 'active')
       .snapshots()
       .map(
-        (q) =>
-            [
-              for (final d in q.docs)
-                Pal(id: d.id, nickname: d['nickname'] as String),
-            ]..sort(
-              (a, b) =>
-                  a.nickname.toLowerCase().compareTo(b.nickname.toLowerCase()),
-            ),
+        (q) => q.docs.map(_pal).toList()
+          ..sort(
+            (a, b) =>
+                a.nickname.toLowerCase().compareTo(b.nickname.toLowerCase()),
+          ),
       );
+
+  @override
+  Stream<List<Pal>> removedPals(String adventureId) =>
+      _pals(adventureId)
+          .where('status', isEqualTo: 'left')
+          .snapshots()
+          .map((q) => q.docs.map(_pal).toList());
 
   // Not awaited: the write is queued offline and the stream shows it at once.
   @override
-  Future<void> addPal(String adventureId, String nickname) async {
+  Future<void> addPal(
+    String adventureId,
+    String nickname,
+    String characterId,
+  ) async {
     _pals(adventureId).add({
       'nickname': nickname,
+      'characterId': characterId,
       'addedBy': _auth.currentUser!.uid,
       'status': 'active',
       'createdAt': FieldValue.serverTimestamp(),
@@ -112,12 +127,16 @@ class FirebaseSquadService implements SquadService {
   }
 
   @override
-  Future<void> renamePal(
+  Future<void> editPal(
     String adventureId,
     String palId,
     String nickname,
+    String characterId,
   ) async {
-    _pals(adventureId).doc(palId).update({'nickname': nickname}).ignore();
+    _pals(adventureId)
+        .doc(palId)
+        .update({'nickname': nickname, 'characterId': characterId})
+        .ignore();
   }
 
   @override

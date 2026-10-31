@@ -10,6 +10,8 @@ import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
 
 final _goa = Adventure(
   id: 'goa',
@@ -32,7 +34,10 @@ final _dinner = TabEntry(
   location: const MapPoint(15.55, 73.75),
   split: TabSplit(
     amount: Money(300000, 'INR'),
-    payers: const [Payment('ari', 200000), Payment('ben', 100000)],
+    payers: const [
+      Payment('ari', 200000, method: PaymentMethod.bankTransfer),
+      Payment('ben', 100000, method: PaymentMethod.cash),
+    ],
     participants: const ['ari', 'ben', 'kiko'],
     percentBp: const {'ari': 5000, 'ben': 2500, 'kiko': 2500},
     fxDate: '2026-10-27',
@@ -47,7 +52,7 @@ final _taxi = TabEntry(
   createdBy: 'ben',
   split: TabSplit(
     amount: Money(45050, 'INR'),
-    payers: const [Payment('ben', 45050)],
+    payers: const [Payment('ben', 45050)], // an older tab: no method
     participants: const ['ari', 'ben'],
     fxDate: '2026-10-28',
   ),
@@ -111,11 +116,61 @@ void main() {
         ('Kiko', 'Ben Roy', 47525),
         ('Kiko', 'Ari Chen', 27475),
       ]);
-      expect(d.tabs.first.paidBy, 'Ari Chen 2000.00, Ben Roy 1000.00');
+      expect(
+        d.tabs.first.paidBy,
+        'Ari Chen 2000.00 (Bank transfer), Ben Roy 1000.00 (Cash)',
+      );
+      expect(d.tabs.last.paidBy, 'Ben Roy 450.50 (Other)');
       expect(d.tabs.first.sharedBy, 'Ari Chen 50%, Ben Roy 25%, Kiko 25%');
       expect(d.tabs.last.description, 'Local Transportation');
       expect(d.tabs.last.sharedBy, 'Ari Chen, Ben Roy (equal)');
       expect(d.tabs.first.location, '15.55, 73.75');
+    });
+
+    test('only approved tabs are listed (spec UC-21a)', () {
+      final waiting = TabEntry(
+        id: 't3',
+        description: 'Not yet',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ben',
+        status: TabStatus.waiting,
+        split: _dinner.split,
+      );
+      final rejected = TabEntry(
+        id: 't4',
+        description: 'Refused',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ben',
+        status: TabStatus.rejected,
+        split: _dinner.split,
+      );
+      final personal = TabEntry(
+        id: 't5',
+        description: 'Just me',
+        category: 'food_dining',
+        date: DateTime(2026, 10, 27),
+        createdBy: 'ari',
+        status: TabStatus.personal,
+        split: _dinner.split,
+      );
+      final report = buildReport(
+        tabs: const [],
+        baseCurrency: 'INR',
+        viewerCurrency: 'INR',
+        viewer: 'ari',
+        ratesFor: (date) => FxRates(date: date, usdRates: const {'INR': '84'}),
+      );
+      final data = buildExportData(
+        adventure: _goa,
+        tabs: [_dinner, waiting, rejected, personal],
+        report: report,
+        names: const {},
+        categories: const {},
+        includeLocation: true,
+      );
+      expect(data.tabs.map((t) => t.description), ['Dinner']);
     });
 
     test('a minor’s export never includes location (spec §7.2)', () {
@@ -216,6 +271,17 @@ void main() {
       expect(sum, 345050);
     });
 
+    test('Paid by shows how they paid by name, never the emoji', () {
+      final excel = Excel.decodeBytes(buildXlsx(_data()));
+      final tabs = _rows(excel, 'Tabs');
+      final paidBy = tabs.first.indexOf('Paid by');
+      expect(
+        tabs[1][paidBy],
+        'Ari Chen 2000.00 (Bank transfer), Ben Roy 1000.00 (Cash)',
+      );
+      expect(tabs[2][paidBy], 'Ben Roy 450.50 (Other)');
+    });
+
     test('a minor’s spreadsheet has no Location column', () {
       final excel = Excel.decodeBytes(buildXlsx(_data(includeLocation: false)));
       expect(_rows(excel, 'Tabs').first, isNot(contains('Location')));
@@ -235,6 +301,18 @@ void main() {
         '15.55, 73.75',
       ]) {
         expect(text, contains(s), reason: s);
+      }
+    });
+
+    test('Paid by shows how they paid by name', () async {
+      final bytes = await buildPdf(_data(), compress: false);
+      final text = _pdfText(bytes);
+      for (final s in ['Bank', 'transfer', 'Cash', 'Other']) {
+        expect(text, contains(s), reason: s);
+      }
+      // The PDF's built-in font has no emoji.
+      for (final m in PaymentMethod.values) {
+        expect(latin1.decode(bytes), isNot(contains(m.emoji)));
       }
     });
 

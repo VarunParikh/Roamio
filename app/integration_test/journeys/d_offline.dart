@@ -1,10 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/driver.dart';
 import '../support/emulators.dart';
 
-/// Journey D – Offline (spec §15.4): offline, add 3 tabs → reconnect →
-/// Sync → every squad member sees them.
+/// Journey D – Offline (spec §15.4): offline, add 3 tabs and a pal →
+/// reconnect → Sync → every squad member sees them.
 ///
 /// The test switches the app's connection off and on; the app then does
 /// what it does for a real outage (Firestore `disableNetwork`, then
@@ -33,24 +34,35 @@ void journeyD() {
       await addSimpleTab(tester, amount: '600', description: name);
       await waitFor(tester, find.text(name));
     }
+    // Adding a pal doesn't wait for the server: the screen closes at once.
+    await scrollTo(tester, find.text('Add pal'));
+    await tapText(tester, 'Add pal');
+    await addPal(tester, nickname: 'Kiko', character: 'Traveller 2');
+    await waitFor(tester, find.text('Squad (3)'));
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, 3000));
+    await settle(tester);
+
     // Kept on the phone: the squad can't see them yet.
     await settle(tester, const Duration(seconds: 2));
-    expect(await listDocs('adventures/$aid/tabs', as: bob), isEmpty);
+    expect(await sharedTabs(aid, as: bob), isEmpty);
+    expect(await listDocs('adventures/$aid/pals', as: bob), isEmpty);
 
     // Back online: Sync sends everything.
     connection.set(online: true);
     await tapOn(tester, find.text('Sync'));
     await waitFor(tester, find.text('Synced ✓'));
     await eventually('Bob sees the 3 tabs', () async {
-      final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+      final tabs = await sharedTabs(aid, as: bob);
       return tabs.length == 3 && tabs.every((t) => t['deleted'] == false);
     });
-    final tabs = await listDocs('adventures/$aid/tabs', as: bob);
+    final tabs = await sharedTabs(aid, as: bob);
     expect(
       tabs.map((t) => t['description']),
       unorderedEquals(['Fuel', 'Momos', 'Permit']),
     );
     expect(tabs.map((t) => t['createdBy']).toSet(), {ari.uid});
+    final pals = await listDocs('adventures/$aid/pals', as: bob);
+    expect(pals.map((p) => p['nickname']), ['Kiko']);
 
     await signOut(tester);
   });

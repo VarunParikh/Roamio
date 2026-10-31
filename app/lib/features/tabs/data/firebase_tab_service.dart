@@ -4,8 +4,26 @@ import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
+import 'package:roamio/features/tabs/data/merged_tabs.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/tabs/domain/new_tab.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
+import 'package:roamio/features/tabs/domain/tab_status.dart';
+
+/// One entry of a tab's `payers` as stored (DATA_MODEL.md).
+Map<String, Object?> payerFields(Payment p) => {
+  'id': p.payer,
+  'amountMinor': p.amountMinor,
+  'method': p.method.id,
+};
+
+/// One entry of a tab's `payers`; see [PaymentMethod.fromStored] for a
+/// missing or unknown method.
+Payment paymentFromStored(Map<String, dynamic> p) => Payment(
+  p['id'] as String,
+  p['amountMinor'] as int,
+  method: PaymentMethod.fromStored(p['method']),
+);
 
 class FirebaseTabService implements TabService {
   new(this._auth, this._db);
@@ -17,15 +35,33 @@ class FirebaseTabService implements TabService {
       _db.collection('adventures/$adventureId/tabs');
 
   @override
-  Stream<List<TabEntry>> tabs(String adventureId) =>
-      _tabs(adventureId)
-          .where('deleted', isEqualTo: false)
+  Stream<List<TabEntry>> tabs(String adventureId, {required bool isAdmin}) {
+    List<TabEntry> entries(QuerySnapshot<Map<String, dynamic>> q) =>
+        q.docs.map(_fromDoc).toList();
+    final live = _tabs(adventureId).where('deleted', isEqualTo: false);
+    return mergedTabs([
+      live
+          .where(
+            'status',
+            whereIn: [TabStatus.waiting.name, TabStatus.approved.name],
+          )
           .snapshots()
-          .map((q) {
-            final entries = q.docs.map(_fromDoc).toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-            return entries;
-          });
+          .map(entries),
+      live
+          .where('createdBy', isEqualTo: _auth.currentUser?.uid)
+          .where(
+            'status',
+            whereIn: [TabStatus.personal.name, TabStatus.rejected.name],
+          )
+          .snapshots()
+          .map(entries),
+      if (isAdmin)
+        live
+            .where('status', isEqualTo: TabStatus.rejected.name)
+            .snapshots()
+            .map(entries),
+    ]);
+  }
 
   /// The fields a tab's creator writes (DATA_MODEL.md). On an edit, a
   /// removed location is deleted; on a new tab it's simply left out.
@@ -36,15 +72,20 @@ class FirebaseTabService implements TabService {
     'currency': tab.currency,
     'date': isoDate(tab.date),
     'fxDate': tab.fxDate,
-    'payers': [
-      for (final p in tab.payers) {'id': p.payer, 'amountMinor': p.amountMinor},
-    ],
+    'payers': [for (final p in tab.payers) payerFields(p)],
     'participants': tab.participants,
     'percentBp': tab.percentBp,
     if (tab.location case final p?)
       'location': {'lat': p.lat, 'lng': p.lng}
     else if (!isNew)
       'location': FieldValue.delete(),
+    'status': tab.status.name,
+    // Going back to waiting starts the decision again.
+    if (!isNew && tab.status == TabStatus.waiting) ...{
+      'rejectReason': FieldValue.delete(),
+      'decidedBy': FieldValue.delete(),
+      'decidedAt': FieldValue.delete(),
+    },
     'updatedAt': FieldValue.serverTimestamp(),
     // Only an edit has a base; with none known, a stale one must not stay.
     if (!isNew)
@@ -66,6 +107,30 @@ class FirebaseTabService implements TabService {
       'deleted': false,
     }).ignore();
     return doc.id;
+  }
+
+  // Awaited, unlike other writes: the first decision wins (spec UC-21a), so
+  // the person needs to hear if theirs didn't.
+  @override
+  Future<void> decideTab(
+    String adventureId,
+    String tabId, {
+    required bool approve,
+    String? reason,
+  }) async {
+    try {
+      await _tabs(adventureId).doc(tabId).update({
+        'status': (approve ? TabStatus.approved : TabStatus.rejected).name,
+        'decidedBy': _auth.currentUser!.uid,
+        'decidedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (!approve && reason != null && reason.isNotEmpty)
+          'rejectReason': reason,
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') throw TabAlreadyDecided();
+      rethrow;
+    }
   }
 
   @override
@@ -100,6 +165,8 @@ class FirebaseTabService implements TabService {
       date: parseIsoDate(data['date'] as String),
       createdBy: data['createdBy'] as String,
       deleted: data['deleted'] == true,
+      status: TabStatus.fromStored(data['status'] as String?),
+      rejectReason: data['rejectReason'] as String?,
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       memories: ((data['memories'] as List?) ?? const []).cast<String>(),
       location: switch (data['location']) {
@@ -113,7 +180,7 @@ class FirebaseTabService implements TabService {
         amount: Money(data['amountMinor'] as int, currency),
         payers: [
           for (final p in (data['payers'] as List).cast<Map<String, dynamic>>())
-            Payment(p['id'] as String, p['amountMinor'] as int),
+            paymentFromStored(p),
         ],
         participants: (data['participants'] as List).cast<String>(),
         percentBp: percent,

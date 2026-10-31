@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getFirestore, Timestamp } from "../support/admin";
-import { tabProblem, replacedEdit } from "../../functions/src/tabs/checkTab";
+import { moneyChanged, tabProblem, replacedEdit } from "../../functions/src/tabs/checkTab";
 import { adventure, person } from "../support/callable";
 
 const db = () => getFirestore();
@@ -123,6 +123,158 @@ describe("tab check trigger (DATA_MODEL: what rules can't check)", () => {
     });
     const log = await db().collection(`adventures/${id}/activity`).get();
     expect(log.empty).toBe(true);
+  });
+});
+
+describe("personal tabs stay out of what the squad sees (spec UC-21a)", () => {
+  it("don't lock the trip's currency", async () => {
+    const { ari, id } = await squad();
+    await db()
+      .collection(`adventures/${id}/tabs`)
+      .add(tab(ari.uid, { status: "personal", participants: [ari.uid] }));
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).not.toBe(true);
+  });
+
+  it("deleting one logs nothing in the activity", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { status: "personal", participants: [ari.uid] }));
+    await ref.update({ deleted: true, deletedBy: ari.uid });
+    await new Promise((r) => setTimeout(r, 1500));
+    const activity = await db().collection(`adventures/${id}/activity`).get();
+    expect(activity.docs.filter((d) => d.get("subject") === ref.id)).toEqual([]);
+  });
+});
+
+describe("moneyChanged (spec UC-21a)", () => {
+  const before = {
+    amountMinor: 100,
+    currency: "THB",
+    payers: [{ id: "a", amountMinor: 100, method: "cash" }],
+    participants: ["a", "b"],
+    percentBp: null,
+  };
+
+  it("spots the amount, currency, payers and shares", () => {
+    expect(moneyChanged(before, { ...before, amountMinor: 200 })).toBe(true);
+    expect(moneyChanged(before, { ...before, currency: "INR" })).toBe(true);
+    expect(moneyChanged(before, { ...before, participants: ["a"] })).toBe(true);
+    expect(moneyChanged(before, { ...before, percentBp: { a: 5000, b: 5000 } })).toBe(true);
+    expect(
+      moneyChanged(before, { ...before, payers: [{ id: "b", amountMinor: 100, method: "cash" }] }),
+    ).toBe(true);
+  });
+
+  it("ignores the description, category and how someone paid", () => {
+    expect(moneyChanged(before, { ...before, description: "New", category: "x" })).toBe(false);
+    expect(
+      moneyChanged(before, { ...before, payers: [{ id: "a", amountMinor: 100, method: "card" }] }),
+    ).toBe(false);
+  });
+});
+
+describe("editing an approved tab (spec UC-21a)", () => {
+  const approved = async () => {
+    const { ari, bob, id } = await squad();
+    await db().doc(`adventures/${id}`).update({ coLeadUids: [bob.uid] });
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(
+      tab(bob.uid, { status: "approved", decidedBy: ari.uid, participants: [ari.uid, bob.uid] }),
+    );
+    await new Promise((r) => setTimeout(r, 800));
+    return { ari, bob, id, ref };
+  };
+
+  it("a money edit sends it back to waiting", async () => {
+    const { bob, ref } = await approved();
+    await ref.update({ amountMinor: 50000, payers: [{ id: bob.uid, amountMinor: 50000 }] });
+    await eventually(async () => {
+      const after = await ref.get();
+      expect(after.get("status")).toBe("waiting");
+      expect(after.get("decidedBy")).toBeUndefined();
+    });
+  });
+
+  it("a description edit keeps it approved", async () => {
+    const { ref } = await approved();
+    await ref.update({ description: "Noodles" });
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await ref.get()).get("status")).toBe("approved");
+  });
+
+  it("the only admin's money edit stays approved", async () => {
+    const { ari, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(ari.uid, { status: "approved", participants: [ari.uid, "x"] }));
+    await new Promise((r) => setTimeout(r, 800));
+    await ref.update({ amountMinor: 50000, payers: [{ id: ari.uid, amountMinor: 50000 }] });
+    await new Promise((r) => setTimeout(r, 1500));
+    expect((await ref.get()).get("status")).toBe("approved");
+  });
+});
+
+describe("rejecting a tab", () => {
+  it("logs it with its own type, without the reason", async () => {
+    const { ari, bob, id } = await squad();
+    const ref = db().collection(`adventures/${id}/tabs`).doc();
+    await ref.set(tab(bob.uid, { status: "waiting", participants: [ari.uid, bob.uid] }));
+    await ref.update({ status: "rejected", decidedBy: ari.uid, rejectReason: "Wrong trip" });
+    await eventually(async () => {
+      const log = await db().collection(`adventures/${id}/activity`).get();
+      const entry = log.docs.find((d) => d.get("type") === "tab_declined");
+      expect(entry?.get("actorUid")).toBe(ari.uid);
+      expect(entry?.get("reason")).toBeUndefined();
+    });
+  });
+});
+
+describe("Paid with is never a reason to remove a tab (spec UC-21)", () => {
+  const paid = (method: unknown) =>
+    tab("ari", { payers: [{ id: "ari", amountMinor: 90000, method }] });
+  const active = new Set(["ari"]);
+  const isMember = (id: string) => id === "ari";
+
+  it("accepts every method, a missing one, and values it doesn't know", () => {
+    for (const method of [
+      "cash",
+      "card",
+      "upi",
+      "cheque",
+      "bank_transfer",
+      "other",
+      undefined,
+      null,
+      "",
+      "crypto",
+      42,
+      { a: 1 },
+    ]) {
+      expect(tabProblem(paid(method), active, isMember)).toBeNull();
+    }
+    expect(tabProblem(tab("ari"), active, isMember)).toBeNull();
+  });
+
+  it("keeps a saved tab with an unknown or missing method", async () => {
+    const { ari, id } = await squad();
+    const unknown = db().collection(`adventures/${id}/tabs`).doc();
+    const missing = db().collection(`adventures/${id}/tabs`).doc();
+    await unknown.set(
+      tab(ari.uid, { payers: [{ id: ari.uid, amountMinor: 90000, method: "crypto" }] }),
+    );
+    await missing.set(tab(ari.uid));
+
+    // Both have been through the trigger once the adventure says it has tabs.
+    await eventually(async () => {
+      expect((await db().doc(`adventures/${id}`).get()).get("hasTabs")).toBe(true);
+    });
+    expect((await unknown.get()).get("deleted")).toBe(false);
+    expect((await missing.get()).get("deleted")).toBe(false);
+    const rejected = await db()
+      .collection(`adventures/${id}/activity`)
+      .where("type", "==", "tab_rejected")
+      .get();
+    expect(rejected.empty).toBe(true);
   });
 });
 

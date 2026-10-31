@@ -323,31 +323,31 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: shared picture + name widget; default character from a stable hash of the account ID; Home card "We picked this for you. Change it?"; deleted user grey icon; neutral circle while loading; TalkBack reads the name; adopted on Home greeting, squad and pals, join cards, Activity.
   - Verify: unit test that the default is stable and covers bad input; widget tests per state.
 
-- [ ] **Task 47: Tab status foundation** — M · Deps: 46 · UC-21a, §6
+- [x] **Task 47: Tab status foundation** — M · Deps: 46 · UC-21a, §6
   - Acceptance: tabs have `status`; balances, charts, export and `budget.ts` count only approved (and personal for the owner's own share). New tabs are still created approved, so nothing changes yet.
   - Verify: failing-first split engine, report and budget tests.
 
-- [ ] **Task 48: Approve and Reject** — L · Deps: 47 · UC-21a
+- [x] **Task 48: Approve and Reject** — L · Deps: 47 · UC-21a
   - Acceptance: buttons on the tab list; new tabs wait; rules stop self-approval and creating a tab approved; only admin auto-approved, including when the second admin leaves; first decision wins; offline reason; works after the 7-day window.
   - Verify: rules allow + deny tests; functions tests; Journeys C and D updated; new journey for a leader with no co-lead.
 
-- [ ] **Task 49: Personal tabs** — M · Deps: 48 · UC-21a
+- [x] **Task 49: Personal tabs** — M · Deps: 48 · UC-21a
   - Acceptance: automatic; visible only to the creator by security rules; the tab queries still work offline; the Activity lookup survives a tab it can't read; export includes them only for their owner.
   - Verify: rules allow + deny tests; widget and export tests.
 
-- [ ] **Task 50: Rejected tabs and re-approval** — M · Deps: 48 · UC-21a
+- [x] **Task 50: Rejected tabs and re-approval** — M · Deps: 48 · UC-21a
   - Acceptance: optional reason; creator can edit and resubmit or delete; money edits return to waiting, description, category and method don't. Own activity type, since `tab_rejected` already means `checkTab` rejected a tab.
   - Verify: rules tests; journey for reject and resubmit.
 
-- [ ] **Task 51: Approval notifications** — S · Deps: 48 · UC-21a
+- [x] **Task 51: Approval notifications** — S · Deps: 48 · UC-21a
   - Acceptance: push to admins for a waiting tab, to the creator on rejection; Home card opens the tab list.
   - Verify: functions tests (only admins, never the creator).
 
-- [ ] **Task 52: Paid with and the new row** — M · Deps: 47 · UC-21, UC-23
+- [x] **Task 52: Paid with and the new row** — M · Deps: 47 · UC-21, UC-23
   - Acceptance: required method per payer, last used remembered on the phone; three-line row; tab details and exports show the name; unknown value shows as Other and `checkTab` ignores it.
   - Verify: widget tests; export test; `checkTab` test.
 
-- [ ] **Task 53: Pal nickname and character** — M · Deps: 46 · UC-18
+- [x] **Task 53: Pal nickname and character** — M · Deps: 46 · UC-18
   - Acceptance: one screen from both entry points; Add disabled with a reason; picker title "Choose a character for <nickname>"; used characters dimmed; Edit replaces Rename; member hint on Add tab; adding offline doesn't hang.
   - Verify: rules allow + deny tests; widget tests; Journeys A and C updated.
 
@@ -355,7 +355,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
   - Acceptance: rows show up to 4 sharers then "+N", you first; Add tab's lists, tab details and invites have pictures; the server copies the leader's character onto invites.
   - Verify: widget tests incl. a small phone; functions and rules tests for invites.
 
-- [ ] **Task 55: Open Split on an adventure** — S · Deps: none · UC-5, UC-20
+- [x] **Task 55: Open Split on an adventure** — S · Deps: none · UC-5, UC-20
   - Acceptance: Split can be opened on a chosen adventure; the budget alert uses it, fixing the wrong-adventure dead end.
   - Verify: widget tests.
 

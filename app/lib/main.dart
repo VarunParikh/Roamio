@@ -39,6 +39,7 @@ import 'package:roamio/features/squad/data/firebase_squad_service.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/data/firebase_tab_service.dart';
+import 'package:roamio/features/tabs/data/payment_memory.dart';
 import 'package:roamio/features/tabs/data/tab_service.dart';
 import 'package:roamio/features/updates/update_checker.dart';
 import 'package:share_plus/share_plus.dart';
@@ -100,6 +101,7 @@ Future<void> runRoamio({
             roamioFunctions,
           ),
         ),
+        paymentMemoryProvider.overrideWithValue(FilePaymentMemory()),
         updateCheckerProvider.overrideWithValue(
           UpdateChecker(fetchJsonOverHttp, FileUpdateStore()),
         ),

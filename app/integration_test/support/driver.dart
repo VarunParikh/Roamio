@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/connectivity/connectivity_monitor.dart';
+import 'package:roamio/features/tabs/domain/payment_method.dart';
 import 'package:roamio/main.dart' as app;
 import 'package:share_plus/share_plus.dart';
 
@@ -169,6 +170,19 @@ Future<void> typeIntoKey(WidgetTester tester, String key, String text) async {
   await settle(tester, const Duration(milliseconds: 200));
 }
 
+/// Fills in the pal screen and adds them (spec UC-18).
+Future<void> addPal(
+  WidgetTester tester, {
+  required String nickname,
+  required String character,
+}) async {
+  await typeInto(tester, 'Nickname', nickname);
+  await tapText(tester, 'Choose a character');
+  await waitFor(tester, find.text('Choose a character for $nickname'));
+  await tapOn(tester, find.bySemanticsLabel(character));
+  await tapOn(tester, find.widgetWithText(FilledButton, 'Add'));
+}
+
 /// Fills Material's date picker in typing mode (en_US: MM/DD/YYYY).
 String usDate(DateTime d) =>
     '${d.month.toString().padLeft(2, '0')}/'
@@ -232,7 +246,8 @@ Future<void> openAdventure(WidgetTester tester, String name) async {
   await settle(tester, const Duration(milliseconds: 300));
   // The hero card's text sits under its tappable overlay.
   await tester.tap(find.text(name).first, warnIfMissed: false);
-  await waitFor(tester, find.textContaining('Squad ('));
+  // Not the squad heading: the list builds lazily, and many tabs push it out.
+  await waitFor(tester, find.text('Tabs'));
 }
 
 /// Adds a tab from an open adventure page: [amount] in [currency] (null =
@@ -250,7 +265,22 @@ Future<void> addSimpleTab(
   if (currency != null) await pickCurrency(tester, currency);
   await tapOn(tester, find.textContaining('Food & Dining'));
   await typeInto(tester, 'Description (optional)', description);
+  await pickPaidWith(
+    tester,
+    find.byType(DropdownButtonFormField<PaymentMethod>),
+  );
   await saveTab(tester);
+}
+
+/// Chooses [item] in a Paid with menu. A fresh install has no method yet, so
+/// Save stays disabled until this is done.
+Future<void> pickPaidWith(
+  WidgetTester tester,
+  Finder dropdown, {
+  String item = '💵 Cash',
+}) async {
+  await tapOn(tester, dropdown);
+  await tapOn(tester, find.text(item).last);
 }
 
 /// Picks [currency] in the tab's currency menu, which opens at the

@@ -63,6 +63,7 @@ String? describeActivity(
     'co_lead_removed' => '$actor made ${name(e.subject)} a member again',
     'leader_changed' => '$actor handed squad leadership to ${name(e.subject)}',
     'tab_deleted' => '$actor deleted $tab',
+    'tab_declined' => '$actor rejected $tab',
     'tab_edit_replaced' =>
       '${e.actorUid == myUid ? 'Your' : '$actor’s'} offline edit replaced '
           'a newer change to $tab',

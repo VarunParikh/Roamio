@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/features/budget/data/budget_service.dart';
 
 /// Budget alerts on Home (spec UC-20): "You've used 80% of your Goa trip
@@ -32,7 +33,7 @@ class BudgetAlerts extends ConsumerWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => context.go('/split'),
+                    onPressed: () => context.go(Routes.splitFor(a.adventureId)),
                     child: const Text('See split'),
                   ),
                   IconButton(

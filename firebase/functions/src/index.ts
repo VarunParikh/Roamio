@@ -19,6 +19,8 @@ export {
 } from "./consent/consent";
 export { consentSweep } from "./consent/sweep";
 export { checkTab } from "./tabs/checkTab";
+export { tabApprovalNotices, waitingCardsForNewAdmins } from "./tabs/approvalNotices";
+export { approveStrandedTabs } from "./squad/approvals";
 export { profileReadersOnAdventure } from "./squad/profileReaders";
 export { budgetOnChange, budgetOnTab } from "./budget/budget";
 export { deleteMyAccount } from "./privacy/deleteAccount";

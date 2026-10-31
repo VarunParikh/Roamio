@@ -11,6 +11,8 @@ import { logger } from "firebase-functions";
 // (DATA_MODEL.md): payments add up, percentages add up, and everyone on a
 // new tab is in the squad. A failing tab is soft-deleted and logged; the
 // app's split engine already refuses these, so this only catches bypasses.
+// A payer's `method` is deliberately not checked: the app shows an unknown one
+// as Other, so it must never remove a tab (spec UC-21).
 
 const db = () => getFirestore();
 
@@ -88,17 +90,33 @@ export function replacedEdit(before?: DocumentData, after?: DocumentData): boole
   return !base.isEqual(was);
 }
 
+/** Whether what people owe changed; how someone paid doesn't count (spec UC-21a). */
+export function moneyChanged(before: DocumentData, after: DocumentData): boolean {
+  const facts = (t: DocumentData) =>
+    JSON.stringify([
+      t.amountMinor,
+      t.currency,
+      ((t.payers ?? []) as Payer[]).map((p) => [p.id, p.amountMinor]),
+      t.participants,
+      Object.entries(t.percentBp ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+    ]);
+  return facts(before) !== facts(after);
+}
+
 export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (event) => {
   const after = event.data?.after;
   const tab = after?.data();
   if (!after || !tab) return;
   const adventureRef = db().doc(`adventures/${event.params.aid}`);
   const adventure = await adventureRef.get();
-  if (adventure.get("hasTabs") !== true) await adventureRef.update({ hasTabs: true });
+  // Only its creator can see a personal tab, so it stays out of what the squad
+  // sees: it doesn't lock the currency or appear in the activity (spec UC-21a).
+  const personal = tab.status === "personal";
+  if (!personal && adventure.get("hasTabs") !== true) await adventureRef.update({ hasTabs: true });
   if (tab.deleted === true) {
     // A lead just deleted it: say so in the activity (spec UC-22).
     const before = event.data?.before?.data();
-    if (before && before.deleted !== true && tab.deletedBy) {
+    if (!personal && before && before.deleted !== true && tab.deletedBy) {
       await adventureRef.collection("activity").add({
         type: "tab_deleted",
         actorUid: tab.deletedBy,
@@ -114,7 +132,31 @@ export const checkTab = onDocumentWritten("adventures/{aid}/tabs/{tid}", async (
   const active = new Set([...members, ...pals.docs.map((p) => p.id)]);
   const problem = tabProblem(tab, active, (id) => members.includes(id), event.data?.before?.data());
   if (!problem) {
-    if (replacedEdit(event.data?.before?.data(), tab)) {
+    const before = event.data?.before?.data();
+    if (before?.status === "waiting" && tab.status === "rejected") {
+      await adventureRef.collection("activity").add({
+        type: "tab_declined",
+        actorUid: tab.decidedBy ?? null,
+        subject: event.params.tid,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+    const onlyAdmin =
+      tab.createdBy === adventure.get("leaderUid") &&
+      ((adventure.get("coLeadUids") as string[]) ?? []).length === 0;
+    if (
+      before?.status === "approved" &&
+      tab.status === "approved" &&
+      !onlyAdmin &&
+      moneyChanged(before, tab)
+    ) {
+      await after.ref.update({
+        status: "waiting",
+        decidedBy: FieldValue.delete(),
+        decidedAt: FieldValue.delete(),
+      });
+    }
+    if (!personal && replacedEdit(event.data?.before?.data(), tab)) {
       await adventureRef.collection("activity").add({
         type: "tab_edit_replaced",
         actorUid: tab.createdBy,

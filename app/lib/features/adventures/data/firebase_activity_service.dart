@@ -6,7 +6,12 @@ class FirebaseActivityService implements ActivityService {
 
   final FirebaseFirestore _db;
 
-  static const _tabTypes = {'tab_deleted', 'tab_edit_replaced', 'tab_rejected'};
+  static const _tabTypes = {
+    'tab_deleted',
+    'tab_declined',
+    'tab_edit_replaced',
+    'tab_rejected',
+  };
 
   @override
   Stream<List<ActivityEntry>> recent(String adventureId) => _db

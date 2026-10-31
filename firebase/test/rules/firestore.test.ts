@@ -6,6 +6,7 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
+  Timestamp,
   collection,
   deleteDoc,
   deleteField,
@@ -17,10 +18,9 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  Timestamp,
+  type Firestore,
   updateDoc,
   where,
-  type Firestore,
 } from "firebase/firestore";
 import { afterAll, beforeAll, beforeEach, describe, it } from "vitest";
 import { RULES_PROJECT } from "../support/rules-project";
@@ -79,6 +79,7 @@ const tab = (createdBy: string, extra: Record<string, unknown> = {}) => ({
   memories: [],
   createdBy,
   deleted: false,
+  status: "waiting",
   ...extra,
 });
 
@@ -696,7 +697,43 @@ describe("members and activity (server-written)", () => {
 });
 
 describe("pals", () => {
-  const pal = { nickname: "Lu", addedBy: "cara", status: "active" };
+  const pal = { nickname: "Lu", characterId: "robot", addedBy: "cara", status: "active" };
+
+  it("a new pal needs a valid character (spec UC-18)", async () => {
+    const { characterId: _none, ...noCharacter } = pal;
+    const lu = () => doc(as("cara"), "adventures/a1/pals/lu");
+    await assertFails(setDoc(lu(), noCharacter));
+    for (const bad of [null, "", "Robot", "../robot", "x".repeat(31), 7]) {
+      await assertFails(setDoc(lu(), { ...pal, characterId: bad }));
+    }
+    await assertSucceeds(setDoc(lu(), pal));
+  });
+
+  it("only leads change a pal's character, to a valid one", async () => {
+    const kiko = (who: string) => doc(as(who), "adventures/a1/pals/kiko");
+    await assertSucceeds(updateDoc(kiko("alice"), { characterId: "owl" }));
+    await assertSucceeds(updateDoc(kiko("cara"), { nickname: "Kiks", characterId: "fox" }));
+    for (const who of ["bob", "mia", "dan", "pete"]) {
+      await assertFails(updateDoc(kiko(who), { characterId: "panda" }));
+    }
+    for (const bad of [null, "", "Not Valid", 7]) {
+      await assertFails(updateDoc(kiko("alice"), { characterId: bad }));
+    }
+    await assertFails(updateDoc(kiko("alice"), { characterId: deleteField() }));
+  });
+
+  it("a pal from before characters can still be renamed and removed", async () => {
+    const kiko = doc(as("alice"), "adventures/a1/pals/kiko");
+    await assertSucceeds(updateDoc(kiko, { nickname: "Kiks" }));
+    await assertSucceeds(updateDoc(kiko, { status: "left" }));
+  });
+
+  it("members can list removed pals, for old tabs; outsiders cannot", async () => {
+    const left = (who: string) =>
+      query(collection(as(who), "adventures/a1/pals"), where("status", "==", "left"));
+    await assertSucceeds(getDocs(left("bob")));
+    await assertFails(getDocs(left("dan")));
+  });
 
   it("leads add and rename pals; members cannot", async () => {
     await assertSucceeds(setDoc(doc(as("cara"), "adventures/a1/pals/lu"), pal));
@@ -796,6 +833,367 @@ describe("tabs", () => {
     await assertSucceeds(
       setDoc(doc(as("mia"), fresh("adventures/a1/tabs")), tab("mia")),
     );
+  });
+
+  it("a new tab waits; it can't start approved, rejected or with no status", async () => {
+    await assertSucceeds(
+      setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), tab("bob")),
+    );
+    for (const status of ["approved", "rejected", "nonsense", 1, undefined]) {
+      const t: Record<string, unknown> = tab("bob", { status });
+      if (status === undefined) delete t.status;
+      await assertFails(setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), t));
+    }
+    // An admin with another admin to approve it waits too.
+    await assertFails(
+      setDoc(
+        doc(as("alice"), fresh("adventures/a1/tabs")),
+        tab("alice", { status: "approved" }),
+      ),
+    );
+  });
+
+  it("only the only admin's own tab can start approved", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "adventures/solo"), {
+        ...adventure,
+        coLeadUids: [],
+      });
+    });
+    await assertSucceeds(
+      setDoc(
+        doc(as("alice"), fresh("adventures/solo/tabs")),
+        tab("alice", { status: "approved" }),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(as("bob"), fresh("adventures/solo/tabs")),
+        tab("bob", { status: "approved" }),
+      ),
+    );
+  });
+
+  describe("personal tabs (spec UC-21a)", () => {
+    const personal = (by: string, extra: Record<string, unknown> = {}) =>
+      tab(by, {
+        status: "personal",
+        payers: [{ id: by, amountMinor: 45000 }],
+        participants: [by],
+        ...extra,
+      });
+    const seed = async () =>
+      env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/mine"), personal("bob"));
+      });
+
+    it("you can add one: you paid and only you share", async () => {
+      await assertSucceeds(
+        setDoc(doc(as("bob"), fresh("adventures/a1/tabs")), personal("bob")),
+      );
+    });
+
+    it("it can't include or be paid by anyone else", async () => {
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { participants: ["bob", "mia"] }),
+        ),
+      );
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { payers: [{ id: "mia", amountMinor: 45000 }] }),
+        ),
+      );
+      await assertFails(
+        setDoc(
+          doc(as("bob"), fresh("adventures/a1/tabs")),
+          personal("bob", { participants: ["mia"] }),
+        ),
+      );
+    });
+
+    it("only its creator can read it, not even an admin", async () => {
+      await seed();
+      await assertSucceeds(getDoc(doc(as("bob"), "adventures/a1/tabs/mine")));
+      await assertFails(getDoc(doc(as("alice"), "adventures/a1/tabs/mine")));
+      await assertFails(getDoc(doc(as("mia"), "adventures/a1/tabs/mine")));
+    });
+
+    it("listing: shared tabs for the squad, personal only your own", async () => {
+      await seed();
+      const tabs = (who: string) => collection(as(who), "adventures/a1/tabs");
+      await assertSucceeds(
+        getDocs(
+          query(
+            tabs("mia"),
+            where("deleted", "==", false),
+            where("status", "in", ["waiting", "approved"]),
+          ),
+        ),
+      );
+      await assertSucceeds(
+        getDocs(
+          query(
+            tabs("bob"),
+            where("deleted", "==", false),
+            where("status", "==", "personal"),
+            where("createdBy", "==", "bob"),
+          ),
+        ),
+      );
+      await assertFails(getDocs(query(tabs("mia"), where("deleted", "==", false))));
+      await assertFails(
+        getDocs(query(tabs("alice"), where("status", "==", "personal"))),
+      );
+    });
+
+    it("its creator can delete it; an admin can't touch it", async () => {
+      await seed();
+      const del = (who: string) =>
+        updateDoc(doc(as(who), "adventures/a1/tabs/mine"), {
+          deleted: true,
+          deletedBy: who,
+          updatedAt: new Date(),
+        });
+      await assertFails(del("alice"));
+      await assertSucceeds(del("bob"));
+    });
+
+    it("a creator still can't delete a shared tab", async () => {
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+          deleted: true,
+          deletedBy: "bob",
+        }),
+      );
+    });
+
+    it("nobody can decide one", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/mine"), {
+          status: "approved",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+        }),
+      );
+    });
+
+    it("adding someone turns it into a waiting tab", async () => {
+      await seed();
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          status: "waiting",
+          participants: ["bob", "mia"],
+        }),
+      );
+    });
+
+    it("adding someone can't keep it personal, or approve it", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          participants: ["bob", "mia"],
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/mine"), {
+          status: "approved",
+          participants: ["bob", "mia"],
+        }),
+      );
+    });
+
+    it("a shared tab left with only you becomes personal", async () => {
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), {
+          status: "personal",
+          participants: ["bob"],
+          payers: [{ id: "bob", amountMinor: 45000 }],
+        }),
+      );
+    });
+  });
+
+  describe("rejected tabs (spec UC-21a)", () => {
+    const seed = async (extra: Record<string, unknown> = {}) =>
+      env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(
+          doc(ctx.firestore(), "adventures/a1/tabs/no"),
+          tab("bob", { status: "rejected", rejectReason: "Wrong trip", ...extra }),
+        );
+      });
+
+    it("only the creator and admins can read one", async () => {
+      await seed();
+      await assertSucceeds(getDoc(doc(as("bob"), "adventures/a1/tabs/no")));
+      await assertSucceeds(getDoc(doc(as("alice"), "adventures/a1/tabs/no")));
+      await assertSucceeds(getDoc(doc(as("cara"), "adventures/a1/tabs/no")));
+      await assertFails(getDoc(doc(as("mia"), "adventures/a1/tabs/no")));
+    });
+
+    it("listing: admins see all rejected, others only their own", async () => {
+      await seed();
+      const rejected = (who: string) =>
+        query(
+          collection(as(who), "adventures/a1/tabs"),
+          where("status", "==", "rejected"),
+        );
+      await assertSucceeds(getDocs(rejected("alice")));
+      await assertFails(getDocs(rejected("mia")));
+      await assertSucceeds(
+        getDocs(
+          query(
+            collection(as("bob"), "adventures/a1/tabs"),
+            where("createdBy", "==", "bob"),
+            where("status", "in", ["personal", "rejected"]),
+          ),
+        ),
+      );
+    });
+
+    it("a reason goes with a rejection, up to 200 characters", async () => {
+      const reject = (who: string, tid: string, rejectReason: unknown, status = "rejected") =>
+        updateDoc(doc(as(who), `adventures/a1/tabs/${tid}`), {
+          status,
+          decidedBy: who,
+          decidedAt: new Date(),
+          rejectReason,
+        });
+      await assertFails(reject("alice", "t1", "x".repeat(201)));
+      await assertFails(reject("alice", "t1", "Fine", "approved"));
+      await assertSucceeds(reject("alice", "t1", "Wrong trip"));
+    });
+
+    it("its creator can resubmit it, not approve it", async () => {
+      await seed();
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/no"), { status: "approved" }),
+      );
+      await assertFails(
+        updateDoc(doc(as("mia"), "adventures/a1/tabs/no"), { status: "waiting" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/no"), {
+          status: "waiting",
+          rejectReason: deleteField(),
+        }),
+      );
+    });
+
+    it("its creator can delete it, as can an admin", async () => {
+      await seed();
+      const del = (who: string) =>
+        updateDoc(doc(as(who), "adventures/a1/tabs/no"), {
+          deleted: true,
+          deletedBy: who,
+          updatedAt: new Date(),
+        });
+      await assertFails(del("mia"));
+      await assertSucceeds(del("bob"));
+    });
+
+    it("an approved tab's creator can send it back to waiting, not reject it", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(
+          doc(ctx.firestore(), "adventures/a1/tabs/yes"),
+          tab("bob", { status: "approved" }),
+        );
+      });
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/yes"), { status: "rejected" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/yes"), {
+          status: "waiting",
+          amountMinor: 50000,
+          payers: [{ id: "bob", amountMinor: 50000 }],
+        }),
+      );
+    });
+  });
+
+  describe("deciding a waiting tab (spec UC-21a)", () => {
+    const decide = (who: string, status: string, tid = "t1", aid = "a1") =>
+      updateDoc(doc(as(who), `adventures/${aid}/tabs/${tid}`), {
+        status,
+        decidedBy: who,
+        decidedAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+    it("either admin approves or rejects someone else's tab", async () => {
+      await assertSucceeds(decide("alice", "approved"));
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/t2"), tab("bob"));
+      });
+      await assertSucceeds(decide("cara", "rejected", "t2"));
+    });
+
+    it("a member, or an outsider, can't decide", async () => {
+      await assertFails(decide("mia", "approved"));
+      await assertFails(decide("bob", "approved"));
+      await assertFails(decide("dan", "approved"));
+    });
+
+    it("nobody approves their own tab while another admin exists", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "adventures/a1/tabs/mine"), tab("alice"));
+      });
+      await assertFails(decide("alice", "approved", "mine"));
+      await assertSucceeds(decide("cara", "approved", "mine"));
+    });
+
+    it("the only admin can approve their own", async () => {
+      await env.withSecurityRulesDisabled(async (ctx) => {
+        const db = ctx.firestore();
+        await setDoc(doc(db, "adventures/solo"), { ...adventure, coLeadUids: [] });
+        await setDoc(doc(db, "adventures/solo/tabs/mine"), tab("alice"));
+      });
+      await assertSucceeds(decide("alice", "approved", "mine", "solo"));
+    });
+
+    it("the first decision wins", async () => {
+      await assertSucceeds(decide("alice", "approved"));
+      await assertFails(decide("cara", "rejected"));
+      await assertFails(decide("cara", "approved"));
+    });
+
+    it("deciding must name who decided, and can't change anything else", async () => {
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "approved",
+          decidedBy: "cara",
+          decidedAt: new Date(),
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "approved",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+          amountMinor: 1,
+        }),
+      );
+      await assertFails(
+        updateDoc(doc(as("alice"), "adventures/a1/tabs/t1"), {
+          status: "personal",
+          decidedBy: "alice",
+          decidedAt: new Date(),
+        }),
+      );
+    });
+
+    it("a creator's edit can't change the status", async () => {
+      await assertFails(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { status: "approved" }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(as("bob"), "adventures/a1/tabs/t1"), { description: "Noodles" }),
+      );
+    });
   });
 
   it("rejects tabs from outsiders, impersonation and bad shapes", async () => {
@@ -1134,8 +1532,14 @@ describe("tabs", () => {
   });
 
   it("only members read tabs", async () => {
-    await assertSucceeds(getDocs(collection(as("mia"), "adventures/a1/tabs")));
-    await assertFails(getDocs(collection(as("dan"), "adventures/a1/tabs")));
+    // Shared tabs only: a list that could include personal tabs is refused.
+    const shared = (who: string) =>
+      query(
+        collection(as(who), "adventures/a1/tabs"),
+        where("status", "in", ["waiting", "approved"]),
+      );
+    await assertSucceeds(getDocs(shared("mia")));
+    await assertFails(getDocs(shared("dan")));
   });
 });
 

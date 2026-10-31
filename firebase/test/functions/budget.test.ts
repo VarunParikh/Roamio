@@ -51,7 +51,7 @@ describe("budget maths (same rules as the app, spec §6, §9.1)", () => {
 });
 
 /** Ari's budget of ₹10,000 on a trip with one tab Ari shares half of. */
-async function trip(tabRupees: number, deleted = false) {
+async function trip(tabRupees: number, deleted = false, status?: string) {
   const ari = await person("Ari");
   const ben = await person("Ben");
   const id = await adventure(ari, {
@@ -73,6 +73,7 @@ async function trip(tabRupees: number, deleted = false) {
     percentBp: null,
     createdBy: ben.uid,
     deleted,
+    ...(status ? { status } : {}),
   });
   return { ari, ben, id, tab };
 }
@@ -124,6 +125,23 @@ describe("checkBudget (spec UC-20)", () => {
     await eventually(async () => {
       expect(await sent(id, ari.uid)).toEqual([80]);
     });
+  });
+
+  it("waiting and rejected tabs don't count", async () => {
+    for (const status of ["waiting", "rejected"]) {
+      const { ari, id } = await trip(16_000, false, status);
+      await checkBudget(id, ari.uid);
+      await new Promise((r) => setTimeout(r, 1500));
+      expect(await alerts(ari.uid, id)).toEqual([]);
+    }
+  });
+
+  it("approved and personal tabs count", async () => {
+    for (const status of ["approved", "personal"]) {
+      const { ari, id } = await trip(16_000, false, status);
+      await checkBudget(id, ari.uid);
+      expect(await sent(id, ari.uid)).toEqual([80]);
+    }
   });
 
   it("deleted tabs don't count", async () => {
