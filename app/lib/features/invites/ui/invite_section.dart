@@ -16,6 +16,21 @@ final shareTextProvider = Provider<Future<void> Function(String text)>(
   (ref) => throw UnimplementedError('shareTextProvider must be overridden'),
 );
 
+/// Makes or reuses the invite and opens the share sheet; returns its code.
+Future<String> shareInvite(WidgetRef ref, Adventure adventure) async {
+  final invite = await ref
+      .read(inviteServiceProvider)
+      .createInvite(adventure.id);
+  await ref.read(shareTextProvider)(
+    inviteMessage(
+      adventureName: adventure.name,
+      link: inviteLink(siteUrl, invite.code),
+      code: invite.code,
+    ),
+  );
+  return invite.code;
+}
+
 /// "Invite your squad" on an adventure (spec UC-9). Leads and co-leads share
 /// the link; everyone else is told who can.
 class InviteSection extends ConsumerStatefulWidget {
@@ -46,17 +61,8 @@ class _InviteSectionState extends ConsumerState<InviteSection> {
   }
 
   Future<void> _share() => _run(() async {
-    final invite = await ref
-        .read(inviteServiceProvider)
-        .createInvite(widget.adventure.id);
-    setState(() => _code = invite.code);
-    await ref.read(shareTextProvider)(
-      inviteMessage(
-        adventureName: widget.adventure.name,
-        link: inviteLink(siteUrl, invite.code),
-        code: invite.code,
-      ),
-    );
+    final code = await shareInvite(ref, widget.adventure);
+    setState(() => _code = code);
   });
 
   Future<void> _newLink() async {

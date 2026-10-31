@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:roamio/core/data/categories.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/activity_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/data/auth_service.dart';
+import 'package:roamio/features/auth/domain/age.dart';
+import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/budget/ui/budget_widget.dart';
+import 'package:roamio/features/invites/data/invite_service.dart';
+import 'package:roamio/features/invites/ui/invite_section.dart';
+import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
 import 'package:roamio/features/splits/domain/category_shares.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/ui/split_charts.dart';
+import 'package:roamio/features/splits/ui/update_rates_button.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
 import 'package:roamio/features/squad/ui/person.dart';
+import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 import 'package:roamio/features/tabs/domain/tab_list.dart';
 import 'package:roamio/features/tabs/ui/tabs_section.dart';
 
@@ -32,6 +43,7 @@ class HeroDetails extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _TabsWaiting(adventure: a),
           BudgetWidget(adventure: a),
           Align(
             alignment: Alignment.centerRight,
@@ -42,8 +54,11 @@ class HeroDetails extends ConsumerWidget {
             ),
           ),
           _DailySpend(adventure: a, onViewAll: openSplit),
+          _TopCategory(adventure: a),
+          _ExchangeRate(adventure: a),
           const Divider(color: RoamioColors.hairline),
           _SquadRow(adventure: a),
+          _InviteShortcut(adventure: a),
           _ActivityRow(adventure: a),
         ],
       ),
@@ -116,6 +131,167 @@ class _DailySpend extends ConsumerWidget {
         body(),
         const SizedBox(height: 8),
       ],
+    );
+  }
+}
+
+/// A quick view for leads, who are the ones able to act on it (spec UC-21a).
+class _TabsWaiting extends ConsumerWidget {
+  const new({required this.adventure});
+
+  final Adventure adventure;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
+    if (!adventure.isLead(myUid)) return const SizedBox.shrink();
+    final count =
+        ref.watch(splitReportProvider(adventure.id)).value?.waitingCount ?? 0;
+    if (count == 0) return const SizedBox.shrink();
+    final label = count == 1
+        ? '1 tab waiting for approval'
+        : '$count tabs waiting for approval';
+    return _LinkRow(
+      label: label,
+      onTap: () => context.push('/adventures/${adventure.id}'),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.hourglass_top_rounded,
+            size: 18,
+            color: RoamioColors.slate,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Most on Food & Dining · 60%": the squad's, or the viewer's own when they
+/// only have personal tabs.
+class _TopCategory extends ConsumerWidget {
+  const new({required this.adventure});
+
+  final Adventure adventure;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final r = ref.watch(splitReportProvider(adventure.id)).value;
+    if (r == null) return const SizedBox.shrink();
+    final shares = topCategories(
+      r.byCategory.isNotEmpty ? r.byCategory : r.myByCategory,
+      top: 1,
+    );
+    if (shares.isEmpty) return const SizedBox.shrink();
+    final top = shares.first;
+    final id = top.category;
+    if (id == null) return const SizedBox.shrink();
+    final name =
+        (ref.watch(categoriesProvider).value ?? const <Category>[])
+            .where((c) => c.id == id)
+            .firstOrNull
+            ?.name ??
+        id;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        'Most on $name · ${top.percent}%',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+    );
+  }
+}
+
+/// 1000 → "1,000".
+String _grouped(int n) =>
+    n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+$)'), (_) => ',');
+
+/// "1 THB = ₹2.50" on a trip in another currency, at today's known rates.
+class _ExchangeRate extends ConsumerWidget {
+  const new({required this.adventure});
+
+  final Adventure adventure;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mine = ref.watch(profileCurrencyProvider).value;
+    final base = adventure.baseCurrency;
+    if (mine == null || mine == base) return const SizedBox.shrink();
+    final rates = ref.watch(fxRatesProvider(isoDate(ref.watch(todayProvider))));
+    if (rates.isLoading) return const SizedBox.shrink();
+    final text = Theme.of(context).textTheme.bodyMedium;
+    String? quote;
+    final known = rates.value;
+    if (known != null && known.hasRate(base) && known.hasRate(mine)) {
+      final (:units, :value) = rateExample(known, from: base, to: mine);
+      quote = '${_grouped(units)} $base = ${formatWithSymbol(ref, value)}';
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            quote ?? 'No exchange rate yet',
+            style: quote == null
+                ? text?.copyWith(color: RoamioColors.slate)
+                : text,
+          ),
+        ),
+        const UpdateRatesButton(),
+      ],
+    );
+  }
+}
+
+/// Share invite, for a lead still alone in the squad. It's a plain button:
+/// Home keeps a single chartreuse one.
+class _InviteShortcut extends ConsumerStatefulWidget {
+  const new({required this.adventure});
+
+  final Adventure adventure;
+
+  @override
+  ConsumerState<_InviteShortcut> createState() => _InviteShortcutState();
+}
+
+class _InviteShortcutState extends ConsumerState<_InviteShortcut> {
+  bool _busy = false;
+
+  Future<void> _share() async {
+    setState(() => _busy = true);
+    try {
+      await shareInvite(ref, widget.adventure);
+    } on InviteException catch (e) {
+      if (mounted) showAuthMessage(context, e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.adventure;
+    final myUid = ref.watch(sessionFactsProvider).value?.uid ?? '';
+    if (!a.isLead(myUid) || a.memberUids.length > 1) {
+      return const SizedBox.shrink();
+    }
+    final offline = ref.watch(isOfflineProvider);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OutlinedButton.icon(
+            onPressed: _busy || offline ? null : _share,
+            icon: const Icon(Icons.ios_share_rounded),
+            label: const Text('Invite your squad'),
+          ),
+          if (offline) const NeedsConnectionNote(),
+        ],
+      ),
     );
   }
 }
