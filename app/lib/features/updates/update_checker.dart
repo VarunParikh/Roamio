@@ -7,7 +7,7 @@ import 'package:roamio/features/home/data/weather_client.dart' show FetchJson;
 
 /// This build's version; must match `version:` in pubspec.yaml (a test
 /// checks), so bump both when releasing.
-const appVersion = '0.1.0';
+const appVersion = '1.0.0';
 
 const _latestRelease =
     'https://api.github.com/repos/VarunParikh/Roamio/releases/latest';
