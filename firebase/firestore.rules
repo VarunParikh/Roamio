@@ -305,10 +305,17 @@ service cloud.firestore {
         allow read: if isMember(aid);
         allow create: if isMember(aid) && validSettlement() && mayRecord(incoming());
         allow update: if isMember(aid)
-          && changed().hasOnly(['undone', 'undoneBy'])
-          && incoming().undone == true
-          && incoming().undoneBy == me()
-          && (me() in [resource.data.from, resource.data.to] || isLead(aid));
+          && ((changed().hasOnly(['undone', 'undoneBy'])
+              && incoming().undone == true
+              && incoming().undoneBy == me()
+              && (me() in [resource.data.from, resource.data.to] || isLead(aid)))
+            // A second phone marks the same payment, or it's recorded again
+            // after an undo: the same record, so it counts once (UC-26a).
+            || (validSettlement() && mayRecord(incoming())
+              && incoming().from == resource.data.from
+              && incoming().to == resource.data.to
+              && incoming().amountMinor == resource.data.amountMinor
+              && incoming().currency == resource.data.currency));
       }
 
       // Personal budgets are visible to their owner only (UC-19).
