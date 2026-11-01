@@ -82,7 +82,7 @@ and budgets. Tabs you were on stay with the squad as "Deleted user", so
 everyone's balances stay right. Download your data first if you want a copy.
 
 Your privacy: read the privacy notice in **You → Privacy centre**. Questions
-or complaints go to the grievance contact listed there.
+or complaints go to the owner, who invited you.
 
 ---
 
@@ -96,8 +96,6 @@ or complaints go to the grievance contact listed there.
   Firebase app, and Google sign-in works on the installed APK.
 - [ ] **Hosting:** the prod site (`roamio-prod-varun.web.app`) is deployed, so
   invite links (`/i/…`) and the privacy page open for people without the app.
-- [ ] **Grievance email:** a real address replaces `grievance@roamio.example`
-  in the privacy notice, on the website and in the app.
 - [ ] **Feedback form:** created (for example a Google Form, so testers don't
   need a GitHub account and reports stay private), with the questions in
   "Feedback form" below. Put its link in your invite message.
