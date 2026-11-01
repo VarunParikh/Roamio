@@ -33,7 +33,7 @@ Also phase 2: approved tabs skipping re-approval, and stale stored names (audit 
 
 ## Not yet proven
 - A real crash showing up readable in Crashlytics.
-- An update installing over an older version, and the update popup.
+- The update popup. `v0.1.0-rc2` installed over `rc1` on a real phone (owner's report), but both have the same version number, so the popup didn't appear.
 - Prod's first scheduled exchange-rate run.
 - A 10-person pilot.
 - Remaining device checks are in [`tasks/HANDOVER.md`](../../../../tasks/HANDOVER.md).

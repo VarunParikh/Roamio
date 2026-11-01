@@ -13,5 +13,5 @@ Places where documents disagree, or where a document disagrees with what was bui
 | C7 | Spec's deploy command named project `roamio-prod`; the real one is `roamio-prod-varun` | Spec §3 vs `.firebaserc` | Spec corrected | Fixed 2026-11-01 |
 | C8 | Setup doc said dev was on the free plan with no Storage; dev is on Blaze | `SETUP.md` vs live project | Setup doc corrected | Fixed 2026-11-01 |
 | C9 | Owner is happy with the release, but Task 33, Task 44 and every checkpoint are unticked in the task list | Owner, 2026-11-01 vs `tasks/todo.md` | Task 42 ticked 2026-11-01, as its release and real-phone install passed. The owner decides on the rest. See the [approval register](approval-register.md). | **Open** |
-| C10 | Task 44 and spec §15 expect `v1.0.0` and a 10-person pilot; the only release is the pre-release `v0.1.0-rc1` | Spec §15 vs GitHub Releases | The owner decides when to release `v1.0.0` | **Open** |
+| C10 | Task 44 and spec §15 expect `v1.0.0` and a 10-person pilot; the only releases are the pre-releases `v0.1.0-rc1` and `rc2` | Spec §15 vs GitHub Releases | The owner decides when to release `v1.0.0` | **Open** |
 | C11 | `docs/RELEASING.md` asks for two copies of the upload key; there's one cloud copy so far, and Apple Passwords can't hold the file | `RELEASING.md` vs owner, 2026-11-01 | Owner to add a USB copy | **Open** |
