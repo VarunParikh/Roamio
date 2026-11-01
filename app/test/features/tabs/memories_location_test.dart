@@ -126,7 +126,7 @@ void main() {
       final h = await _openAddTab(tester);
 
       await _tap(tester, find.text('Add location'));
-      expect(find.text('📍 Location added'), findsOneWidget);
+      expect(find.text('📍 13.7563, 100.5018'), findsOneWidget);
       await _tap(tester, find.text('Save tab'));
 
       final saved = h.tabs.added.single.$2.location!;
@@ -145,7 +145,7 @@ void main() {
         await tester.tap(find.text('Add location'));
         await tester.pumpAndSettle();
         expect(h.location.calls, isNotEmpty);
-        expect(find.text('📍 Location added'), findsOneWidget);
+        expect(find.text('📍 13.7563, 100.5018'), findsOneWidget);
       },
     );
 
@@ -172,7 +172,7 @@ void main() {
 
       // Back from settings, trying again works.
       await _tap(tester, find.text('Add location'));
-      expect(find.text('📍 Location added'), findsOneWidget);
+      expect(find.text('📍 13.7563, 100.5018'), findsOneWidget);
     });
 
     testWidgets('explains a refused permission and points to settings', (
@@ -188,7 +188,7 @@ void main() {
       await tester.tap(find.text('Open settings'));
       await tester.pumpAndSettle();
       expect(h.location.calls.last, 'appSettings');
-      expect(find.text('📍 Location added'), findsNothing);
+      expect(find.text('📍 13.7563, 100.5018'), findsNothing);
     });
 
     testWidgets('a location can be removed again', (tester) async {

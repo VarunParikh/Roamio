@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:roamio/core/data/categories.dart';
+import 'package:roamio/core/location/place_text.dart';
 import 'package:roamio/core/theme/roamio_colors.dart';
 import 'package:roamio/features/adventures/data/adventure_service.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
@@ -229,6 +230,8 @@ class _Details extends ConsumerWidget {
         ],
         if (location != null) ...[
           const SizedBox(height: 24),
+          PlaceText(point: location),
+          const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () => ref.read(openLinkProvider)(
               Uri.https('www.google.com', '/maps/search/', {
