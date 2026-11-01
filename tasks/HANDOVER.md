@@ -1,7 +1,11 @@
 # Handover — 2026-10-30 (night)
 
-Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`, `docs/ROADMAP.md`.
+Read this first, then `CLAUDE.md`, `docs/epics/roamio/requirements/product-spec.md`, `tasks/todo.md`, `docs/core/roadmap.md`.
 The owner works **remotely from a phone** (Remote Control) and does **one manual test session at the end**: never ask for device checks; add them to the list below. Ask before merging (**the owner must name the PR numbers**, e.g. "merge #66"; blanket approvals are refused by the permission check), before adding a dependency, before anything that adds Firebase cost, and before changing the data model.
+
+## Documents moved, 2026-11-01
+
+Documents now follow the Zest layout: see [docs/epics/roamio/README.md](../docs/epics/roamio/README.md). Older notes below were updated to the new paths. New documents are drafts until the owner approves them in the [approval register](../docs/core/approval-register.md).
 
 ## Code audit, 2026-10-31 (read this first)
 
@@ -39,14 +43,14 @@ Since the previous handover:
   - sign-up asks **no date of birth** and refuses no one; the tick reads **"I'm 18 or older and I've read the privacy notice"** (`adultDeclared: true`, and the server sets the account adult);
   - **under-18 screens and Nominate a person are hidden** by two switches in `app/lib/core/config/phase2.dart`, for a separate DPDP-compliant Phase 2 version;
   - the code, rules and tests stay, and Journey E runs with `launch(phase2: true)`;
-  - see `docs/ROADMAP.md`.
+  - see `docs/core/roadmap.md`.
 - #65 **app icon**: the split pin ("paid + owed"); master `design/app-icon/roamio-icon-split-pin.svg`; adaptive, themed, round and PNG versions in `app/android/app/src/main/res`.
 
 **Task status**
 - Done: 1–32, 34–41, 43.
 - **Task 33:** device checks only.
 - **Task 42:** owner steps. Create and back up the upload key, add the secrets to the `release` environment (`docs/RELEASING.md`), push `v0.1.0-rc1`, and approve the run.
-- **Task 44, pilot:** owner. The checklist is in `docs/PILOT_GUIDE.md` part 2.
+- **Task 44, pilot:** owner. The checklist is in `docs/epics/roamio/release/pilot-guide.md` part 2.
 
 ## Test APK for the owner (2026-10-30)
 - `Roamio-dev-2026-10-30.apk`: dev flavor, release mode, signed with the debug key, 97 MB, built from `main` at #65.

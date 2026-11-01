@@ -1,6 +1,6 @@
 # Roamio Phase 1 — Task List
 
-Plan: [plan.md](plan.md) · Spec: [../docs/SPEC.md](../docs/SPEC.md)
+Plan: [plan.md](plan.md) · Spec: [../docs/epics/roamio/requirements/product-spec.md](../docs/epics/roamio/requirements/product-spec.md)
 Sizes: XS 1 file · S 1–2 · M 3–5 · L 5–8 (none larger). "UC-n" refers to spec use cases.
 
 Common verification commands:
@@ -17,7 +17,7 @@ Common verification commands:
   - Files: `docs/SETUP.md`
 
 - [x] **Task 2: Restructure repo, add docs skeleton, first push** — S · Deps: none · 👤 owner approves push
-  - Acceptance: `stitch_android_app_ui_replica/` → `design/`, `Data/` → `data/`, vision RTF → `docs/vision/`; `README.md`, `CLAUDE.md` (project rules for agents) added; pushed to `main` on GitHub.
+  - Acceptance: `stitch_android_app_ui_replica/` → `design/`, `Data/` → `data/`, vision RTF → `docs/inputs/`; `README.md`, `CLAUDE.md` (project rules for agents) added; pushed to `main` on GitHub.
   - Verify: `git status` clean; repo page shows README.
   - Files: `README.md`, `CLAUDE.md`, moved folders
 
@@ -59,9 +59,9 @@ Common verification commands:
   - Files: `app/lib/features/splits/domain/split_engine.dart`, `tab_models.dart`, `settlement_planner.dart`, tests
 
 - [x] **Task 9: Data model and security rules** — M · Deps: 5
-  - Acceptance: `docs/DATA_MODEL.md` (collections: users, adventures, members, pals, tabs, settlements, budgets, activity, invites, fx_rates, banners, parentalConsents, auditLog); rules: only members read an adventure; only leads manage squad/adventure; budgets readable only by owner; pals can't exist as auth users; minors in `pending_parental_consent` can read nothing but their own profile; tab writes validated (amount > 0, ≤ 4 memories). ADR-001 (Firebase) and ADR-002 (offline model) written.
+  - Acceptance: `docs/epics/roamio/design/data-model.md` (collections: users, adventures, members, pals, tabs, settlements, budgets, activity, invites, fx_rates, banners, parentalConsents, auditLog); rules: only members read an adventure; only leads manage squad/adventure; budgets readable only by owner; pals can't exist as auth users; minors in `pending_parental_consent` can read nothing but their own profile; tab writes validated (amount > 0, ≤ 4 memories). ADR-001 (Firebase) and ADR-002 (offline model) written.
   - Verify: rules tests with allow + deny cases for every collection pass.
-  - Files: `docs/DATA_MODEL.md`, `docs/adr/001-*.md`, `docs/adr/002-*.md`, `firebase/firestore.rules`, `firebase/test/rules/*.test.ts`
+  - Files: `docs/epics/roamio/design/data-model.md`, `docs/epics/roamio/design/adr/001-*.md`, `docs/epics/roamio/design/adr/002-*.md`, `firebase/firestore.rules`, `firebase/test/rules/*.test.ts`
 
 ### ✅ Checkpoint 1
 - [ ] Split engine 100% covered, property test green · [ ] Rules tests green · [ ] Owner reviews data model summary
@@ -277,7 +277,7 @@ Common verification commands:
 - [x] **Task 40: Compliance and project docs** — S · Deps: 35 · 👤 owner picks grievance email
   - Acceptance: `PRIVACY_NOTICE.md` (adult + child versions), `BREACH_RESPONSE.md`, README updated (setup, run, release), ADRs current; notice published on Hosting.
   - Verify: links work in-app and on Hosting.
-  - Files: `docs/PRIVACY_NOTICE.md`, `docs/BREACH_RESPONSE.md`, `README.md`, `firebase/hosting/privacy/index.html`
+  - Files: `docs/epics/roamio/release/privacy-notice.md`, `docs/epics/roamio/release/breach-response.md`, `README.md`, `firebase/hosting/privacy/index.html`
   - Done: adult + child notices (both version 2026-10, matching the app and functions), breach response, README (setup, run, test, release), ADRs checked (still current); `/privacy/` Hosting page; Privacy centre "Read the privacy notice" opens `$siteUrl/privacy/` (widget test). **Grievance email is still the placeholder `grievance@roamio.example`** (owner picks it next phase). **Hosting publish is pending the owner** (`firebase deploy --only hosting -P prod`, and `-P dev`); until then the in-app link shows a not-found page. Gaps found: nothing purges `parentalConsents` a year after the child's account ends, and deletion keeps the person's tab photos with the squad (the notice says so).
 
 - [x] **Task 41: End-to-end journey tests** — M · Deps: 39
@@ -294,9 +294,9 @@ Common verification commands:
 
 - [x] **Task 43: Security, privacy and code review** — S · Deps: 41
   - Acceptance: security-auditor and code-reviewer passes; all high/critical findings fixed; dependency audit clean.
-  - Verify: review reports saved in `docs/reviews/`.
-  - Files: `docs/reviews/*.md`, fixes as needed
-  - Done: reports in `docs/reviews/security-2026-10.md` and `code-review-2026-10.md`. Fixed (with failing-first tests):
+  - Verify: review reports saved in `docs/epics/roamio/verify/reviews/`.
+  - Files: `docs/epics/roamio/verify/reviews/*.md`, fixes as needed
+  - Done: reports in `docs/epics/roamio/verify/reviews/security-2026-10.md` and `code-review-2026-10.md`. Fixed (with failing-first tests):
     - a deleted account coming back within its token's hour;
     - child deletion leaving them in squads;
     - listing every profile;
@@ -310,7 +310,7 @@ Common verification commands:
 
     `firebase/functions` audit clean. The test-only `firebase/` grpc-js advisory is explained, with no upstream fix. Medium/low follow-ups are listed in the reports.
 
-- **Pilot scope (owner, 2026-10-30):** no date of birth is asked and no one is refused (sign-up tick: "I'm 18 or older"); under-18 accounts and Nominate a person are switched off until a DPDP-compliant Phase 2 version. See [docs/ROADMAP.md](../docs/ROADMAP.md).
+- **Pilot scope (owner, 2026-10-30):** no date of birth is asked and no one is refused (sign-up tick: "I'm 18 or older"); under-18 accounts and Nominate a person are switched off until a DPDP-compliant Phase 2 version. See [docs/core/roadmap.md](../docs/core/roadmap.md).
 
 - [x] **Task 45: Character display pictures** — M · Deps: 34 · UC-28 · owner, 2026-10-30
   - Acceptance: choose one of 47 characters (opaque white, shipped in the app) on You and once from Home; squad list shows it; no display-picture upload or Google photo in the pilot.
@@ -318,7 +318,7 @@ Common verification commands:
 
 ## Phase 7 — Pilot redesign (owner, 2026-10-31)
 
-Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. One PR per task, in order. `app/` tasks also update `tasks/screen_states.md`, and device checks go on the list in `tasks/HANDOVER.md`.
+Decided item by item with the owner; written up in `docs/epics/roamio/requirements/product-spec.md` §5 and §10. One PR per task, in order. `app/` tasks also update `tasks/screen_states.md`, and device checks go on the list in `tasks/HANDOVER.md`.
 
 - [x] **Task 46: Picture and name building block** — M · Deps: 45 · UC-28, UC-28a
   - Acceptance: shared picture + name widget; default character from a stable hash of the account ID; Home card "We picked this for you. Change it?"; deleted user grey icon; neutral circle while loading; TalkBack reads the name; adopted on Home greeting, squad and pals, join cards, Activity.
@@ -396,7 +396,7 @@ Decided item by item with the owner; written up in `docs/SPEC.md` §5 and §10. 
 - [ ] **Task 44: Pilot** — S · Deps: 42, 43 · 👤 owner invites users
   - Acceptance: `v1.0.0` released; pilot guide (install APK, Play Protect note, how to report issues); 10 users onboarded; feedback form; issues triaged into GitHub Issues.
   - Verify: 10 active accounts; spec §15 criteria 1–9 ticked.
-  - Files: `docs/PILOT_GUIDE.md`
+  - Files: `docs/epics/roamio/release/pilot-guide.md`
 
 ### ✅ Checkpoint 6 — Ship
 - [ ] All spec §15 success criteria met · [ ] Owner sign-off

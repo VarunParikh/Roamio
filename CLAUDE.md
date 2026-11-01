@@ -1,6 +1,8 @@
 # Roamio — rules for coding agents
 
-Read [docs/SPEC.md](docs/SPEC.md) before changing behaviour; it is the source of truth. Pick up work from [tasks/todo.md](tasks/todo.md) in order and tick tasks off when their verification passes.
+Read [docs/epics/roamio/requirements/product-spec.md](docs/epics/roamio/requirements/product-spec.md) before changing behaviour; it is the source of truth. Pick up work from [tasks/todo.md](tasks/todo.md) in order and tick tasks off when their verification passes.
+
+Documents follow the Zest layout: `docs/core/` is product-wide and `docs/epics/roamio/` is the work, indexed in [its README](docs/epics/roamio/README.md). Log disagreements between documents in [open-conflicts.md](docs/core/open-conflicts.md).
 
 ## Non-negotiables
 - Money is integer minor units + ISO 4217 code; percentages are basis points. Never floats.

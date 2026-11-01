@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Roamio security rules — the privacy boundary (CLAUDE.md, spec §8).
-// Data model: docs/DATA_MODEL.md. Every rule has allow + deny tests in
+// Data model: docs/epics/roamio/design/data-model.md. Every rule has allow + deny tests in
 // test/rules/firestore.test.ts. Anything not matched below is denied.
 service cloud.firestore {
   match /databases/{database}/documents {

@@ -1,6 +1,6 @@
 # ADR-002: Offline mode via Firestore persistence and a manual Sync button
 
-Date: 2026-10-29 · Status: Accepted (to be confirmed by a spike in Task 33)
+Date: 2026-10-29 · Status: Accepted, then changed: since 2026-10-31 sync happens by itself when the connection returns, with no Sync button to press while connected (owner; spec UC-31)
 
 ## Context
 The spec (UC-30–33) requires full offline use and a **Sync** button with the text "We know the data might be of essence, click here to sync the adventure with your squad". Edits made offline sync when the user presses it.

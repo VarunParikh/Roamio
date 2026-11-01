@@ -1,6 +1,6 @@
 # Personal data breach response
 
-Spec: [SPEC.md §8](SPEC.md) · Notice: [PRIVACY_NOTICE.md](PRIVACY_NOTICE.md)
+Spec: [SPEC.md §8](../requirements/product-spec.md) · Notice: [PRIVACY_NOTICE.md](privacy-notice.md)
 
 A **personal data breach** is any unauthorised use, sharing, change, loss or destruction of personal data that Roamio holds — for example a security rule that let one squad read another's tabs, a leaked service-account key, a lost laptop with exported data, or photos deleted by mistake.
 
@@ -47,7 +47,7 @@ Don't delete logs, documents or files that show what happened; copy them to the 
 
 Answer, in the incident log:
 
-1. **What data?** Use [DATA_MODEL.md](DATA_MODEL.md) to list the collections and fields involved. Flag anything about **under-18 accounts** (their `ageStatus` is `minor_*`), dates of birth, photos or locations — these are the most sensitive.
+1. **What data?** Use [DATA_MODEL.md](../design/data-model.md) to list the collections and fields involved. Flag anything about **under-18 accounts** (their `ageStatus` is `minor_*`), dates of birth, photos or locations — these are the most sensitive.
 2. **Whose?** List the affected user IDs. For a child, the person to tell is also the parent in `parentalConsents/{childUid}`.
 3. **How?** Cause, when it started, when it stopped. Sources: Cloud Audit Logs, Cloud Functions logs, Firestore/Storage usage graphs, `auditLog`, GitHub history.
 4. **Likely harm?** For example embarrassment, money (if amounts or settlements were changed), identity misuse.
@@ -76,7 +76,7 @@ Use the Board's official online channel (check the Board's website at the time; 
 ## 4. Fix and learn
 - Write a failing test that reproduces it (rules: allow + deny test; logic: unit test), then fix.
 - Rotate anything that might have been seen.
-- Add a short review to `docs/reviews/` (what happened, why, what changed). Update this file if the process didn't work.
+- Add a short review to `docs/epics/roamio/verify/reviews/` (what happened, why, what changed). Update this file if the process didn't work.
 
 ## Incident log
 
@@ -89,5 +89,5 @@ Data: <collections / fields>    People: <count, uids list attached>    Children 
 Cause: <...>
 Board intimation sent: <date time>    Detailed report sent: <date time>
 People told: <date time>, how: <email / in app>
-Fix: <PR link>    Review: <docs/reviews/...>
+Fix: <PR link>    Review: <docs/epics/roamio/verify/reviews/...>
 ```

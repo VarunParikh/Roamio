@@ -1,6 +1,6 @@
 # Data Model (Cloud Firestore)
 
-Spec: [SPEC.md](SPEC.md) · Rules: [firebase/firestore.rules](../firebase/firestore.rules) · Tests: [firebase/test/rules/](../firebase/test/rules/)
+Spec: [SPEC.md](../requirements/product-spec.md) · Rules: [firebase/firestore.rules](../../../../firebase/firestore.rules) · Tests: [firebase/test/rules/](../../../../firebase/test/rules/)
 
 Conventions:
 - Money is `…Minor` (integer minor units) + `currency` (ISO 4217). Percentages are basis points (10000 = 100%).
@@ -42,7 +42,7 @@ Anything not listed is denied.
 
 **Next phase:** no Phase 1 screen uploads a picture, and rules deny these paths until then.
 
-Rules: [firebase/storage.rules](../firebase/storage.rules) · Tests: [firebase/test/rules/storage.test.ts](../firebase/test/rules/storage.test.ts). Every file is WebP, at most 1 MB, compressed and EXIF-stripped on the device, and written once (no overwrite or delete from the app). The rules read Firestore to decide access, so the first deploy must let Storage read Firestore (the CLI offers to grant this).
+Rules: [firebase/storage.rules](../../../../firebase/storage.rules) · Tests: [firebase/test/rules/storage.test.ts](../../../../firebase/test/rules/storage.test.ts). Every file is WebP, at most 1 MB, compressed and EXIF-stripped on the device, and written once (no overwrite or delete from the app). The rules read Firestore to decide access, so the first deploy must let Storage read Firestore (the CLI offers to grant this).
 
 | Path | Read | Create |
 |---|---|---|
