@@ -93,6 +93,15 @@ jobs:
           cp "$apk" "$out"
           echo "path=$out" >> "$GITHUB_OUTPUT"
 
+      # Makes native crashes readable in Crashlytics. Failing here doesn't stop a release.
+      - name: Upload native crash symbols
+        continue-on-error: true
+        working-directory: app/android
+        env:
+          ROAMIO_REQUIRE_SIGNING: 'true'
+          ROAMIO_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: ./gradlew :app:uploadCrashlyticsSymbolFileProdRelease
+
       - name: Write the release notes
         env:
           VERSION: ${{ steps.version.outputs.version }}
