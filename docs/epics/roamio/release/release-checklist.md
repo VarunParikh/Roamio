@@ -22,7 +22,8 @@ As of 2026-11-01. Ticks only what has evidence. How to release: [RELEASING.md](.
 - [ ] Owner's approvals: see the [approval register](../../../core/approval-register.md)
 - [ ] Bump the version, write notes and release `v1.0.0`, if the owner wants that for the pilot
 - [x] `v1.0.0` published; the update popup appeared on a real phone over `rc2`, and installing from the GitHub release page kept the app working (owner's report)
-- [ ] Download update opening the release page, on a real phone
+- [x] Download update opening the release page, then downloading and installing, on a real phone on a one-off dev build (owner's report)
+- [ ] Release `v1.0.1`, so that testers get the new button
 
 ## Spec §15 success criteria
 
