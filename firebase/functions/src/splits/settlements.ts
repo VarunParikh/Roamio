@@ -28,7 +28,9 @@ export const settlementActivity = onDocumentWritten(
         createdAt: FieldValue.serverTimestamp(),
       });
 
-    if (!before) {
+    // A second phone marking the same payment changes nothing here; recording
+    // it again after an undo counts as recording it.
+    if (!before || (before.undone === true && after.undone !== true)) {
       await log("settlement_recorded", after.recordedBy);
       const adventure = await adventureRef.get();
       const names = await Promise.all(

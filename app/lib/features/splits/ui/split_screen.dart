@@ -145,6 +145,7 @@ class _AdventureSplit extends ConsumerStatefulWidget {
 }
 
 class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
+  bool _settling = false;
   bool _details = false;
 
   /// The "•••" switch: figures in the trip's currency, not the viewer's.
@@ -579,7 +580,19 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
             (pals.contains(from) || pals.contains(to)));
   }
 
+  /// A second tap while the sheet is on its way would open a second sheet, and
+  /// could record the payment twice.
   Future<void> _settle(SplitReport r, String from, String to) async {
+    if (_settling) return;
+    _settling = true;
+    try {
+      await _recordPayment(r, from, to);
+    } finally {
+      _settling = false;
+    }
+  }
+
+  Future<void> _recordPayment(SplitReport r, String from, String to) async {
     final base = widget.adventure.baseCurrency;
     // Recorded in the trip's currency: the matching suggested transfer, or
     // what the two balances allow.
@@ -616,6 +629,10 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
       symbolFor: (c) => countries?.symbolFor(c),
     );
     if (amount == null) return;
+    final recorded =
+        ref.read(settlementsProvider(widget.adventure.id)).value ??
+        const <SettlementEntry>[];
+    final earlier = recorded.where((p) => p.from == from && p.to == to).length;
     await ref
         .read(settlementServiceProvider)
         .record(
@@ -625,6 +642,7 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
           amountMinor: amount,
           currency: base,
           date: today,
+          earlier: earlier,
         );
   }
 
