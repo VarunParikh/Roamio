@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:roamio/core/location/location_service.dart';
+import 'package:roamio/core/location/place_text.dart';
 import 'package:roamio/core/privacy/privacy_policy.dart';
 import 'package:roamio/features/auth/ui/auth_scaffold.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
@@ -89,12 +90,7 @@ class _LocationPickerState extends ConsumerState<LocationPicker> {
     if (widget.point != null) {
       return Row(
         children: [
-          Expanded(
-            child: Text(
-              '📍 Location added',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-          ),
+          Expanded(child: PlaceText(point: widget.point!)),
           IconButton(
             tooltip: 'Remove location',
             icon: const Icon(Icons.close),
