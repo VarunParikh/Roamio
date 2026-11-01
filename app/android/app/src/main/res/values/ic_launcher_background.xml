@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Warm stone behind the launcher icon. -->
-    <color name="ic_launcher_background">#ECE8DF</color>
+    <!-- Roamio lime behind the launcher icon. -->
+    <color name="ic_launcher_background">#D4FF00</color>
 </resources>
