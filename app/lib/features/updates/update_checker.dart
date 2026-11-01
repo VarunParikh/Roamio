@@ -79,17 +79,15 @@ class UpdateChecker {
     if (checked == null || _now().difference(checked) >= _every) {
       try {
         final json = (await _fetch(Uri.parse(_latestRelease)))! as Map;
-        final apk = ((json['assets'] as List?) ?? const [])
-            .cast<Map<Object?, Object?>>()
-            .where((a) => '${a['name']}'.endsWith('.apk'))
-            .firstOrNull;
         release = {
           'version': (json['tag_name']! as String).replaceFirst(
             RegExp('^v'),
             '',
           ),
           'notes': json['body'] as String? ?? '',
-          'url': apk?['browser_download_url'] ?? json['html_url'],
+          // The release's page, not the APK itself: a direct link got stuck
+          // at 100% on the owner's phone, and the page worked (2026-11-01).
+          'url': json['html_url'],
         };
         await _store.write({
           ...data,

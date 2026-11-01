@@ -57,7 +57,7 @@ void main() {
       now: () => at ?? start,
     );
 
-    test('offers a newer release with its notes and the APK link', () async {
+    test('offers a newer release with its notes and its page', () async {
       final asked = <Uri>[];
       final notice = await checker(
         asked,
@@ -66,7 +66,7 @@ void main() {
 
       expect(notice?.version, '0.2.0');
       expect(notice?.notes, 'Faster Split screen.');
-      expect(notice?.downloadUrl.toString(), endsWith('roamio-v0.2.0.apk'));
+      expect(notice?.downloadUrl.toString(), endsWith('/releases/tag/v0.2.0'));
       expect(notice?.blocking, isFalse);
       expect(
         asked.single.toString(),
@@ -139,7 +139,7 @@ void main() {
 
       expect(blocked?.blocking, isTrue);
       expect(blocked?.version, '0.2.0');
-      expect(blocked?.downloadUrl.toString(), endsWith('roamio-v0.2.0.apk'));
+      expect(blocked?.downloadUrl.toString(), endsWith('/releases/tag/v0.2.0'));
     });
 
     test(

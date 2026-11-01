@@ -70,6 +70,11 @@ class _UpdateDialog extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(notice.notes.trim()),
             ],
+            const SizedBox(height: 12),
+            const Text(
+              'Download update opens the release page. Tap the .apk file '
+              'under Assets, then open it to install.',
+            ),
           ],
         ),
       ),

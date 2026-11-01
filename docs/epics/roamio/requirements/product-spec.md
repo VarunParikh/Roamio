@@ -214,7 +214,7 @@ Each item is written so it can become a test.
 
 ### 5.11 App updates
 
-- **UC-34** On launch (max once per 24 h) the app compares its version with the latest GitHub Release of `VarunParikh/Roamio`. If newer, it shows a dismissible popup with release notes and **Download update**. If below `min_supported_version` (remote config), the popup can't be dismissed.
+- **UC-34** On launch (max once per 24 h) the app compares its version with the latest GitHub Release of `VarunParikh/Roamio`. If newer, it shows a dismissible popup with release notes and **Download update**, which opens that release's GitHub page, where the person taps the APK (owner, 2026-11-01). If below `min_supported_version` (remote config), the popup can't be dismissed.
 
 ---
 

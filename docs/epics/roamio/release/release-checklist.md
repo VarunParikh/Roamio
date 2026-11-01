@@ -21,7 +21,8 @@ As of 2026-11-01. Ticks only what has evidence. How to release: [RELEASING.md](.
 - [ ] Feedback form created, with its link in the invite message
 - [ ] Owner's approvals: see the [approval register](../../../core/approval-register.md)
 - [ ] Bump the version, write notes and release `v1.0.0`, if the owner wants that for the pilot
-- [ ] See the update popup offer a higher version number, which `rc2` couldn't show, as it has the same number as `rc1`
+- [x] `v1.0.0` published; the update popup appeared on a real phone over `rc2`, and installing from the GitHub release page kept the app working (owner's report)
+- [ ] Download update opening the release page, on a real phone
 
 ## Spec §15 success criteria
 
