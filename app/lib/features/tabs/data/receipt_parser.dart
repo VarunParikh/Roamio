@@ -38,41 +38,107 @@ final _number = RegExp(r'\d[\d.,]*\d|\d');
 /// Words that mark the final amount, strongest first. Lines with
 /// "subtotal", "total items" and the like are never the total.
 const _strongTotals = [
-  'grand total', 'amount due', 'total due', 'balance due', 'net amount', //
+  'grand tot',
+  'grandtot',
+  'amount due',
+  'total due',
+  'balance due',
+  'net amount', //
   'net payable', 'amount payable', 'total amount', 'total ttc', 'totale',
-  'summe', 'gesamt', 'ยอดรวม', 'รวมทั้งสิ้น',
+  'bill amount', 'to pay', 'summe', 'gesamt', 'ยอดรวม', 'รวมทั้งสิ้น',
 ];
 const _weakTotals = ['total', 'รวม', 'montant'];
 const _notTotals = [
-  'subtotal', 'sub total', 'sub-total', 'total ht', 'total items', //
-  'total qty', 'total tax', 'items:', 'qty',
+  'subtotal', 'sub total', 'sub-total', 'item total', 'total ht', //
+  'total items', 'total qty', 'total tax', 'total discount', 'items:', 'qty',
+  'auto pay', 'autopay',
 ];
 
+/// Rows whose amounts can be higher than the bill: money handed over, or
+/// what it would have cost.
+const _notTheBill = [
+  'cash', 'tender', 'received', 'change', 'balance', 'mrp', 'sav', //
+  'contanti', 'espèces', 'especes', 'rendu', 'monnaie', 'gegeben', 'rückgeld',
+  'เงินสด', 'ทอน',
+];
+
+/// OCR joins the pieces of a row with at least two spaces.
+final _cellGap = RegExp(r'\s{2,}');
+
+/// A row holding nothing but an amount, with at most a currency mark.
+final _loneAmount = RegExp(
+  r'^(?:[^\w\s]|rs\.?|inr|usd|eur|thb)?\s*\d[\d.,]*\s*(?:[^\w\s]|inr|usd|eur|thb)?$',
+  caseSensitive: false,
+);
+
+/// Only a labelled total is used: with no label, the biggest number on a bill
+/// is as likely to be a phone number or pin code, so the person types it.
 int? _total(List<String> lines, String currency) {
+  int? believable(String line) {
+    final amount = _trailingAmount(line, currency);
+    return amount != null && amount > 0 && amount <= maxTabMinor(currency)
+        ? amount
+        : null;
+  }
+
   int? onLineWith(List<String> words) {
-    for (final line in lines.reversed) {
-      final lower = line.toLowerCase();
-      if (_notTotals.any(lower.contains)) continue;
-      if (words.any(lower.contains)) {
-        final amount = _trailingAmount(line, currency);
-        if (amount != null) return amount;
+    for (var i = lines.length - 1; i >= 0; i--) {
+      final cells = lines[i].split(_cellGap);
+      // OCR often reads the O in TOTAL as a zero and the L as a one.
+      final labels = [
+        for (final cell in cells)
+          cell.toLowerCase().replaceAll('0', 'o').replaceAll('1', 'l'),
+      ];
+      final at = labels.lastIndexWhere(
+        (l) => words.any(l.contains) && !_notTotals.any(l.contains),
+      );
+      if (at < 0 ||
+          labels.skip(at + 1).any((l) => _notTotals.any(l.contains))) {
+        continue;
       }
+      final amount =
+          believable(cells.skip(at).join(' ')) ??
+          (i + 1 < lines.length && _loneAmount.hasMatch(lines[i + 1])
+              ? believable(lines[i + 1])
+              : null);
+      if (amount != null) return amount;
     }
     return null;
   }
 
-  // Otherwise the biggest amount ending an item line, skipping dates.
-  int? largest() {
-    int? best;
-    for (final line in lines) {
-      if (_findDate(line, monthFirst: false) != null) continue;
-      final amount = _trailingAmount(line, currency);
-      if (amount != null && (best == null || amount > best)) best = amount;
-    }
-    return best;
-  }
+  final strong = onLineWith(_strongTotals);
+  if (strong != null) return strong;
+  // A bare "Total" can belong to a tax table, so a higher amount elsewhere
+  // means it isn't trusted: an empty amount beats a wrong one.
+  final weak = onLineWith(_weakTotals);
+  return weak != null && _highestPrice(lines, currency) > weak ? null : weak;
+}
 
-  return onLineWith(_strongTotals) ?? onLineWith(_weakTotals) ?? largest();
+/// The highest amount written with the currency's decimals, which rules out
+/// phone numbers and codes, on rows that could be part of the bill. Zero for a
+/// currency with no decimals.
+int _highestPrice(List<String> lines, String currency) {
+  final digits = minorUnitDigits(currency);
+  if (digits == 0) return 0;
+  // Not part of a date, and not a rate or a time.
+  final price = RegExp(
+    '(?<![\\d.,])\\d[\\d.,]*[.,]\\d{$digits}'
+    r'(?![\d.,]*\d|\s*%|\s*[ap]\.?m)',
+    caseSensitive: false,
+  );
+  var highest = 0;
+  for (final line in lines) {
+    if (_notTheBill.any(line.toLowerCase().contains)) continue;
+    for (final match in price.allMatches(line)) {
+      final amount = localAmount(match.group(0)!, currency);
+      if (amount != null &&
+          amount > highest &&
+          amount <= maxTabMinor(currency)) {
+        highest = amount;
+      }
+    }
+  }
+  return highest;
 }
 
 /// The last number on [line], read in the receipt's own style.
@@ -114,7 +180,7 @@ int? localAmount(String token, String currency) {
   }
   whole = whole.replaceAll(RegExp('[.,]'), '');
   if (whole.isEmpty || fraction.length > digits) return null;
-  return int.parse(whole + fraction.padRight(digits, '0'));
+  return int.tryParse(whole + fraction.padRight(digits, '0'));
 }
 
 // ---------- date ----------
@@ -227,6 +293,7 @@ class TextPiece {
     required this.left,
     required this.top,
     required this.bottom,
+    this.slope = 0,
   });
 
   final String text;
@@ -234,21 +301,29 @@ class TextPiece {
   final double top;
   final double bottom;
 
+  /// How far the line drops per pixel to the right; above 0 on a photo
+  /// turned clockwise.
+  final double slope;
+
   double get middle => (top + bottom) / 2;
 }
 
 /// OCR reads a bill in columns (all the names, then all the prices), so
 /// this puts pieces whose middles sit at the same height back on one row,
-/// left to right, rows top to bottom.
+/// left to right, rows top to bottom. Heights are levelled first using the
+/// typical slope, so a tilted photo's rows still line up.
 String rowsFromPieces(List<TextPiece> pieces) {
-  final sorted = [...pieces]..sort((a, b) => a.middle.compareTo(b.middle));
+  final slopes = [for (final p in pieces) p.slope]..sort();
+  final tilt = slopes.isEmpty ? 0.0 : slopes[slopes.length ~/ 2];
+  double level(TextPiece p) => p.middle - p.left * tilt;
+  final sorted = [...pieces]..sort((a, b) => level(a).compareTo(level(b)));
   final rows = <List<TextPiece>>[];
   for (final p in sorted) {
     final row = rows.isEmpty ? null : rows.last;
     final first = row?.first;
     final sameRow =
         first != null &&
-        (p.middle - first.middle).abs() < (first.bottom - first.top) / 2;
+        (level(p) - level(first)).abs() < (first.bottom - first.top) / 2;
     if (sameRow) {
       row!.add(p);
     } else {

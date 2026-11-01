@@ -1,8 +1,8 @@
-# Spec: Roamio — Phase 1 (Android pilot)
+# Specification (PRD): Roamio — Phase 1 (Android pilot)
 
 > **Split bills. Not friendships.** · *Instant peer splits. Zero awkward math.*
 
-Status: **APPROVED 2026-10-27** · Last updated: 2026-10-31 · Source vision: [`docs/vision/roamio-product-vision.rtf`](vision/roamio-product-vision.rtf)
+Status: **APPROVED 2026-10-27** · Last updated: 2026-10-31 · Source vision: [`docs/inputs/roamio-product-vision.rtf`](../../../inputs/roamio-product-vision.rtf)
 
 ---
 
@@ -53,7 +53,7 @@ Payment gateway / in-app payments · Uploading your own pictures: display pictur
 | Push | Firebase Cloud Messaging |
 | Crash reporting | Firebase Crashlytics (**disabled for under-18 accounts**, see §7) |
 | Hosting | Firebase Hosting — invite landing page, privacy notice, parental-consent page |
-| OCR | Google ML Kit Text Recognition (on device, offline) |
+| OCR | Google ML Kit Text Recognition (on device, offline), with ML Kit Document Scanner to capture the bill |
 | Image compression | `flutter_image_compress` (next phase, with uploads) |
 | Exports | `pdf` + `excel` packages, generated on device |
 | External APIs | open.er-api.com (FX rates, daily) · Unsplash API (banners) · Open-Meteo (weather) · GitHub Releases API (update check) · Email via a Firebase "Trigger Email" extension or SMTP provider (parental consent mails) |
@@ -79,7 +79,7 @@ npm ci
 npm run lint
 npm test                                  # rules + functions tests against emulators
 firebase emulators:start
-firebase deploy --only firestore:rules,storage,functions,hosting --project roamio-prod
+firebase deploy --only firestore:rules,storage,functions,hosting --project roamio-prod-varun
 ```
 
 CI (GitHub Actions) runs format, analyze, unit/widget tests, rules tests and functions tests on every pull request. Tagging `vX.Y.Z` on `main` builds a signed release APK and attaches it to a GitHub Release.
@@ -91,10 +91,10 @@ CI (GitHub Actions) runs format, analyze, unit/widget tests, rules tests and fun
 ```
 README.md                  → What Roamio is, how to run it
 docs/
-  SPEC.md                  → This file
-  adr/                     → Architecture decision records
-  PRIVACY_NOTICE.md        → DPDP notice text shown in-app and on Hosting
-  BREACH_RESPONSE.md       → Breach notification runbook
+  core/                    → Vision, constitution, strategy, roadmap, conflicts, approvals, glossary
+  epics/roamio/            → Requirements (this file), design and ADRs, verification, release
+  inputs/                  → The owner's original brief
+  SETUP.md  RELEASING.md   → Machine setup and the release steps
   REMOTE_CONFIG.md         → Every remote config key, type, default
 design/                    → Stitch reference screens + DESIGN.md (visual reference only)
 data/                      → Countries + expense category source data
@@ -169,12 +169,12 @@ Each item is written so it can become a test.
 ### 5.7 Tabs (expenses)
 
 - **UC-21 Add tab** (any member, never a pal). Fields:
-  - Optional **Scan bill** (camera) → OCR prefills amount, date and description; the user confirms.
+  - Optional **Scan bill** (Google's document scanner, or the camera where it can't run) → OCR prefills amount, date and description; the user confirms. The amount comes only from a labelled total within the tab limit; a plain "Total" isn't trusted when a higher amount appears elsewhere on the bill, other than cash handed over, change, balance, MRP or savings. With no trusted total, the form asks for it (owner, 2026-11-01).
   - **Amount** (required, > 0, ≤ 10,000,000 in that currency; in another currency it shows what it comes to in yours as you type), **currency** (default adventure base currency), **date** (default today, editable, can't be later than today), **category** (10 categories from `data/`; the 4 most common show first, with View more), optional **description**.
   - **Paid by:** defaults to "You · 100%". A "Split payment" link reveals the payer list; payer amounts must total the tab amount exactly.
   - **Paid with** (required, per payer, set by the tab's creator): 💵 Cash, 💳 Card, 📱 UPI, 📝 Cheque, 🏦 Bank transfer, 🔖 Other. Starts on the method last used on that phone; with none yet, Save stays disabled and says why. It records how someone paid; Roamio moves no money. An unknown value shows as Other and never invalidates a tab.
   - **Split between:** multi-select of active members and pals (all ticked by default). Leads also see **+ Add pal** here to create a pal inline for this tab (the pal then joins the squad); members who aren't leads don't. Mode **Equal** (default) or **Custom %** (creator only); custom percentages must total exactly 100.00%. Save stays disabled with a live "x% of 100% assigned" counter until valid.
-  - Optional **location**: an Add location button that turns the setting on and asks Android's permission when tapped; never for under-18 users. Scan bill reads on the phone and uploads and keeps nothing.
+  - Optional **location**: an Add location button that turns the setting on and asks Android's permission when tapped; never for under-18 users. Once added, the form and tab details show the place's name, looked up by the phone's own service, or its coordinates when no name is available, such as offline (owner, 2026-11-01). Scan bill reads on the phone and uploads and keeps nothing.
   - **Split between** shows each person's picture.
 - **UC-21a Approval:** a tab waits for an admin unless it is personal (you paid and only you share; automatic, and it changes if someone else is added).
   - Admins see **Approve** and **Reject** (plain buttons; Reject confirms and takes an optional reason) on the waiting tab's row in the adventure's tab list, and get a push and a Needs you card. Approving needs a connection; the buttons say why when offline. It stays possible after the 7-day window for adding tabs.
@@ -196,7 +196,7 @@ Each item is written so it can become a test.
   - **Other states:** no tabs (top card and Open adventure); only waiting tabs ("2 tabs waiting for approval", opening the tab list); only personal tabs (your own spend by category and day, seen only by you, then Open adventure); rates missing (a note). "Days left" shows only during the trip.
 - **Update rates:** a small button on Split, the tab list and Add tab, wherever another currency is involved, fetches the latest rates (online only). The server asks the provider at most once an hour. A tab keeps its own rate day, so this fills in what's missing and doesn't change converted totals.
 - **UC-26** All amounts appear in the **viewer's profile currency**, converted using each tab's stored FX rate date (§9.1); the "•••" menu shows the base-currency figures.
-- **UC-26a Mark as settled:** next to each suggested transfer, **Mark as settled** records that one person paid another outside the app (no money moves). Amount defaults to the suggested transfer and can be lowered for a partial payment. Either member in the transfer can record it; for a pal's transfer, the member involved or any lead records it. The other member gets a notification. Either party or a lead can undo it, and the undo appears in the activity log. Recording works offline and syncs like a tab.
+- **UC-26a Mark as settled:** next to each suggested transfer, **Mark as settled** records that one person paid another outside the app (no money moves). Amount defaults to the suggested transfer and can be lowered for a partial payment. It can be typed in any currency and shows what that comes to in the person's own currency; it's always recorded in the trip's currency, at today's rates (owner, 2026-11-01). Either member in the transfer can record it; for a pal's transfer, the member involved or any lead records it. The other member gets a notification. Either party or a lead can undo it, and the undo appears in the activity log. Recording works offline and syncs like a tab.
 - **UC-27 Export:** PDF and Excel of the adventure split (summary, transfers, full tab list), shared via the Android share sheet. A minor's export never includes location.
 
 ### 5.9 Profile (bottom tab: You)
@@ -285,13 +285,13 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 
 | Duty | Implementation |
 |---|---|
-| Notice (§5, Rule 3) | Plain-English notice at sign-up and in the Privacy centre; versioned in `docs/PRIVACY_NOTICE.md`. |
+| Notice (§5, Rule 3) | Plain-English notice at sign-up and in the Privacy centre; versioned in `docs/epics/roamio/release/privacy-notice.md`. |
 | Consent per purpose, easy withdrawal (§6) | Separate toggles for location, camera/gallery, notifications; each revocable in one tap. |
 | Minimise data | No phone number or contacts. Pals are a nickname and a character only. No Phase 1 screen uploads a picture. |
 | Rights (§11–14) | Access/export, correction, erasure, nomination, grievance — all in the Privacy centre. Grievances acknowledged within 7 days. |
 | Erasure | Account deletion removes profile, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct. |
 | Security safeguards (§8(5), Rule 6) | TLS in transit; Google-managed encryption at rest; least-privilege security rules; audit log of data access and changes kept **1 year**. |
-| Breach (§8(6), Rule 7) | `docs/BREACH_RESPONSE.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
+| Breach (§8(6), Rule 7) | `docs/epics/roamio/release/breach-response.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
 | Data location | All Firebase resources in asia-south1. |
 
 *This is an engineering checklist, not legal advice; have the notice reviewed by a lawyer before any public launch.*
@@ -403,10 +403,10 @@ Overall app coverage ≥ 70%.
 
 1. **Settlements:** "Mark as settled" is in Phase 1 (UC-26a).
 2. **Parent verification:** a verified Roamio adult account is accepted for the pilot; DigiLocker / virtual-token verification is required before public launch.
-3. **Grievance officer:** the project owner (Varun Parikh). Contact email is set when `docs/PRIVACY_NOTICE.md` is written; use a dedicated alias rather than a personal inbox.
+3. **Grievance officer:** the project owner (Varun Parikh). Contact email is set when `docs/epics/roamio/release/privacy-notice.md` is written; use a dedicated alias rather than a personal inbox.
 4. **Invite host:** the free Firebase Hosting domain (`<project-id>.web.app`).
 5. **Android package name:** `app.roamio.android`.
 6. **Minimum age:** 13+. Ages 13–17 need parental consent (§7).
 7. **Accounts:** the owner creates Google/Firebase (Blaze), Unsplash and email-provider accounts with step-by-step guidance in the setup tasks.
-8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/ROADMAP.md`). Supersedes item 6 for the pilot.
-9. **Pilot redesign (2026-10-31):** tab approval, personal tabs, payment method, pal characters, a picture beside every name, the budget widget, and the Split and Home redesigns, as written in §5. Uploading your own pictures, including tab photos, moves to the next phase; `docs/ROADMAP.md`.
+8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/core/roadmap.md`). Supersedes item 6 for the pilot.
+9. **Pilot redesign (2026-10-31):** tab approval, personal tabs, payment method, pal characters, a picture beside every name, the budget widget, and the Split and Home redesigns, as written in §5. Uploading your own pictures, including tab photos, moves to the next phase; `docs/core/roadmap.md`.

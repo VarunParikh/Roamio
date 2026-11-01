@@ -172,7 +172,7 @@ class _PrivacyCentreScreenState extends ConsumerState<PrivacyCentreScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              // The published notice (docs/PRIVACY_NOTICE.md) on Hosting.
+              // The published notice (docs/epics/roamio/release/privacy-notice.md) on Hosting.
               onPressed: () =>
                   ref.read(openLinkProvider)(Uri.parse('$siteUrl/privacy/')),
               icon: const Icon(Icons.open_in_new),

@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:geocoding/geocoding.dart' show Geocoding;
 import 'package:geolocator/geolocator.dart';
+import 'package:roamio/core/privacy/privacy_policy.dart';
 
 /// One point on the map; all a tab stores about where it happened.
 class MapPoint {
@@ -7,7 +10,74 @@ class MapPoint {
 
   final double lat;
   final double lng;
+
+  /// As text, to about 10 metres: "13.7563, 100.5018".
+  String get label => '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}';
 }
+
+/// A place's short name from what a lookup gave: "Bangkok, Thailand". The town
+/// if there is one, otherwise the wider area. Null if there's nothing to show.
+String? placeName({String? locality, String? area, String? country}) {
+  String? clean(String? text) {
+    final t = text?.trim();
+    return t == null || t.isEmpty ? null : t;
+  }
+
+  final parts = [clean(locality) ?? clean(area), clean(country)].nonNulls;
+  return parts.isEmpty ? null : parts.join(', ');
+}
+
+/// Names for points on the map (spec UC-21). Null when there's no name, such
+/// as offline: callers show the coordinates instead.
+abstract interface class PlaceNames {
+  Future<String?> nameOf(MapPoint point);
+}
+
+/// No names, for tests and anywhere the phone's service isn't wired in.
+class NoPlaceNames implements PlaceNames {
+  const new();
+
+  @override
+  Future<String?> nameOf(MapPoint point) async => null;
+}
+
+/// The phone's own service (Android's Geocoder: free, no key). It can fail or
+/// have no answer, especially offline, and that just means no name.
+class DevicePlaceNames implements PlaceNames {
+  const new();
+
+  @override
+  Future<String?> nameOf(MapPoint point) async {
+    try {
+      final found = await Geocoding().placemarkFromCoordinates(
+        point.lat,
+        point.lng,
+      );
+      if (found.isEmpty) return null;
+      return placeName(
+        locality: found.first.locality,
+        area: found.first.administrativeArea,
+        country: found.first.country,
+      );
+    } on Object {
+      return null;
+    }
+  }
+}
+
+/// Overridden in `main.dart` with the phone's own service.
+final placeNamesProvider = Provider<PlaceNames>((ref) => const NoPlaceNames());
+
+/// A point's name, looked up once per session, since the phone's service limits
+/// how often it can be asked. Nothing is sent for anyone not confirmed as an
+/// adult: looking a place up can send it off the phone (CLAUDE.md, §7.2).
+final FutureProviderFamily<String?, (double, double)> placeNameProvider =
+    FutureProvider.family<String?, (double, double)>((ref, point) async {
+      if (!ref.watch(privacyPolicyProvider).allowsLocation) return null;
+      return await ref
+          .watch(placeNamesProvider)
+          .nameOf(MapPoint(point.$1, point.$2));
+    });
 
 /// What asking for the current location gave.
 sealed class LocationResult {

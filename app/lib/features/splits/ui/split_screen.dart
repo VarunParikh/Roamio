@@ -13,9 +13,11 @@ import 'package:roamio/features/auth/domain/age.dart';
 import 'package:roamio/features/budget/ui/budget_widget.dart';
 import 'package:roamio/features/home/ui/home_screen.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/data/split_report_provider.dart';
 import 'package:roamio/features/splits/domain/category_shares.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/split_report.dart';
 import 'package:roamio/features/splits/ui/export_sheet.dart';
@@ -592,13 +594,26 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
           r.baseBalances[to] ?? 0,
         ].reduce((x, y) => x < y ? x : y);
     if (suggested <= 0) return;
+    final countries = ref.read(countriesProvider).value;
+    // Today's rates, the same day the payment is recorded and converted at.
+    final today = isoDate(ref.read(todayProvider));
+    FxRates? rates;
+    try {
+      rates = await ref.read(fxRatesProvider(today).future);
+    } on Object {
+      rates = null; // Still works in the trip's currency.
+    }
+    if (!mounted) return;
     final amount = await showSettleSheet(
       context,
       title: _paid(from, to),
       people: _SettlePeople(from: from, to: to, adventure: widget.adventure),
       suggestedMinor: suggested,
       currency: base,
-      symbol: ref.read(countriesProvider).value?.symbolFor(base),
+      viewerCurrency: ref.read(profileCurrencyProvider).value ?? base,
+      currencies: countries?.currencies ?? const [],
+      rates: rates,
+      symbolFor: (c) => countries?.symbolFor(c),
     );
     if (amount == null) return;
     await ref
@@ -609,7 +624,7 @@ class _AdventureSplitState extends ConsumerState<_AdventureSplit> {
           to: to,
           amountMinor: amount,
           currency: base,
-          date: isoDate(ref.read(todayProvider)),
+          date: today,
         );
   }
 

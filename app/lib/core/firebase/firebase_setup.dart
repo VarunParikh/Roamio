@@ -3,7 +3,6 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:roamio/core/config/flavor.dart';
 import 'package:roamio/core/crash/crash_reporter.dart';
@@ -33,9 +32,8 @@ bool usesAppCheck(Flavor flavor, {required bool useEmulators}) =>
 Future<void> setUpFirebase() async {
   await Firebase.initializeApp();
   if (!_useEmulators) {
-    // Crash reports stay off until the age is known (crashCollectionProvider).
+    // Nothing is sent until the age is known (crashCollectionProvider).
     installCrashHandlers();
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
   }
   if (usesAppCheck(currentFlavor, useEmulators: _useEmulators)) {
     // Play Integrity is the default Android provider.

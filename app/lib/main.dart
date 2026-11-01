@@ -14,6 +14,7 @@ import 'package:roamio/core/connectivity/connectivity_monitor.dart';
 import 'package:roamio/core/crash/crash_reporter.dart';
 import 'package:roamio/core/firebase/firebase_setup.dart';
 import 'package:roamio/core/images/photo_pipeline.dart';
+import 'package:roamio/core/location/location_service.dart';
 import 'package:roamio/core/router/app_router.dart';
 import 'package:roamio/core/sync/refused_writes.dart';
 import 'package:roamio/core/theme/roamio_theme.dart';
@@ -75,6 +76,7 @@ Future<void> runRoamio({
           crashReporterProvider.overrideWithValue(
             const FirebaseCrashReporter(),
           ),
+        placeNamesProvider.overrideWithValue(const DevicePlaceNames()),
         photoPipelineProvider.overrideWithValue(pipeline),
         photoFlushProvider.overrideWithValue(flush),
         connectivityMonitorProvider.overrideWithValue(

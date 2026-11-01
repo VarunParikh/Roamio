@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/ui/primary_button.dart';
 import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
+import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
@@ -12,6 +13,7 @@ import 'package:roamio/features/tabs/data/tab_service.dart';
 
 import '../../support/fake_adventure_service.dart';
 import '../../support/fake_auth_service.dart';
+import '../../support/fake_fx_repository.dart';
 import '../../support/fake_settlement_service.dart';
 import '../../support/fake_squad_service.dart';
 import '../../support/fake_tab_service.dart';
@@ -47,6 +49,7 @@ Future<FakeSettlementService> _openDetails(
   WidgetTester tester, {
   String as = 'ari',
   List<SettlementEntry> already = const [],
+  FxRepository? fx,
 }) async {
   final settlements = FakeSettlementService(already);
   await pumpRoamio(
@@ -60,6 +63,7 @@ Future<FakeSettlementService> _openDetails(
       ..names.addAll({'ari': 'Ari Chen', 'ben': 'Ben Roy'})
       ..palsByAdventure['bkk'] = [const Pal(id: 'kiko', nickname: 'Kiko')],
     settlements: settlements,
+    fx: fx,
   );
   await tester.tap(find.text('Split'));
   await tester.pumpAndSettle();
@@ -114,6 +118,57 @@ void main() {
       expect(_row('kiko', 'ben'), findsOneWidget);
       await _breakdown(tester);
       expect(find.text('Kiko paid you'), findsOneWidget);
+    });
+
+    testWidgets('a payment in another currency shows what it comes to, and '
+        'is recorded in the trip currency', (tester) async {
+      final s = await _openDetails(
+        tester,
+        fx: FakeFxRepository({'INR': '84', 'AED': '3.5'}),
+      );
+      await _tap(tester, _row('kiko', 'ari'));
+
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
+      await tester.tap(find.text('AED').last);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Up to'), findsOneWidget);
+      expect(find.textContaining('20.83.'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).last, '10');
+      await tester.pumpAndSettle();
+      expect(find.text('≈ ₹240.00 in your currency'), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
+      await tester.pumpAndSettle();
+      final r = s.recorded.single;
+      expect((r.amountMinor, r.currency), (24000, 'INR'));
+    });
+
+    testWidgets('with no rates, another currency says it can’t be converted', (
+      tester,
+    ) async {
+      final s = await _openDetails(tester, fx: FakeFxRepository());
+      await _tap(tester, _row('kiko', 'ari'));
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(DropdownButtonFormField<String>),
+        ),
+      );
+      await tester.tap(find.text('AED').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, '100');
+      await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('no exchange rates'), findsWidgets);
+      expect(s.recorded, isEmpty);
     });
 
     testWidgets('a part payment can be recorded, but not more', (tester) async {

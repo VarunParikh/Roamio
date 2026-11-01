@@ -121,7 +121,9 @@ class TabsSection extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'Tabs closed 7 days after the trip ended.',
+              adventure.tabsOpenOn(today)
+                  ? 'Only squad leads can add tabs after the trip ends.'
+                  : 'Tabs closed 7 days after the trip ended.',
               style: slate,
             ),
           ),

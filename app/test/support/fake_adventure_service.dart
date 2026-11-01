@@ -21,9 +21,15 @@ class FakeAdventureService implements AdventureService {
   /// The adventure list can't be loaded (Home's error state).
   bool failToLoad = false;
 
+  /// The list hasn't been answered yet: the server can't be reached.
+  bool neverAnswer = false;
+
   @override
   Stream<List<Adventure>> myAdventures() async* {
     if (failToLoad) throw Exception('adventures unavailable');
+    if (neverAnswer) {
+      await Completer<void>().future;
+    }
     yield adventures;
     yield* _changes.stream;
   }

@@ -15,8 +15,7 @@ Part 1 is for pilot testers. Part 2 is for the owner, who runs the pilot.
 - An Android phone running **Android 8.0 or newer**. iPhones aren't
   supported yet.
 - An email address or a Google account.
-- You must be **13 or older**. If you're 13–17, a parent or guardian has to
-  say yes by email before you can use the app (see "Under 18?" below).
+- You must be **18 or older**. The pilot is for adults only.
 
 ### 1. Install Roamio
 Roamio isn't on the Play Store yet, so you install it from a file (an APK).
@@ -38,8 +37,8 @@ changing any security settings.
 - Tap **Continue with Google**, or **New here? Create an account** to use an
   email and password. With email, open the verification link we send you,
   then tap **I've verified my email**.
-- Enter your date of birth. It's only used to keep under-18s safe and is
-  never shown to anyone.
+- Tick **I'm 18 or older and I've read the privacy notice**. Roamio doesn't
+  ask for your date of birth.
 
 ### 3. Join or start a trip ("adventure")
 - **Got an invite link?** Open it on your phone, or copy it and tap **Have
@@ -55,9 +54,8 @@ Use it the way you would on a trip. In particular:
 - Open **Split** to see who pays whom, and **Mark as settled** when money
   changes hands. Roamio never moves money itself.
 - Set a private **budget** (only you can see it).
-- Turn on airplane mode, add a tab, turn it off again and tap **Sync**.
-- Look around **You → Privacy centre**: download your data; nominate a
-  person.
+- Turn on airplane mode, add a tab, then turn it off again. Roamio syncs by itself.
+- Look around **You → Privacy centre**: download your data.
 
 ### 5. Report a problem or an idea
 Use the **feedback form** (link from the owner) for anything: a crash,
@@ -78,54 +76,40 @@ When there's a new version, Roamio offers it when you open the app (at most
 once a day). Tap it to download and install over the old one: your data
 stays. Sometimes an update is required before you can carry on.
 
-### Under 18?
-1. Sign up as normal with your real date of birth.
-2. Enter a parent's or guardian's email. They get a link and must sign in
-   to (or create) their own Roamio account to say yes.
-3. Once they say yes you're in. If they say no, or don't answer within 7
-   days, your account and its data are deleted.
-
-For under-18s, Roamio turns off location tagging and crash reporting, and
-your budget stays private from the squad.
-
 ### Leaving the pilot
 **You → Privacy centre → Delete my account** removes your profile, photos
 and budgets. Tabs you were on stay with the squad as "Deleted user", so
 everyone's balances stay right. Download your data first if you want a copy.
 
 Your privacy: read the privacy notice in **You → Privacy centre**. Questions
-or complaints go to the grievance contact listed there.
+or complaints go to the owner, who invited you.
 
 ---
 
 ## Part 2 — For the owner
 
 ### Before inviting anyone
-- [ ] **Release:** the Task 42 steps in [RELEASING.md](RELEASING.md) are done,
+- [ ] **Release:** the Task 42 steps in [RELEASING.md](../../../RELEASING.md) are done,
   and `v1.0.0` (or a release candidate) is published with an APK that
   installs on a real phone.
 - [ ] **Google sign-in:** the release key's SHA-1/SHA-256 is added to the prod
   Firebase app, and Google sign-in works on the installed APK.
 - [ ] **Hosting:** the prod site (`roamio-prod-varun.web.app`) is deployed, so
   invite links (`/i/…`) and the privacy page open for people without the app.
-- [ ] **Consent emails:** the Trigger Email extension is installed on prod
-  ([SETUP.md](SETUP.md), "Email"), or under-18 testers can't get consent.
-- [ ] **Grievance email:** a real address replaces `grievance@roamio.example`
-  (deferred to the next phase; pilot testers see the placeholder until then).
 - [ ] **Feedback form:** created (for example a Google Form, so testers don't
   need a GitHub account and reports stay private), with the questions in
   "Feedback form" below. Put its link in your invite message.
-- [ ] **Remote Config:** keys set in the prod console ([REMOTE_CONFIG.md](REMOTE_CONFIG.md)).
+- [ ] **Remote Config:** keys set in the prod console ([REMOTE_CONFIG.md](../../../REMOTE_CONFIG.md)).
 - [ ] Your own manual test session (the device checks in `tasks/HANDOVER.md`)
   has passed.
 
 ### Invite message (copy and edit)
 > Hi! I'm testing Roamio, an app for splitting trip costs with friends, and
 > I'd love your help. It takes 2 minutes to set up on an Android phone.
-> Guide: https://github.com/VarunParikh/Roamio/blob/main/docs/PILOT_GUIDE.md
+> Guide: https://github.com/VarunParikh/Roamio/blob/main/docs/epics/roamio/release/pilot-guide.md
 > Download: https://github.com/VarunParikh/Roamio/releases/latest
 > Report problems here: <feedback form link>
-> Under 18? You'll need a parent or guardian to say yes by email.
+> You need to be 18 or older to join this pilot.
 
 ### Feedback form
 Suggested questions:
@@ -139,12 +123,12 @@ Suggested questions:
 
 ### Triage (weekly, or daily while it's busy)
 1. Read new form answers. Privacy or security reports come first: follow
-   [BREACH_RESPONSE.md](BREACH_RESPONSE.md) if personal data may be exposed.
+   [BREACH_RESPONSE.md](breach-response.md) if personal data may be exposed.
 2. Copy each real problem into a **GitHub Issue** (the repo is public, so
    leave out names, emails, amounts and screenshots with personal details).
    Labels: `bug`, `ux`, `idea`, plus `blocker` for anything that stops a
    journey.
-3. Fix blockers first; ship fixes as a new release ([RELEASING.md](RELEASING.md))
+3. Fix blockers first; ship fixes as a new release ([RELEASING.md](../../../RELEASING.md))
    so the app offers the update.
 
 ### When is the pilot done? (Task 44)

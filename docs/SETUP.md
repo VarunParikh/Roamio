@@ -128,9 +128,9 @@ photos on tabs, Google sign-in, real emails and push notifications.
 |---|---|---|
 | Project ID | `roamio-dev-varun` | `roamio-prod-varun` |
 | Display name | Roamio dev | Roamio |
-| Plan | Spark (free) — backend work uses local emulators | Blaze, prepaid via UPI, billing account `0120E9-C10B02-C3ADB8` |
+| Plan | Blaze (since 2026-10-31), ₹500 budget | Blaze, prepaid via UPI, billing account `0120E9-C10B02-C3ADB8` |
 | Firestore | `(default)`, Native, asia-south1 | `(default)`, Native, asia-south1 |
-| Storage | — (needs Blaze; use emulator) | `roamio-prod-varun.firebasestorage.app`, asia-south1 |
+| Storage | `roamio-dev-varun.firebasestorage.app`, asia-south1 | `roamio-prod-varun.firebasestorage.app`, asia-south1 |
 | Android app | `app.roamio.android.dev` (`1:201519690104:android:368076d8280e6bb50a988d`) | `app.roamio.android` (`1:852804538232:android:43ab98815b8f08b15dc28d`) |
 | Sign-in methods | Google, Email/Password | Google, Email/Password |
 | SHA fingerprints | debug keystore SHA-1 + SHA-256 | release key — added in Task 42 |

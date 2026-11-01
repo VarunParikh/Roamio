@@ -78,6 +78,30 @@ Future<void> _save(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('a member after the trip is told why, and who can still add', (
+    tester,
+  ) async {
+    // Ended two days ago: inside the leads' extra week. Ari is a member here.
+    await _openAdventure(
+      tester,
+      adventure: Adventure(
+        id: 'bkk',
+        name: 'Bangkok trip',
+        countryCode: 'TH',
+        startDate: DateTime(2026, 10, 20),
+        endDate: DateTime(2026, 10, 27),
+        baseCurrency: 'THB',
+        leaderUid: 'bob',
+        memberUids: const ['ari', 'bob'],
+      ),
+    );
+    expect(
+      find.textContaining('Only squad leads can add tabs'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('7 days after'), findsNothing);
+  });
+
   group('the squad changes while the form is open (item 5)', () {
     Adventure withMembers(List<String> members) => Adventure(
       id: 'bkk',

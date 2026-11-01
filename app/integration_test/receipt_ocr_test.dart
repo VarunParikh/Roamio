@@ -13,7 +13,7 @@ import 'package:roamio/features/tabs/data/receipt_scanner.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  Future<String> drawReceipt(List<String> lines) async {
+  Future<String> drawReceipt(List<String> lines, {double tilt = 0}) async {
     final recorder = ui.PictureRecorder();
     const width = 900.0;
     final height = 120.0 + lines.length * 70;
@@ -21,7 +21,8 @@ void main() {
       ..drawRect(
         Offset.zero & Size(width, height),
         Paint()..color = Colors.white,
-      );
+      )
+      ..rotate(tilt);
     for (final (i, line) in lines.indexed) {
       TextPainter(
           text: TextSpan(
@@ -68,5 +69,25 @@ void main() {
     expect(guess.amountMinor, 548);
     expect(guess.date, DateTime(2026, 10, 22));
     expect(guess.merchant, 'Corner Mart');
+  });
+
+  testWidgets('keeps the total with its label on a tilted photo', (
+    tester,
+  ) async {
+    final path = await drawReceipt([
+      'CORNER MART',
+      'Water 1L            1.99',
+      'Chips               3.49',
+      'TOTAL               5.48',
+      'CASH               20.00',
+    ], tilt: 0.07);
+    final text = await MlKitReceiptScanner().readText(path);
+    debugPrint('Tilted OCR text:\n$text');
+    final guess = parseReceipt(
+      text,
+      currency: 'USD',
+      today: DateTime(2026, 10, 29),
+    );
+    expect(guess.amountMinor, 548);
   });
 }

@@ -16,6 +16,7 @@ import 'package:roamio/features/notifications/ui/notification_prompt.dart';
 import 'package:roamio/features/profile/data/profile_service.dart';
 import 'package:roamio/features/profile/ui/character_avatar.dart';
 import 'package:roamio/features/sync/sync_banner.dart';
+import 'package:roamio/features/sync/sync_controller.dart';
 
 const newAdventureRoute = '/adventures/new';
 
@@ -94,6 +95,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             OutlinedButton(
               onPressed: () => ref.invalidate(myAdventuresProvider),
               child: const Text('Try again'),
+            ),
+          ] else if (adventures.isLoading && ref.watch(isOfflineProvider)) ...[
+            // Nothing's known yet, which isn't the same as no adventures.
+            const PlanAdventureCard(),
+            const SizedBox(height: 24),
+            Text(
+              'Your adventures will show when you’re back online.',
+              style: text.bodyMedium,
+              textAlign: TextAlign.center,
             ),
           ] else if (adventures.isLoading)
             const Center(child: CircularProgressIndicator())

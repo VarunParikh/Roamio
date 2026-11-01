@@ -376,7 +376,12 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
     setState(() => _tried = true);
     final problems = _problems(pals, myUid);
     if (problems.contains(TabProblem.closed)) {
-      showAuthMessage(context, _closedMessage);
+      showAuthMessage(
+        context,
+        _a.tabsOpenOn(ref.read(todayProvider))
+            ? 'Only squad leads can add tabs after the trip ends.'
+            : _closedMessage,
+      );
       return;
     }
     if (problems.isNotEmpty) return;
@@ -482,7 +487,7 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
   Future<void> _scanBill() async {
     _doneTyping();
     final photos = ref.read(photoPipelineProvider);
-    final path = await photos.pick(camera: true);
+    final path = await photos.scanBill();
     if (path == null || !mounted) return;
     setState(() => _scanning = true);
     ReceiptGuess guess;
@@ -508,6 +513,8 @@ class _AddTabFormState extends ConsumerState<_AddTabForm> {
       _scanning = false;
       _scanNote = guess.isEmpty
           ? 'Couldn’t read that bill. Please fill it in.'
+          : guess.amountMinor == null
+          ? 'We couldn’t find the total. Please add the amount.'
           : 'Check the amount, date and name we read.';
       if (guess.amountMinor case final minor?) {
         _amount.text = amountText(minor, _currency);

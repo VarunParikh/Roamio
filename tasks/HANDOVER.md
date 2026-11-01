@@ -1,20 +1,29 @@
 # Handover — 2026-10-30 (night)
 
-Read this first, then `CLAUDE.md`, `docs/SPEC.md`, `tasks/todo.md`, `docs/ROADMAP.md`.
+Read this first, then `CLAUDE.md`, `docs/epics/roamio/requirements/product-spec.md`, `tasks/todo.md`, `docs/core/roadmap.md`.
 The owner works **remotely from a phone** (Remote Control) and does **one manual test session at the end**: never ask for device checks; add them to the list below. Ask before merging (**the owner must name the PR numbers**, e.g. "merge #66"; blanket approvals are refused by the permission check), before adding a dependency, before anything that adds Firebase cost, and before changing the data model.
+
+## Documents moved, 2026-11-01
+
+Documents now follow the Zest layout: see [docs/epics/roamio/README.md](../docs/epics/roamio/README.md). Older notes below were updated to the new paths. New documents are drafts until the owner approves them in the [approval register](../docs/core/approval-register.md).
 
 ## Code audit, 2026-10-31 (read this first)
 
 The older "Where things stand" below is out of date. Audit items are numbered as in the owner's brief.
 
-- **In three group PRs, in merge order:** offline and reporting (2, 3, 9, 14, 15, 18 HTTPS check, 23), squad and forms (4, 5, 6, 13, 16, 17), rates and server (7, 11, 19). Merged already: 1 (#97), 18 poll overlap (#108).
+- **Merged to `main` (through #117, `cbd8efd`):** items 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19 (warning fix), 23. No audit PRs are open; #98-#107 and #109-#114 were closed, replaced by #115, #116 and #117.
 - **Deferred to phase 2 by the owner:** 8 (payments recorded twice: trust the person), 10 (approved tabs skipping re-approval), 12 (stale stored names).
 - **Remote Config (19):** functions read the *server* template. `firebase deploy --only remoteconfig` publishes the *app* template, so don't use it for this. Defaults are safe and the warning is now once per 10 minutes, so a server template is only needed to change values without a deploy: Firebase console → Remote Config → Server tab → add `budget_alert_thresholds` `[80, 100]`, `invite_validity_days` `14`, `consent_link_validity_days` `7`, then publish. On dev, the app-side template now holds those three unused values, which is harmless.
 - **App Check (20):** confirmed on the phone: the dev app, which never starts App Check, makes the server log "Decoding App Check token failed" on its calls, so these warnings on dev are expected. Before anyone enforces on prod: App Check → APIs must show almost all requests verified for a week, from the installed prod APK (see `docs/SETUP.md`).
 - **Burst after deploy (21):** at 11:39 UTC each function's new revision got unauthenticated requests just after it rolled out. Source not found and it hasn't been seen since. All callables require sign-in; `health` and `invitePreview` are public by design and show nothing private.
 - **Item 22:** `updateFxRates` is proven on dev: pressing Update rates on the phone stored 165 rates dated 2026-10-31 at 18:30 UTC. Still unproven: the scheduled `dailyFxRates` (first look after 00:30 UTC), and `joinAdventure` and `settlementActivity`, which need the two-phone checks below.
-- **Prod logs (24):** prod has no functions deployed, so its logs can't be proven readable until the first deploy. Check straight after it.
-- **Backend changes aren't live** until functions are deployed to dev.
+- **Prod logs (24):** readable. Prod was first deployed on 2026-11-01 from `65382bd`, and its logs could be read straight after; no scheduled job had run yet.
+- **Crashlytics:** on for dev, and a test crash reached the console. Prod still to confirm, which needs the signed prod app. The Android crash-symbol Gradle plugin was added in #122; a real crash showing up readable hasn't been seen yet.
+- **Real-device checks, 1 November 2026, phone plus an Android emulator on dev Firebase, all passed:** offline add and sync (owner); join from an invite code (not the link); rename shows live; who pays whom matches, settle and undo live on both; someone leaving while Add tab is open; refused change with the app open and with it closed; member and lead add-tab window; resubmitting a rejected tab after the trip. Not covered: two real networks, pushes on a second device, a low-end phone, a connection drop during "Syncing…", and the "left the squad" pop-up, which is only covered by a widget test.
+- **False "No adventures yet" on first load:** Firestore's empty answer from the phone's own copy, on a fresh install with the server out of reach. No data was lost. Fixed in #119.
+- **Left on dev by this testing:** the test account `roamio-test-b@example.com` and a trip called Test trip on the owner's account. Delete the account when it's no longer needed.
+- **Deployed:** functions are on dev from `cbd8efd`, including the new `budgetOnRates` trigger. Prod was first deployed on 2026-11-01 from `65382bd`.
+- **Item 7 on real Firebase:** `budgetOnRates` fired one second after rates were stored, with nothing waiting. A real run with a missing-rate tab is only tested on the emulators, because every currency in the picker has a rate.
 
 ## Where things stand
 
@@ -34,14 +43,14 @@ Since the previous handover:
   - sign-up asks **no date of birth** and refuses no one; the tick reads **"I'm 18 or older and I've read the privacy notice"** (`adultDeclared: true`, and the server sets the account adult);
   - **under-18 screens and Nominate a person are hidden** by two switches in `app/lib/core/config/phase2.dart`, for a separate DPDP-compliant Phase 2 version;
   - the code, rules and tests stay, and Journey E runs with `launch(phase2: true)`;
-  - see `docs/ROADMAP.md`.
+  - see `docs/core/roadmap.md`.
 - #65 **app icon**: the split pin ("paid + owed"); master `design/app-icon/roamio-icon-split-pin.svg`; adaptive, themed, round and PNG versions in `app/android/app/src/main/res`.
 
 **Task status**
 - Done: 1–32, 34–41, 43.
 - **Task 33:** device checks only.
 - **Task 42:** owner steps. Create and back up the upload key, add the secrets to the `release` environment (`docs/RELEASING.md`), push `v0.1.0-rc1`, and approve the run.
-- **Task 44, pilot:** owner. The checklist is in `docs/PILOT_GUIDE.md` part 2.
+- **Task 44, pilot:** owner. The checklist is in `docs/epics/roamio/release/pilot-guide.md` part 2.
 
 ## Test APK for the owner (2026-10-30)
 - `Roamio-dev-2026-10-30.apk`: dev flavor, release mode, signed with the debug key, 97 MB, built from `main` at #65.
@@ -135,7 +144,9 @@ Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then
   - Add tab: remove someone from the squad on another phone while the form is open; a message appears and saving works.
   - A member can't add a tab the day after the trip, a lead can for 7 days, and a member can still resubmit a rejected tab.
   - Offline banners: a banner that failed to save appears after about five minutes back online.
+- **Added 2026-11-01, place names (real phone):** a tab with a location shows a place name on Add tab and tab details, not coordinates; with no connection, a place the phone hasn't looked up before shows coordinates, and a place it has may still show its name; back online, the name should appear after reopening the app. Worth a look: Bangkok came back as "Krung Thep Maha Nakhon, Thailand" and Rome as "Roma, Italy" on the emulator.
 - **Added 2026-10-31, pictures:** tab rows show who's sharing with "+N" past four; Add tab's lists and tab details show pictures; an invite shows the leader's picture; TalkBack reads names on a row.
+- **Added 2026-11-01, scan bill (real phone):** Scan bill opens Google's scanner, and cancelling returns to Add tab with nothing filled in; a finished scan comes back and fills in the amount (not yet proven anywhere: the emulator test never got past the crop screen); a bill with a plain Total and a higher amount elsewhere leaves the amount empty and asks for it; shop names on photos cut off at the top still come out as junk.
 - **Added 2026-10-31, approvals:** a member's tab shows Waiting for approval and an admin's Approve puts it in the split; Reject asks first; a leader with no co-lead has their tab counted at once; two admins pressing at once, the second is told it's decided.
 - **Added 2026-10-31, Paid with:** on a fresh install Save stays disabled and says why until a method is chosen; the next tab starts on that method, also after a restart; Split payment shows one menu per person who paid; a tab row reads category and amount, description and your share, then the emoji, and looks right on a small phone; TalkBack says "Paid with Cash" on the row, on tab details and in the menu; the emoji shows on the phone's font; an exported PDF and Excel show the method's name.
 - **Added 2026-10-30:**
@@ -148,6 +159,8 @@ Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then
   - App icon (#65): the split pin on the home screen and app list, on a Samsung (rounded-square icons) and with themed icons on (Android 13+).
 
 ## Facts and traps learned
+- **`geocoding_android` 5.1.0 offline:** its `onError` is empty, so a lookup that fails for lack of a network never returns and never throws (seen on the emulator). `PlaceText` shows coordinates meanwhile, but anything that awaits `nameOf` would wait for ever. Names already looked up can still come back offline.
+- **The main checkout is shared between sessions:** another session switched its branch in the middle of a journey run on 2026-11-01. Check `git rev-parse HEAD` after a run, and use a worktree when another session is active.
 - **This repo was edited from a cloud container**; local path on the owner's Mac is `/Users/varunparikh/Projects/Roamio-travel-partner`. The old brief mentioned `tasks/HANDOVER.md` which did not exist; this file replaces it.
 - **Toolchain in a fresh container:** Flutter is not installed. Install the pinned SDK (`app/.fvmrc`, 3.47.8) from `storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.8-stable.tar.xz` (reachable); `pub.dev` is reachable; `github.com` over git is not (use the GitHub tools). Run `dart format --set-exit-if-changed . && flutter analyze && flutter test` in `app/` (fvm is not available; call `flutter` directly).
 - **Backend tests in a container:** `npm i -g firebase-tools`, `npm ci` in `firebase/` and `firebase/functions/`, Java 21 present. The sandbox proxy breaks the Functions emulator's local calls: run `firebase emulators:exec` with the `*_PROXY` env vars unset. The **Storage emulator can't be downloaded here**, so `test/rules/storage.test.ts`, `default-deny.test.ts` and the Cloud Storage deletion test fail or skip locally; CI runs them. Run only the emulators you need: `--only auth,firestore,functions`, then `npx vitest run <files>`.
