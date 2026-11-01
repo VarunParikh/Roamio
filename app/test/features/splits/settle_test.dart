@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:roamio/core/ui/primary_button.dart';
@@ -5,6 +7,7 @@ import 'package:roamio/features/adventures/domain/adventure.dart';
 import 'package:roamio/features/auth/domain/session.dart';
 import 'package:roamio/features/splits/data/fx_repository.dart';
 import 'package:roamio/features/splits/data/settlement_service.dart';
+import 'package:roamio/features/splits/domain/fx_converter.dart';
 import 'package:roamio/features/splits/domain/money.dart';
 import 'package:roamio/features/splits/domain/tab_models.dart';
 import 'package:roamio/features/squad/data/squad_service.dart';
@@ -88,8 +91,118 @@ Finder _arrowOn(String from, String to) => find.descendant(
 Future<void> _breakdown(WidgetTester tester) =>
     _tap(tester, find.text('See detailed breakdown'));
 
+/// Holds today's rates back, as a slow connection does.
+class _SlowFx extends FakeFxRepository {
+  new() : super(const {'INR': '84'});
+
+  final release = Completer<void>();
+
+  @override
+  Future<FxRates?> ratesFor(String date) async {
+    if (date == '2026-10-29') await release.future;
+    return await super.ratesFor(date);
+  }
+}
+
 void main() {
+  group('settlementId (the same payment is only counted once)', () {
+    const id = settlementId;
+
+    test('two phones marking the same payment get the same record', () {
+      expect(
+        id(from: 'ben', to: 'ari', amountMinor: 50000, earlier: 0),
+        id(from: 'ben', to: 'ari', amountMinor: 50000, earlier: 0),
+      );
+    });
+
+    test('another part payment of the same amount is a new record', () {
+      expect(
+        id(from: 'ben', to: 'ari', amountMinor: 20000, earlier: 1),
+        isNot(id(from: 'ben', to: 'ari', amountMinor: 20000, earlier: 0)),
+      );
+    });
+
+    test('a different amount or direction is a different payment', () {
+      final one = id(from: 'ben', to: 'ari', amountMinor: 50000, earlier: 0);
+      expect(
+        id(from: 'ben', to: 'ari', amountMinor: 20000, earlier: 0),
+        isNot(one),
+      );
+      expect(
+        id(from: 'ari', to: 'ben', amountMinor: 50000, earlier: 0),
+        isNot(one),
+      );
+    });
+  });
+
   group('Mark as settled (spec UC-26a)', () {
+    testWidgets('a second tap while the sheet opens opens only one', (
+      tester,
+    ) async {
+      final fx = _SlowFx();
+      await _openDetails(tester, fx: fx);
+
+      await tester.ensureVisible(_row('kiko', 'ari'));
+      await tester.pumpAndSettle();
+      await tester.tap(_row('kiko', 'ari'));
+      await tester.pump();
+      await tester.tap(_row('kiko', 'ari'));
+      await tester.pump();
+      fx.release.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsOneWidget);
+    });
+
+    testWidgets('marking the same payment twice counts it once', (
+      tester,
+    ) async {
+      final s = await _openDetails(tester);
+      Future<void> record() => s.record(
+        'bkk',
+        from: 'kiko',
+        to: 'ari',
+        amountMinor: 50000,
+        currency: 'INR',
+        date: '2026-10-29',
+        earlier: 0,
+      );
+      await record();
+      await record();
+      await tester.pumpAndSettle();
+
+      expect(await s.settlements('bkk').first, hasLength(1));
+      expect(find.text('All square 🎉'), findsOneWidget);
+    });
+
+    testWidgets('a payment undone can be recorded again', (tester) async {
+      final s = await _openDetails(tester);
+      await _tap(tester, _row('kiko', 'ari'));
+      await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
+      await tester.pumpAndSettle();
+      final first = s.recorded.single.id;
+      await s.undo('bkk', first);
+      await tester.pumpAndSettle();
+
+      await _tap(tester, _row('kiko', 'ari'));
+      await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
+      await tester.pumpAndSettle();
+
+      expect(s.recorded.last.id, first);
+      expect(await s.settlements('bkk').first, hasLength(1));
+    });
+
+    testWidgets('a second part payment is counted as well', (tester) async {
+      final s = await _openDetails(tester);
+      for (var i = 0; i < 2; i++) {
+        await _tap(tester, _row('kiko', 'ari'));
+        await tester.enterText(find.byType(TextField).last, '100');
+        await tester.tap(find.widgetWithText(PrimaryButton, 'Mark as settled'));
+        await tester.pumpAndSettle();
+      }
+      expect(await s.settlements('bkk').first, hasLength(2));
+    });
+
     testWidgets('records a suggested transfer in full', (tester) async {
       final s = await _openDetails(tester);
 

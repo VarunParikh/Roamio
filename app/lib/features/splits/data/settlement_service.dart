@@ -26,11 +26,23 @@ class SettlementEntry {
   final String recordedBy;
 }
 
+/// The record for a payment. Two phones marking the same payment get the same
+/// id, even offline, so it counts once (spec UC-26a). [earlier] is how many
+/// payments between the two are already recorded, so another part payment of
+/// the same amount is a new record.
+String settlementId({
+  required String from,
+  required String to,
+  required int amountMinor,
+  required int earlier,
+}) => '${from}_${to}_${amountMinor}_$earlier';
+
 abstract interface class SettlementService {
   /// Payments recorded and not undone, newest first.
   Stream<List<SettlementEntry>> settlements(String adventureId);
 
-  /// Records that [from] paid [to] outside the app; works offline.
+  /// Records that [from] paid [to] outside the app; works offline. See
+  /// [settlementId] for [earlier].
   Future<void> record(
     String adventureId, {
     required String from,
@@ -38,6 +50,7 @@ abstract interface class SettlementService {
     required int amountMinor,
     required String currency,
     required String date,
+    required int earlier,
   });
 
   /// Undoes a recorded payment; the activity log keeps both.
@@ -94,8 +107,16 @@ class FirebaseSettlementService implements SettlementService {
     required int amountMinor,
     required String currency,
     required String date,
+    required int earlier,
   }) async {
-    final doc = _col(adventureId).doc();
+    final doc = _col(adventureId).doc(
+      settlementId(
+        from: from,
+        to: to,
+        amountMinor: amountMinor,
+        earlier: earlier,
+      ),
+    );
     doc
         .set({
           'from': from,

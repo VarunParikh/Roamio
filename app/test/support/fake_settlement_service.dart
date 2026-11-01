@@ -26,9 +26,15 @@ class FakeSettlementService implements SettlementService {
     required int amountMinor,
     required String currency,
     required String date,
+    required int earlier,
   }) async {
     final s = SettlementEntry(
-      id: 's${recorded.length + 1}',
+      id: settlementId(
+        from: from,
+        to: to,
+        amountMinor: amountMinor,
+        earlier: earlier,
+      ),
       from: from,
       to: to,
       amountMinor: amountMinor,
@@ -37,7 +43,10 @@ class FakeSettlementService implements SettlementService {
       recordedBy: 'me',
     );
     recorded.add(s);
-    _live.insert(0, s);
+    // The same id is the same record, as in Firestore.
+    _live
+      ..removeWhere((e) => e.id == s.id)
+      ..insert(0, s);
     _changes.add(null);
   }
 

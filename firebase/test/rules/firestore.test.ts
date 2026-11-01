@@ -1642,6 +1642,39 @@ describe("settlements", () => {
     );
   });
 
+  it("a second phone can mark the same payment, and it stays one record", async () => {
+    const s1 = "adventures/a1/settlements/s1";
+    await assertSucceeds(setDoc(doc(as("alice"), s1), settlement("bob", "alice", "alice")));
+    await assertSucceeds(setDoc(doc(as("bob"), s1), settlement("bob", "alice", "bob")));
+  });
+
+  it("a payment that was undone can be recorded again", async () => {
+    const s1 = "adventures/a1/settlements/s1";
+    await assertSucceeds(updateDoc(doc(as("bob"), s1), { undone: true, undoneBy: "bob" }));
+    await assertSucceeds(setDoc(doc(as("alice"), s1), settlement("bob", "alice", "alice")));
+  });
+
+  it("marking a payment again can't change who paid or how much", async () => {
+    const s1 = "adventures/a1/settlements/s1";
+    await assertFails(
+      setDoc(doc(as("bob"), s1), settlement("bob", "alice", "bob", { amountMinor: 1 })),
+    );
+    await assertFails(setDoc(doc(as("alice"), s1), settlement("alice", "bob", "alice")));
+    await assertFails(setDoc(doc(as("bob"), s1), settlement("zed", "alice", "bob")));
+    await assertFails(
+      setDoc(doc(as("bob"), s1), settlement("bob", "alice", "bob", { currency: "INR" })),
+    );
+  });
+
+  it("only someone who may record it can mark it again", async () => {
+    const s1 = "adventures/a1/settlements/s1";
+    await assertFails(setDoc(doc(as("mia"), s1), settlement("bob", "alice", "mia")));
+    await assertFails(setDoc(doc(as("alice"), s1), settlement("bob", "alice", "bob")));
+    await assertFails(
+      setDoc(doc(as("bob"), s1), settlement("bob", "alice", "bob", { undone: true })),
+    );
+  });
+
   it("can be undone but not edited", async () => {
     const s1 = "adventures/a1/settlements/s1";
     await assertFails(updateDoc(doc(as("bob"), s1), { amountMinor: 1 }));

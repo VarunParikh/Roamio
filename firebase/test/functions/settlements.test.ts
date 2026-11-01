@@ -66,4 +66,47 @@ describe("settlement activity (spec UC-26a)", () => {
       ]);
     });
   });
+
+  it("a second phone marking it adds nothing, and recording it after an undo logs it", async () => {
+    const ari = await person("Ari");
+    const ben = await person("Ben");
+    const id = await adventure(ari, { memberUids: [ari.uid, ben.uid] });
+    const ref = db().collection(`adventures/${id}/settlements`).doc();
+    const payment = (by: string) => ({
+      from: ben.uid,
+      to: ari.uid,
+      amountMinor: 50000,
+      currency: "INR",
+      date: "2026-10-29",
+      recordedBy: by,
+      undone: false,
+    });
+    const log = async () =>
+      (await db().collection(`adventures/${id}/activity`).where("subject", "==", ref.id).get()).docs
+        .map((d) => d.get("type"))
+        .sort();
+
+    await ref.set(payment(ben.uid));
+    await eventually(async () => {
+      expect(await log()).toEqual(["settlement_recorded"]);
+    });
+
+    await ref.set(payment(ari.uid));
+    await new Promise((r) => setTimeout(r, 2000));
+    expect(await log()).toEqual(["settlement_recorded"]);
+
+    await ref.update({ undone: true, undoneBy: ari.uid });
+    await eventually(async () => {
+      expect(await log()).toEqual(["settlement_recorded", "settlement_undone"]);
+    });
+
+    await ref.set(payment(ari.uid));
+    await eventually(async () => {
+      expect(await log()).toEqual([
+        "settlement_recorded",
+        "settlement_recorded",
+        "settlement_undone",
+      ]);
+    });
+  });
 });
