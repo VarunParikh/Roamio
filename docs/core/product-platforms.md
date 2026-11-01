@@ -1,6 +1,6 @@
 # Product Platforms: Roamio
 
-Status: DRAFT, written 2026-11-01. Sources: [spec](../epics/roamio/requirements/product-spec.md) §2 and §9, [SETUP.md](../SETUP.md), [RELEASING.md](../RELEASING.md) and live checks that day.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01. Sources: [spec](../epics/roamio/requirements/product-spec.md) §2 and §9, [SETUP.md](../SETUP.md), [RELEASING.md](../RELEASING.md) and live checks that day.
 
 ## 1. Platform map
 

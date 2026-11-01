@@ -12,7 +12,9 @@ Documents now follow the Zest layout: see [docs/epics/roamio/README.md](../docs/
 The older "Where things stand" below is out of date. Audit items are numbered as in the owner's brief.
 
 - **Merged to `main` (through #117, `cbd8efd`):** items 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19 (warning fix), 23. No audit PRs are open; #98-#107 and #109-#114 were closed, replaced by #115, #116 and #117.
-- **Item 8 brought forward by the owner on 2026-11-01** after it happened on the release: see `settlementId` in `settlement_service.dart`.
+- **Item 8 brought forward by the owner on 2026-11-01** after it happened on the release: see `settlementId` in `settlement_service.dart`. Merged in #128, with its rule and function on dev and prod. The owner reported the double tap, two phones marking one payment and the new icon (#127) all passed on the dev test build from `a84d824`.
+- **Payments already recorded twice stay recorded** until someone taps Undo, including any from the owner's own testing.
+- **Licence and approvals:** MIT added, GitHub description set and the new documents approved on 2026-11-01.
 - **Deferred to phase 2 by the owner:** 10 (approved tabs skipping re-approval), 12 (stale stored names).
 - **Remote Config (19):** functions read the *server* template. `firebase deploy --only remoteconfig` publishes the *app* template, so don't use it for this. Defaults are safe and the warning is now once per 10 minutes, so a server template is only needed to change values without a deploy: Firebase console → Remote Config → Server tab → add `budget_alert_thresholds` `[80, 100]`, `invite_validity_days` `14`, `consent_link_validity_days` `7`, then publish. On dev, the app-side template now holds those three unused values, which is harmless.
 - **App Check (20):** confirmed on the phone: the dev app, which never starts App Check, makes the server log "Decoding App Check token failed" on its calls, so these warnings on dev are expected. Before anyone enforces on prod: App Check → APIs must show almost all requests verified for a week, from the installed prod APK (see `docs/SETUP.md`).
@@ -134,7 +136,7 @@ Held until the pilot redesign (Tasks 46-62) is finished. Turn these back on then
 - **Added 2026-10-31, Spend by category and breakdown:** the coloured bar and 2×2 legend read well, and chartreuse is easy to see on a real screen; a very small category still shows a slice; See detailed breakdown opens in place; bars by day swipe to earlier days and tapping one says its day and amount; TalkBack reads each legend entry and each bar; a recorded payment can be undone from the breakdown.
 - **Added 2026-10-31, audit fixes (none of these has run on a real phone while signed in):**
   - Two phones, join: an invite joins from the second phone, and the names appear on both right after.
-  - Two phones, settle: mark a transfer settled and undo it; both phones agree. (Both marking the same payment should now count once: check this on two real phones.)
+  - Two phones, settle: mark a transfer settled and undo it; both phones agree. (Both marking the same payment now counts once: passed on two real phones, 2026-11-01.)
   - Who pays whom shows the same pairs on both phones, and what you pay adds up to "You owe".
   - Update rates clears "Can't measure yet" on the Thailand trip, and new rates appear with the app left open.
   - Refused changes: remove a member on one phone while the other adds a tab for them offline. On syncing, a message says what wasn't saved, with OK. Repeat, closing the app before coming back online.

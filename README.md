@@ -40,11 +40,13 @@ As of 2026-11-01.
 
 | Area | Position |
 |---|---|
-| App tests | 921 pass |
+| App tests | 928 pass |
 | Journeys on emulators | 8 of 8 pass, plus 2 bill-reading tests |
-| GitHub's checks | Green on `main` through #125 |
+| Backend tests | 330 pass |
+| GitHub's checks | Green on each PR through #128 |
 | Prod backend and website | Deployed |
 | Test release on a real phone | Installs, and Google sign-in works (owner's report) |
+| Double-recording fix and new icon | Passed on two real phones on a dev build (owner's report); not yet in a published prod release |
 | Pilot with testers | Not started |
 | Bill-scan accuracy | Not measured on bills the fix wasn't built around |
 
@@ -164,4 +166,4 @@ The full list: [known limitations](docs/epics/roamio/release/known-limitations.m
 
 - **Secrets:** `google-services.json`, keystores and `.env` files are never committed. Release secrets live in a GitHub environment that needs the owner's approval.
 - **Personal data:** see the [privacy notice](docs/epics/roamio/release/privacy-notice.md).
-- **Licence:** none has been chosen yet, so all rights are reserved by default.
+- **Licence:** MIT; see [LICENSE](LICENSE).

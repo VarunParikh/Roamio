@@ -10,9 +10,13 @@ As of 2026-11-01. Ticks only what has evidence. How to release: [RELEASING.md](.
 - [x] Nightly journeys and their routine turned back on
 - [x] Pilot guide says adults only, with no date of birth
 - [x] Placeholder email removed from the live privacy page
+- [x] Double-recording fix live on dev and prod's server, and passed on two real phones on a dev build (owner's report)
+- [x] New R. icon passed on a real phone on a dev build (owner's report)
+- [x] MIT licence added
 
 ## Still to do before inviting testers
 - [ ] Second copy of the upload key, on USB
+- [ ] A prod release with the double-recording fix and new icon installed over the current app (`v0.1.0-rc2` in progress 2026-11-01)
 - [ ] Check prod's first scheduled exchange-rate run
 - [ ] Feedback form created, with its link in the invite message
 - [ ] Owner's approvals: see the [approval register](../../../core/approval-register.md)

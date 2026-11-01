@@ -1,6 +1,6 @@
 # Test Plan: Roamio
 
-Status: DRAFT, written 2026-11-01 from [spec §14 and §15](../requirements/product-spec.md#14-testing-strategy) and [SETUP.md](../../../SETUP.md).
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from [spec §14 and §15](../requirements/product-spec.md#14-testing-strategy) and [SETUP.md](../../../SETUP.md).
 
 ## Levels
 
@@ -36,6 +36,9 @@ Status: DRAFT, written 2026-11-01 from [spec §14 and §15](../requirements/prod
 | Real scanner on an emulator | Opens, cancels cleanly, reaches review | A finished scan coming back is unproven |
 | Real place names on an emulator | Work online; offline falls back to coordinates | One emulator |
 | `v0.1.0-rc1` on a real phone | Installs, and Google sign-in works on prod | Owner's report |
+| App tests, backend lint and backend tests | 928 pass, clean, 330 pass | `d2ee4e8` (#128) |
+| Journeys plus bill-reading tests | 10 of 10 pass | `d2ee4e8` (#128) |
+| New icon, double tap, two phones marking one payment | All three pass on real phones | Dev test build from `a84d824`, owner's report |
 
 ## Rules
 - A test that fails is reported as failed, even if a re-run passes.

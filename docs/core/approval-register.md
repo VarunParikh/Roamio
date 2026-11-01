@@ -10,7 +10,7 @@ One place that records what the owner has approved, and when. Only the owner app
 | ADR-001, ADR-002 | `docs/epics/roamio/design/adr/` | Accepted 2026-10-29. ADR-002 later changed by the owner's decision on UC-31. |
 | Privacy notice | `docs/epics/roamio/release/privacy-notice.md` | Version 2026-10, revised 2026-11-01 by the owner's decision on the email. No lawyer's review yet. |
 | Vision | `docs/core/product-vision.md` | The owner's own brief |
-| Constitution, strategy, platforms, glossary, BRD, user stories, architecture, test plan, risk register, known limitations, release checklist | `docs/core/`, `docs/epics/roamio/` | **Draft**, written 2026-11-01 from existing sources, awaiting the owner's review |
+| Constitution, strategy, platforms, glossary, BRD, user stories, architecture, test plan, risk register, known limitations, release checklist | `docs/core/`, `docs/epics/roamio/` | **Approved** by the owner, 2026-11-01 |
 
 ## Checkpoints
 
@@ -33,8 +33,11 @@ From `tasks/todo.md`. None is ticked there, and no owner approval is recorded ag
 | The release, for now | "This is done. Happy with the release for now." |
 | Junk shop names and odd place names | Phase 2 |
 | No grievance email in the pilot | "Part of next phase and not the pilot" |
+| Merged #126, #127, #128 and deployed the settlement rule and function to dev and prod | Named each PR; "Merge and deploy"; "Yes, deploy prod" |
+| Double-recording fix and new icon, on the dev test build from `a84d824` | "All three passed" (the owner's report) |
+| MIT licence, GitHub description, approving the draft documents | "Approved for these" |
 
-"Happy with the release for now" is recorded as written. It hasn't been treated as ticking the checkpoints above or as approving `v1.0.0`.
+"Happy with the release for now" is recorded as written. It hasn't been treated as ticking the checkpoints above or as approving `v1.0.0`. Approving the documents doesn't tick the checkpoints either.
 
 ## Rules
 - A merge needs the owner to name the PR number. Approval for one isn't approval for the next.

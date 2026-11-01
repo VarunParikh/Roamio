@@ -1,6 +1,6 @@
 # User Stories and Traceability: Roamio
 
-Status: DRAFT, written 2026-11-01 by restating the [spec's](product-spec.md) use cases as stories. It adds no requirements. Acceptance criteria stay in the spec.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 by restating the [spec's](product-spec.md) use cases as stories. It adds no requirements. Acceptance criteria stay in the spec.
 
 Tests are listed by folder, not one by one. Journeys are in `app/integration_test/journeys/`; app tests are in `app/test/features/`; server tests are in `firebase/test/`.
 

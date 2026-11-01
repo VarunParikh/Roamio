@@ -1,6 +1,6 @@
 # Architecture: Roamio
 
-Status: DRAFT, written 2026-11-01 from the [spec](../requirements/product-spec.md), [plan](../../../../tasks/plan.md), [ADRs](adr/README.md) and the code.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from the [spec](../requirements/product-spec.md), [plan](../../../../tasks/plan.md), [ADRs](adr/README.md) and the code.
 
 ## System
 

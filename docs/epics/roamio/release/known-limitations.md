@@ -18,7 +18,7 @@ As of 2026-11-01, on `v0.1.0-rc1`.
 
 ## Settling up
 - A payment in another currency is recorded at today's rates, so the recorded amount can differ slightly from what was paid.
-- The same payment marked twice now counts once. Two phones can still both count if they disagree: for example, different amounts typed, or one phone hadn't yet seen an earlier payment. Undo in Payments recorded fixes it.
+- The same payment marked twice now counts once, which passed on two real phones on a dev build (owner's report, 2026-11-01). Two phones can still both count if they disagree: for example, different amounts typed, or one phone hadn't yet seen an earlier payment. Undo in Payments recorded fixes it.
 - Payments recorded twice before this fix stay recorded until someone undoes the extra one.
 
 ## Not built, or switched off for the pilot

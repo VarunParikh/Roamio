@@ -1,6 +1,6 @@
 # Assumptions and Risk Register: Roamio
 
-Status: DRAFT, written 2026-11-01 from [`tasks/plan.md`](../../../../tasks/plan.md) and results that day. **No user research or market research was done.** The assumptions below are untested until the pilot runs.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from [`tasks/plan.md`](../../../../tasks/plan.md) and results that day. **No user research or market research was done.** The assumptions below are untested until the pilot runs.
 
 ## Assumptions
 

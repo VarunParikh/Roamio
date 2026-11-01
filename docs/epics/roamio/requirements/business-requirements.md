@@ -1,6 +1,6 @@
 # Business Requirements Document (BRD): Roamio
 
-Status: DRAFT, written 2026-11-01 from the [vision](../../../core/product-vision.md), [strategy](../../../core/product-strategy.md) and [spec](product-spec.md). It adds no requirements. The detail and acceptance criteria are in the spec, which wins if the two differ.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from the [vision](../../../core/product-vision.md), [strategy](../../../core/product-strategy.md) and [spec](product-spec.md). It adds no requirements. The detail and acceptance criteria are in the spec, which wins if the two differ.
 
 ## 1. Purpose and background
 The owner wants a travel app for solo, couple and group travellers that splits bills and logs trip spending. Phase 1 tests this with a 10-person pilot on Android.
