@@ -41,7 +41,10 @@ void main() {
 
       await tester.tap(find.text('Download update'));
       await tester.pumpAndSettle();
-      expect(opened, [Uri.parse('https://dl/roamio.apk')]);
+      expect(opened, [
+        Uri.parse('https://github.com/VarunParikh/Roamio/releases/tag/v9.0.0'),
+      ]);
+      expect(find.textContaining('under Assets'), findsOneWidget);
 
       await tester.tap(find.text('Later'));
       await tester.pumpAndSettle();
