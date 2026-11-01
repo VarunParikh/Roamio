@@ -11,7 +11,7 @@ There are two notices:
 
 **Changing a notice:** edit it here and in the Hosting page, bump the version in the files above (in the same PR), and add a line to the [change log](#change-log). The version is stored with each person's acceptance and each parent's consent, so we can always tell which wording someone agreed to.
 
-> ⚠️ **TO BE SET BY OWNER:** the grievance email `grievance@roamio.example` is a placeholder. The owner chooses the real address (a dedicated alias, not a personal inbox, spec §17.3) in the next phase. Change it here, in the Hosting page, and in `grievanceEmail` (`app/lib/features/profile/ui/privacy_centre.dart`) together.
+> **Next phase:** the pilot publishes no grievance email (owner, 2026-11-01). The owner chooses a dedicated address in the next phase. Add it here, in the Hosting page, and in `grievanceEmail` (`app/lib/features/profile/ui/privacy_centre.dart`), which stays hidden behind `grievanceEnabledProvider`.
 
 *This notice follows the Digital Personal Data Protection Act, 2023 and the DPDP Rules, 2025 as an engineering checklist. It is not legal advice; have a lawyer review it before any public launch.*
 
@@ -76,7 +76,7 @@ Like any website, these services see your phone's internet (IP) address when you
 - **Raise a concern** with our grievance officer (below). If you're not happy with our answer, you can complain to the **Data Protection Board of India**.
 
 ### Grievance officer
-Varun Parikh · **grievance@roamio.example** *(placeholder — TO BE SET BY OWNER)*
+Varun Parikh. During the pilot, contact Varun directly, or through the person who invited you.
 We acknowledge every concern **within 7 days** and aim to resolve it within 30 days.
 
 ### If something goes wrong
@@ -139,7 +139,7 @@ Your child can also change their notification and camera choices, download their
 The link to you is removed, you are told, and they must accept the adult notice themselves before using the app again.
 
 ### Grievance officer
-Varun Parikh · **grievance@roamio.example** *(placeholder — TO BE SET BY OWNER)*
+Varun Parikh. During the pilot, contact Varun directly, or through the person who invited you.
 We acknowledge every concern **within 7 days**. You can also complain to the **Data Protection Board of India**.
 
 ---
@@ -150,3 +150,4 @@ We acknowledge every concern **within 7 days**. You can also complain to the **D
 |---|---|---|
 | 2026-10 | 2026-10-30 | First adult and child notices for the Android pilot. |
 | 2026-10 (revised) | 2026-10-30 | Before anyone accepted it: the pilot asks no date of birth (people confirm they're 18 or older at sign-up), nominating is by writing to us until Phase 2, and the child notice is marked as not in use. Version unchanged because no one had agreed to the earlier wording. |
+| 2026-10 (revised) | 2026-11-01 | Before anyone accepted it on prod: the placeholder grievance email is removed for the pilot; people contact the owner directly, and a dedicated address comes in the next phase. |
