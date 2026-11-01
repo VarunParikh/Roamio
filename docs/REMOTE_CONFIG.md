@@ -1,6 +1,6 @@
 # Remote Config keys
 
-Spec: [SPEC.md §11](SPEC.md). Every key has an in-app default, so Roamio behaves exactly as shipped when Remote Config is unreachable or a value is missing or garbled (a bad value falls back to its default, it never breaks a screen).
+Spec: [SPEC.md §11](epics/roamio/requirements/product-spec.md). Every key has an in-app default, so Roamio behaves exactly as shipped when Remote Config is unreachable or a value is missing or garbled (a bad value falls back to its default, it never breaks a screen).
 
 Set values in the Firebase console → Remote Config, once per project (`roamio-dev-varun`, `roamio-prod-varun`). Remote Config is free.
 

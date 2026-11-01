@@ -1,6 +1,6 @@
 # Roamio privacy notice
 
-Spec: [SPEC.md §7, §8](SPEC.md) · Data: [DATA_MODEL.md](DATA_MODEL.md) · Published copy: [`firebase/hosting/privacy/index.html`](../firebase/hosting/privacy/index.html) (served at `https://<project-id>.web.app/privacy/`)
+Spec: [SPEC.md §7, §8](../requirements/product-spec.md) · Data: [DATA_MODEL.md](../design/data-model.md) · Published copy: [`firebase/hosting/privacy/index.html`](../../../../firebase/hosting/privacy/index.html) (served at `https://<project-id>.web.app/privacy/`)
 
 There are two notices:
 
@@ -80,7 +80,7 @@ Varun Parikh. During the pilot, contact Varun directly, or through the person wh
 We acknowledge every concern **within 7 days** and aim to resolve it within 30 days.
 
 ### If something goes wrong
-If your data is ever exposed, we will tell you without delay: what happened, what it means for you, what we're doing about it, and what you can do. We also report it to the Data Protection Board. See [BREACH_RESPONSE.md](BREACH_RESPONSE.md).
+If your data is ever exposed, we will tell you without delay: what happened, what it means for you, what we're doing about it, and what you can do. We also report it to the Data Protection Board. See [BREACH_RESPONSE.md](breach-response.md).
 
 ### Changes
 If we change this notice we'll update its version and date, and tell you before a change that affects you takes effect.

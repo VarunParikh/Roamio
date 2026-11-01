@@ -1,8 +1,8 @@
-# Spec: Roamio — Phase 1 (Android pilot)
+# Specification (PRD): Roamio — Phase 1 (Android pilot)
 
 > **Split bills. Not friendships.** · *Instant peer splits. Zero awkward math.*
 
-Status: **APPROVED 2026-10-27** · Last updated: 2026-10-31 · Source vision: [`docs/vision/roamio-product-vision.rtf`](vision/roamio-product-vision.rtf)
+Status: **APPROVED 2026-10-27** · Last updated: 2026-10-31 · Source vision: [`docs/inputs/roamio-product-vision.rtf`](../../../inputs/roamio-product-vision.rtf)
 
 ---
 
@@ -79,7 +79,7 @@ npm ci
 npm run lint
 npm test                                  # rules + functions tests against emulators
 firebase emulators:start
-firebase deploy --only firestore:rules,storage,functions,hosting --project roamio-prod
+firebase deploy --only firestore:rules,storage,functions,hosting --project roamio-prod-varun
 ```
 
 CI (GitHub Actions) runs format, analyze, unit/widget tests, rules tests and functions tests on every pull request. Tagging `vX.Y.Z` on `main` builds a signed release APK and attaches it to a GitHub Release.
@@ -91,10 +91,10 @@ CI (GitHub Actions) runs format, analyze, unit/widget tests, rules tests and fun
 ```
 README.md                  → What Roamio is, how to run it
 docs/
-  SPEC.md                  → This file
-  adr/                     → Architecture decision records
-  PRIVACY_NOTICE.md        → DPDP notice text shown in-app and on Hosting
-  BREACH_RESPONSE.md       → Breach notification runbook
+  core/                    → Vision, constitution, strategy, roadmap, conflicts, approvals, glossary
+  epics/roamio/            → Requirements (this file), design and ADRs, verification, release
+  inputs/                  → The owner's original brief
+  SETUP.md  RELEASING.md   → Machine setup and the release steps
   REMOTE_CONFIG.md         → Every remote config key, type, default
 design/                    → Stitch reference screens + DESIGN.md (visual reference only)
 data/                      → Countries + expense category source data
@@ -285,13 +285,13 @@ On the child's 18th birthday (checked daily, India date) the parent link is remo
 
 | Duty | Implementation |
 |---|---|
-| Notice (§5, Rule 3) | Plain-English notice at sign-up and in the Privacy centre; versioned in `docs/PRIVACY_NOTICE.md`. |
+| Notice (§5, Rule 3) | Plain-English notice at sign-up and in the Privacy centre; versioned in `docs/epics/roamio/release/privacy-notice.md`. |
 | Consent per purpose, easy withdrawal (§6) | Separate toggles for location, camera/gallery, notifications; each revocable in one tap. |
 | Minimise data | No phone number or contacts. Pals are a nickname and a character only. No Phase 1 screen uploads a picture. |
 | Rights (§11–14) | Access/export, correction, erasure, nomination, grievance — all in the Privacy centre. Grievances acknowledged within 7 days. |
 | Erasure | Account deletion removes profile, budgets and tokens within 30 days; tabs keep a "Deleted user" placeholder so balances stay correct. |
 | Security safeguards (§8(5), Rule 6) | TLS in transit; Google-managed encryption at rest; least-privilege security rules; audit log of data access and changes kept **1 year**. |
-| Breach (§8(6), Rule 7) | `docs/BREACH_RESPONSE.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
+| Breach (§8(6), Rule 7) | `docs/epics/roamio/release/breach-response.md`: inform affected users and the Data Protection Board without delay, detailed report to the Board within 72 h. |
 | Data location | All Firebase resources in asia-south1. |
 
 *This is an engineering checklist, not legal advice; have the notice reviewed by a lawyer before any public launch.*
@@ -403,10 +403,10 @@ Overall app coverage ≥ 70%.
 
 1. **Settlements:** "Mark as settled" is in Phase 1 (UC-26a).
 2. **Parent verification:** a verified Roamio adult account is accepted for the pilot; DigiLocker / virtual-token verification is required before public launch.
-3. **Grievance officer:** the project owner (Varun Parikh). Contact email is set when `docs/PRIVACY_NOTICE.md` is written; use a dedicated alias rather than a personal inbox.
+3. **Grievance officer:** the project owner (Varun Parikh). Contact email is set when `docs/epics/roamio/release/privacy-notice.md` is written; use a dedicated alias rather than a personal inbox.
 4. **Invite host:** the free Firebase Hosting domain (`<project-id>.web.app`).
 5. **Android package name:** `app.roamio.android`.
 6. **Minimum age:** 13+. Ages 13–17 need parental consent (§7).
 7. **Accounts:** the owner creates Google/Firebase (Blaze), Unsplash and email-provider accounts with step-by-step guidance in the setup tasks.
-8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/ROADMAP.md`). Supersedes item 6 for the pilot.
-9. **Pilot redesign (2026-10-31):** tab approval, personal tabs, payment method, pal characters, a picture beside every name, the budget widget, and the Split and Home redesigns, as written in §5. Uploading your own pictures, including tab photos, moves to the next phase; `docs/ROADMAP.md`.
+8. **Pilot scope (2026-10-30):** the Android pilot asks **no date of birth** and refuses no one; the sign-up tick reads "I'm 18 or older and I've read the privacy notice" and is recorded (`adultDeclared`). **Nominate a person** is by writing to the grievance officer. Under-18 accounts (§7) and in-app nomination are built but switched off until a DPDP-compliant version in Phase 2 (`app/lib/core/config/phase2.dart`, `docs/core/roadmap.md`). Supersedes item 6 for the pilot.
+9. **Pilot redesign (2026-10-31):** tab approval, personal tabs, payment method, pal characters, a picture beside every name, the budget widget, and the Split and Home redesigns, as written in §5. Uploading your own pictures, including tab photos, moves to the next phase; `docs/core/roadmap.md`.

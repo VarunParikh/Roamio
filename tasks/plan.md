@@ -1,6 +1,6 @@
 # Implementation Plan: Roamio Phase 1 (Android pilot)
 
-Spec: [docs/SPEC.md](../docs/SPEC.md) (approved 2026-10-27) · Task list: [tasks/todo.md](todo.md)
+Spec: [docs/epics/roamio/requirements/product-spec.md](../docs/epics/roamio/requirements/product-spec.md) (approved 2026-10-27) · Task list: [tasks/todo.md](todo.md)
 
 ## Overview
 

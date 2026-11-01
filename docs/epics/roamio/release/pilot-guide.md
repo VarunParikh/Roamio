@@ -54,7 +54,7 @@ Use it the way you would on a trip. In particular:
 - Open **Split** to see who pays whom, and **Mark as settled** when money
   changes hands. Roamio never moves money itself.
 - Set a private **budget** (only you can see it).
-- Turn on airplane mode, add a tab, turn it off again and tap **Sync**.
+- Turn on airplane mode, add a tab, then turn it off again. Roamio syncs by itself.
 - Look around **You → Privacy centre**: download your data.
 
 ### 5. Report a problem or an idea
@@ -89,7 +89,7 @@ or complaints go to the owner, who invited you.
 ## Part 2 — For the owner
 
 ### Before inviting anyone
-- [ ] **Release:** the Task 42 steps in [RELEASING.md](RELEASING.md) are done,
+- [ ] **Release:** the Task 42 steps in [RELEASING.md](../../../RELEASING.md) are done,
   and `v1.0.0` (or a release candidate) is published with an APK that
   installs on a real phone.
 - [ ] **Google sign-in:** the release key's SHA-1/SHA-256 is added to the prod
@@ -99,14 +99,14 @@ or complaints go to the owner, who invited you.
 - [ ] **Feedback form:** created (for example a Google Form, so testers don't
   need a GitHub account and reports stay private), with the questions in
   "Feedback form" below. Put its link in your invite message.
-- [ ] **Remote Config:** keys set in the prod console ([REMOTE_CONFIG.md](REMOTE_CONFIG.md)).
+- [ ] **Remote Config:** keys set in the prod console ([REMOTE_CONFIG.md](../../../REMOTE_CONFIG.md)).
 - [ ] Your own manual test session (the device checks in `tasks/HANDOVER.md`)
   has passed.
 
 ### Invite message (copy and edit)
 > Hi! I'm testing Roamio, an app for splitting trip costs with friends, and
 > I'd love your help. It takes 2 minutes to set up on an Android phone.
-> Guide: https://github.com/VarunParikh/Roamio/blob/main/docs/PILOT_GUIDE.md
+> Guide: https://github.com/VarunParikh/Roamio/blob/main/docs/epics/roamio/release/pilot-guide.md
 > Download: https://github.com/VarunParikh/Roamio/releases/latest
 > Report problems here: <feedback form link>
 > You need to be 18 or older to join this pilot.
@@ -123,12 +123,12 @@ Suggested questions:
 
 ### Triage (weekly, or daily while it's busy)
 1. Read new form answers. Privacy or security reports come first: follow
-   [BREACH_RESPONSE.md](BREACH_RESPONSE.md) if personal data may be exposed.
+   [BREACH_RESPONSE.md](breach-response.md) if personal data may be exposed.
 2. Copy each real problem into a **GitHub Issue** (the repo is public, so
    leave out names, emails, amounts and screenshots with personal details).
    Labels: `bug`, `ux`, `idea`, plus `blocker` for anything that stops a
    journey.
-3. Fix blockers first; ship fixes as a new release ([RELEASING.md](RELEASING.md))
+3. Fix blockers first; ship fixes as a new release ([RELEASING.md](../../../RELEASING.md))
    so the app offers the update.
 
 ### When is the pilot done? (Task 44)
