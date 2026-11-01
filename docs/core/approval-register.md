@@ -36,6 +36,9 @@ From `tasks/todo.md`. None is ticked there, and no owner approval is recorded ag
 | Merged #126, #127, #128 and deployed the settlement rule and function to dev and prod | Named each PR; "Merge and deploy"; "Yes, deploy prod" |
 | Double-recording fix and new icon, on the dev test build from `a84d824` | "All three passed" (the owner's report) |
 | `v0.1.0-rc2` installed over `rc1` on a real phone | "Yes, it worked" (the owner's report) |
+| Merged #129, #130, #131, and published `v1.0.0` | Named each PR; "Merge and publish" |
+| Popup appeared on `v1.0.0`, and its direct download stuck; installing from the release page worked | The owner's report |
+| New button on a one-off dev build | "It worked" (the owner's report) |
 | MIT licence, GitHub description, approving the draft documents | "Approved for these" |
 
 "Happy with the release for now" is recorded as written. It hasn't been treated as ticking the checkpoints above or as approving `v1.0.0`. Approving the documents doesn't tick the checkpoints either.

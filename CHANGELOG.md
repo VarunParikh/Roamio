@@ -3,6 +3,12 @@
 Release notes shown in the app's update popup. Newest first; one `## X.Y.Z`
 section per release (see [docs/RELEASING.md](docs/RELEASING.md)).
 
+## 1.0.1
+
+- Updating is more reliable: Download update now opens the release page. Tap the .apk file under Assets, then open it to install.
+
+If this update's download gets stuck, open github.com/VarunParikh/Roamio/releases/latest and tap the .apk file there.
+
 ## 1.0.0
 
 - A new app icon.

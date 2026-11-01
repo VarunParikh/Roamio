@@ -13,7 +13,7 @@ Roamio is a travel partner app for solo, couple and group travellers. Create an 
 
 > **Roamio moves no money.** It records what people paid and owe. Settling up happens outside the app.
 
-> **Status:** Android pilot build. The test release [`v0.1.0-rc2`](https://github.com/VarunParikh/Roamio/releases/tag/v0.1.0-rc2) is out as a pre-release, and the pilot with testers hasn't started. See [Status at a glance](#status-at-a-glance).
+> **Status:** Android pilot build. [`v1.0.0`](https://github.com/VarunParikh/Roamio/releases/tag/v1.0.0) is the latest release, and the pilot with testers hasn't started. See [Status at a glance](#status-at-a-glance).
 
 ## Reviewer's map
 

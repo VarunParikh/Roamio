@@ -40,6 +40,9 @@ Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from [spec §14 and §1
 | Journeys plus bill-reading tests | 10 of 10 pass | `d2ee4e8` (#128) |
 | New icon, double tap, two phones marking one payment | All three pass on real phones | Dev test build from `a84d824`, owner's report |
 | `v0.1.0-rc2` installed over `rc1` on a real phone | Worked | Prod, owner's report. Same version number, so the popup wasn't tested. |
+| `v1.0.0` popup on a real phone | Appeared. Its direct download stuck at 100%, and installing from the release page worked. | Owner's report |
+| New button (#131) on a real phone | Opened the release page, then downloaded and installed | One-off dev build at `6c87228`, owner's report |
+| App tests, journeys | 928 pass, 8 of 8 pass | `8759af3` (#131) |
 
 ## Rules
 - A test that fails is reported as failed, even if a re-run passes.

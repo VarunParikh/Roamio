@@ -33,7 +33,7 @@ Also phase 2: approved tabs skipping re-approval, and stale stored names (audit 
 
 ## Not yet proven
 - A real crash showing up readable in Crashlytics.
-- **`v1.0.0`'s Download update button:** on the owner's phone, the popup appeared but its direct APK download stuck at 100%, for a reason not found. Installing from the GitHub release page worked. Anyone on `v1.0.0` needs the release page for their next update. Later versions open the page from the button; that still needs testing on a real phone.
+- **`v1.0.0`'s Download update button:** on the owner's phone, the popup appeared but its direct APK download stuck at 100%, for a reason not found. Installing from the GitHub release page worked. Anyone on `v1.0.0` needs the release page for their next update. From `v1.0.1`, the button opens the page, which worked on a real phone on a one-off dev build (owner's report, 2026-11-01). Why the direct link stuck is still unknown, so other phones and browsers may differ.
 - Prod's first scheduled exchange-rate run.
 - A 10-person pilot.
 - Remaining device checks are in [`tasks/HANDOVER.md`](../../../../tasks/HANDOVER.md).
