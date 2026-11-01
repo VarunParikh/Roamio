@@ -15,8 +15,7 @@ Part 1 is for pilot testers. Part 2 is for the owner, who runs the pilot.
 - An Android phone running **Android 8.0 or newer**. iPhones aren't
   supported yet.
 - An email address or a Google account.
-- You must be **13 or older**. If you're 13–17, a parent or guardian has to
-  say yes by email before you can use the app (see "Under 18?" below).
+- You must be **18 or older**. The pilot is for adults only.
 
 ### 1. Install Roamio
 Roamio isn't on the Play Store yet, so you install it from a file (an APK).
@@ -38,8 +37,8 @@ changing any security settings.
 - Tap **Continue with Google**, or **New here? Create an account** to use an
   email and password. With email, open the verification link we send you,
   then tap **I've verified my email**.
-- Enter your date of birth. It's only used to keep under-18s safe and is
-  never shown to anyone.
+- Tick **I'm 18 or older and I've read the privacy notice**. Roamio doesn't
+  ask for your date of birth.
 
 ### 3. Join or start a trip ("adventure")
 - **Got an invite link?** Open it on your phone, or copy it and tap **Have
@@ -56,8 +55,7 @@ Use it the way you would on a trip. In particular:
   changes hands. Roamio never moves money itself.
 - Set a private **budget** (only you can see it).
 - Turn on airplane mode, add a tab, turn it off again and tap **Sync**.
-- Look around **You → Privacy centre**: download your data; nominate a
-  person.
+- Look around **You → Privacy centre**: download your data.
 
 ### 5. Report a problem or an idea
 Use the **feedback form** (link from the owner) for anything: a crash,
@@ -77,16 +75,6 @@ in the form and the owner will deal with it first.
 When there's a new version, Roamio offers it when you open the app (at most
 once a day). Tap it to download and install over the old one: your data
 stays. Sometimes an update is required before you can carry on.
-
-### Under 18?
-1. Sign up as normal with your real date of birth.
-2. Enter a parent's or guardian's email. They get a link and must sign in
-   to (or create) their own Roamio account to say yes.
-3. Once they say yes you're in. If they say no, or don't answer within 7
-   days, your account and its data are deleted.
-
-For under-18s, Roamio turns off location tagging and crash reporting, and
-your budget stays private from the squad.
 
 ### Leaving the pilot
 **You → Privacy centre → Delete my account** removes your profile, photos
@@ -108,10 +96,8 @@ or complaints go to the grievance contact listed there.
   Firebase app, and Google sign-in works on the installed APK.
 - [ ] **Hosting:** the prod site (`roamio-prod-varun.web.app`) is deployed, so
   invite links (`/i/…`) and the privacy page open for people without the app.
-- [ ] **Consent emails:** the Trigger Email extension is installed on prod
-  ([SETUP.md](SETUP.md), "Email"), or under-18 testers can't get consent.
 - [ ] **Grievance email:** a real address replaces `grievance@roamio.example`
-  (deferred to the next phase; pilot testers see the placeholder until then).
+  in the privacy notice, on the website and in the app.
 - [ ] **Feedback form:** created (for example a Google Form, so testers don't
   need a GitHub account and reports stay private), with the questions in
   "Feedback form" below. Put its link in your invite message.
@@ -125,7 +111,7 @@ or complaints go to the grievance contact listed there.
 > Guide: https://github.com/VarunParikh/Roamio/blob/main/docs/PILOT_GUIDE.md
 > Download: https://github.com/VarunParikh/Roamio/releases/latest
 > Report problems here: <feedback form link>
-> Under 18? You'll need a parent or guardian to say yes by email.
+> You need to be 18 or older to join this pilot.
 
 ### Feedback form
 Suggested questions:
