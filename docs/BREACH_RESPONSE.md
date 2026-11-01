@@ -18,7 +18,7 @@ Roamio is a one-person project in the pilot, so roles are few:
 | **Engineer** | Varun, helped by a coding agent | Contains, investigates and fixes. Never deletes evidence. |
 | **Processor** | Google Firebase / Google Cloud | Their own incidents reach the owner through the Google Cloud console and the project's billing/contact email. |
 
-Anyone (a pilot user, a squad member, a security researcher) can report a suspected breach to the grievance email: **grievance@roamio.example** *(placeholder — TO BE SET BY OWNER)*.
+Anyone (a pilot user, a squad member, a security researcher) can report a suspected breach to the owner directly during the pilot. A dedicated grievance email comes in the next phase.
 
 ## Timeline
 
