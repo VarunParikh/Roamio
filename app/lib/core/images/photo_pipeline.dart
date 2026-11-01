@@ -6,9 +6,11 @@ import 'dart:ui' as ui;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:roamio/core/images/upload_queue.dart';
@@ -30,6 +32,9 @@ enum PhotoKind {
 abstract interface class PhotoPipeline {
   /// Lets the person take ([camera]) or choose a photo; null if cancelled.
   Future<String?> pick({required bool camera});
+
+  /// Lets the person scan a bill (spec UC-21); null if cancelled.
+  Future<String?> scanBill();
 
   /// Deletes a picked photo that won't be uploaded. Quiet if it can't.
   Future<void> discard(String path);
@@ -89,6 +94,21 @@ Future<File?> compressPhoto(String path, String target, PhotoKind kind) async {
   return out == null ? null : File(out.path);
 }
 
+/// The page from [scan], falling back to [camera] where the scanner can't
+/// run (no Google Play services, too little memory). Cancelling is final.
+Future<String?> scanOrCamera(
+  Future<String?> Function() scan,
+  Future<String?> Function() camera,
+) async {
+  try {
+    return await scan();
+  } on PlatformException catch (e) {
+    return e.message == 'Operation cancelled' ? null : await camera();
+  } on MissingPluginException {
+    return await camera();
+  }
+}
+
 String _newId() {
   final random = Random.secure();
   return List.generate(16, (_) => random.nextInt(16).toRadixString(16)).join();
@@ -107,6 +127,19 @@ class DevicePhotoPipeline implements PhotoPipeline {
       (await _picker.pickImage(
         source: camera ? ImageSource.camera : ImageSource.gallery,
       ))?.path;
+
+  /// Google's scanner finds the page's edges and flattens it, on the phone.
+  @override
+  Future<String?> scanBill() => scanOrCamera(() async {
+    final scanner = DocumentScanner(
+      options: DocumentScannerOptions(mode: ScannerMode.filter),
+    );
+    try {
+      return (await scanner.scanDocument()).images?.firstOrNull;
+    } finally {
+      await scanner.close();
+    }
+  }, () => pick(camera: true));
 
   @override
   Future<void> discard(String path) async {

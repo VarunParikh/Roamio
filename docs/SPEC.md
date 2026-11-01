@@ -53,7 +53,7 @@ Payment gateway / in-app payments · Uploading your own pictures: display pictur
 | Push | Firebase Cloud Messaging |
 | Crash reporting | Firebase Crashlytics (**disabled for under-18 accounts**, see §7) |
 | Hosting | Firebase Hosting — invite landing page, privacy notice, parental-consent page |
-| OCR | Google ML Kit Text Recognition (on device, offline) |
+| OCR | Google ML Kit Text Recognition (on device, offline), with ML Kit Document Scanner to capture the bill |
 | Image compression | `flutter_image_compress` (next phase, with uploads) |
 | Exports | `pdf` + `excel` packages, generated on device |
 | External APIs | open.er-api.com (FX rates, daily) · Unsplash API (banners) · Open-Meteo (weather) · GitHub Releases API (update check) · Email via a Firebase "Trigger Email" extension or SMTP provider (parental consent mails) |
@@ -169,7 +169,7 @@ Each item is written so it can become a test.
 ### 5.7 Tabs (expenses)
 
 - **UC-21 Add tab** (any member, never a pal). Fields:
-  - Optional **Scan bill** (camera) → OCR prefills amount, date and description; the user confirms.
+  - Optional **Scan bill** (Google's document scanner, or the camera where it can't run) → OCR prefills amount, date and description; the user confirms. The amount comes only from a labelled total within the tab limit; a plain "Total" isn't trusted when a higher amount appears elsewhere on the bill, other than cash handed over, change, balance, MRP or savings. With no trusted total, the form asks for it (owner, 2026-11-01).
   - **Amount** (required, > 0, ≤ 10,000,000 in that currency; in another currency it shows what it comes to in yours as you type), **currency** (default adventure base currency), **date** (default today, editable, can't be later than today), **category** (10 categories from `data/`; the 4 most common show first, with View more), optional **description**.
   - **Paid by:** defaults to "You · 100%". A "Split payment" link reveals the payer list; payer amounts must total the tab amount exactly.
   - **Paid with** (required, per payer, set by the tab's creator): 💵 Cash, 💳 Card, 📱 UPI, 📝 Cheque, 🏦 Bank transfer, 🔖 Other. Starts on the method last used on that phone; with none yet, Save stays disabled and says why. It records how someone paid; Roamio moves no money. An unknown value shows as Other and never invalidates a tab.

@@ -4,6 +4,9 @@ import 'package:roamio/core/images/upload_queue.dart';
 /// Hands out fake photo paths and records what would be uploaded.
 class FakePhotoPipeline implements PhotoPipeline {
   final List<bool> picks = [];
+
+  /// How many times the bill scanner was opened.
+  int billScans = 0;
   final List<String> queued = [];
 
   /// Picked files thrown away without being uploaded.
@@ -26,6 +29,12 @@ class FakePhotoPipeline implements PhotoPipeline {
       return null;
     }
     return '/photos/${picks.length}.jpg';
+  }
+
+  @override
+  Future<String?> scanBill() {
+    billScans++;
+    return pick(camera: true);
   }
 
   @override

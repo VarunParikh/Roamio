@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:roamio/core/config/remote_config.dart';
@@ -36,10 +38,18 @@ class MlKitReceiptScanner implements ReceiptScanner {
               left: line.boundingBox.left,
               top: line.boundingBox.top,
               bottom: line.boundingBox.bottom,
+              slope: _slope(line.cornerPoints),
             ),
       ]);
     } finally {
       await recognizer.close();
     }
+  }
+
+  /// From the line's top-left corner to its top-right (ML Kit's first two).
+  double _slope(List<Point<int>> corners) {
+    if (corners.length < 2) return 0;
+    final width = corners[1].x - corners[0].x;
+    return width <= 0 ? 0 : (corners[1].y - corners[0].y) / width;
   }
 }
