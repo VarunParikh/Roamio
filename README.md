@@ -13,7 +13,7 @@ Roamio is a travel partner app for solo, couple and group travellers. Create an 
 
 > **Roamio moves no money.** It records what people paid and owe. Settling up happens outside the app.
 
-> **Status:** Android pilot build. The test release [`v0.1.0-rc1`](https://github.com/VarunParikh/Roamio/releases/tag/v0.1.0-rc1) is out as a pre-release, and the pilot with testers hasn't started. See [Status at a glance](#status-at-a-glance).
+> **Status:** Android pilot build. The test release [`v0.1.0-rc2`](https://github.com/VarunParikh/Roamio/releases/tag/v0.1.0-rc2) is out as a pre-release, and the pilot with testers hasn't started. See [Status at a glance](#status-at-a-glance).
 
 ## Reviewer's map
 
@@ -40,11 +40,13 @@ As of 2026-11-01.
 
 | Area | Position |
 |---|---|
-| App tests | 921 pass |
+| App tests | 928 pass |
 | Journeys on emulators | 8 of 8 pass, plus 2 bill-reading tests |
-| GitHub's checks | Green on `main` through #125 |
+| Backend tests | 330 pass |
+| GitHub's checks | Green on each PR through #128 |
 | Prod backend and website | Deployed |
 | Test release on a real phone | Installs, and Google sign-in works (owner's report) |
+| Double-recording fix and new icon | Passed on two real phones on a dev build, and `v0.1.0-rc2` installs over `rc1` on a real phone (owner's reports) |
 | Pilot with testers | Not started |
 | Bill-scan accuracy | Not measured on bills the fix wasn't built around |
 
@@ -164,4 +166,4 @@ The full list: [known limitations](docs/epics/roamio/release/known-limitations.m
 
 - **Secrets:** `google-services.json`, keystores and `.env` files are never committed. Release secrets live in a GitHub environment that needs the owner's approval.
 - **Personal data:** see the [privacy notice](docs/epics/roamio/release/privacy-notice.md).
-- **Licence:** none has been chosen yet, so all rights are reserved by default.
+- **Licence:** MIT; see [LICENSE](LICENSE).

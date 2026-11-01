@@ -10,6 +10,10 @@ As of 2026-11-01. Ticks only what has evidence. How to release: [RELEASING.md](.
 - [x] Nightly journeys and their routine turned back on
 - [x] Pilot guide says adults only, with no date of birth
 - [x] Placeholder email removed from the live privacy page
+- [x] Double-recording fix live on dev and prod's server, and passed on two real phones on a dev build (owner's report)
+- [x] New R. icon passed on a real phone on a dev build (owner's report)
+- [x] MIT licence added
+- [x] `v0.1.0-rc2`, with the double-recording fix and new icon, installed over `rc1` on a real phone and worked (owner's report)
 
 ## Still to do before inviting testers
 - [ ] Second copy of the upload key, on USB
@@ -17,7 +21,7 @@ As of 2026-11-01. Ticks only what has evidence. How to release: [RELEASING.md](.
 - [ ] Feedback form created, with its link in the invite message
 - [ ] Owner's approvals: see the [approval register](../../../core/approval-register.md)
 - [ ] Bump the version, write notes and release `v1.0.0`, if the owner wants that for the pilot
-- [ ] Confirm an update installs over an older version
+- [ ] See the update popup offer a higher version number, which `rc2` couldn't show, as it has the same number as `rc1`
 
 ## Spec §15 success criteria
 

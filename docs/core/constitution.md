@@ -1,6 +1,6 @@
 # Product Constitution: Roamio
 
-Status: DRAFT, written 2026-11-01 from rules already in force. It collects them and adds none. Sources: `CLAUDE.md`, [spec](../epics/roamio/requirements/product-spec.md) §6, §7, §8, §12 and §16, and [ADR-001](../epics/roamio/design/adr/ADR-001-firebase-backend.md).
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from rules already in force. It collects them and adds none. Sources: `CLAUDE.md`, [spec](../epics/roamio/requirements/product-spec.md) §6, §7, §8, §12 and §16, and [ADR-001](../epics/roamio/design/adr/ADR-001-firebase-backend.md).
 
 When documents disagree, the higher one wins, and the conflict goes in the [conflicts log](open-conflicts.md):
 

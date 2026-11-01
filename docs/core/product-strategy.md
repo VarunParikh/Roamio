@@ -1,6 +1,6 @@
 # Product Strategy: Roamio
 
-Status: DRAFT, written 2026-11-01 from the [vision](product-vision.md), [spec](../epics/roamio/requirements/product-spec.md) §1 and §15, and the [roadmap](roadmap.md). No market research has been done, so nothing here is backed by user data yet.
+Status: APPROVED (owner, 2026-11-01), written 2026-11-01 from the [vision](product-vision.md), [spec](../epics/roamio/requirements/product-spec.md) §1 and §15, and the [roadmap](roadmap.md). No market research has been done, so nothing here is backed by user data yet.
 
 ## 1. Purpose
 Roamio is a travel partner app for young solo, couple and group travellers. It splits shared trip costs fairly, keeps a log of spending, and tells each traveller privately when they approach their own budget.
