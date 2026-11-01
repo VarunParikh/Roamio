@@ -38,15 +38,32 @@ final _number = RegExp(r'\d[\d.,]*\d|\d');
 /// Words that mark the final amount, strongest first. Lines with
 /// "subtotal", "total items" and the like are never the total.
 const _strongTotals = [
-  'grand total', 'amount due', 'total due', 'balance due', 'net amount', //
+  'grand tot',
+  'grandtot',
+  'amount due',
+  'total due',
+  'balance due',
+  'net amount', //
   'net payable', 'amount payable', 'total amount', 'total ttc', 'totale',
   'bill amount', 'to pay', 'summe', 'gesamt', 'ยอดรวม', 'รวมทั้งสิ้น',
 ];
 const _weakTotals = ['total', 'รวม', 'montant'];
 const _notTotals = [
   'subtotal', 'sub total', 'sub-total', 'item total', 'total ht', //
-  'total items', 'total qty', 'total tax', 'items:', 'qty',
+  'total items', 'total qty', 'total tax', 'total discount', 'items:', 'qty',
+  'auto pay', 'autopay',
 ];
+
+/// Rows whose amounts can be higher than the bill: money handed over, or
+/// what it would have cost.
+const _notTheBill = [
+  'cash', 'tender', 'received', 'change', 'balance', 'mrp', 'sav', //
+  'contanti', 'espèces', 'especes', 'rendu', 'monnaie', 'gegeben', 'rückgeld',
+  'เงินสด', 'ทอน',
+];
+
+/// OCR joins the pieces of a row with at least two spaces.
+final _cellGap = RegExp(r'\s{2,}');
 
 /// A row holding nothing but an amount, with at most a currency mark.
 final _loneAmount = RegExp(
@@ -66,15 +83,21 @@ int? _total(List<String> lines, String currency) {
 
   int? onLineWith(List<String> words) {
     for (var i = lines.length - 1; i >= 0; i--) {
+      final cells = lines[i].split(_cellGap);
       // OCR often reads the O in TOTAL as a zero and the L as a one.
-      final label = lines[i]
-          .toLowerCase()
-          .replaceAll('0', 'o')
-          .replaceAll('1', 'l');
-      if (_notTotals.any(label.contains)) continue;
-      if (!words.any(label.contains)) continue;
+      final labels = [
+        for (final cell in cells)
+          cell.toLowerCase().replaceAll('0', 'o').replaceAll('1', 'l'),
+      ];
+      final at = labels.lastIndexWhere(
+        (l) => words.any(l.contains) && !_notTotals.any(l.contains),
+      );
+      if (at < 0 ||
+          labels.skip(at + 1).any((l) => _notTotals.any(l.contains))) {
+        continue;
+      }
       final amount =
-          believable(lines[i]) ??
+          believable(cells.skip(at).join(' ')) ??
           (i + 1 < lines.length && _loneAmount.hasMatch(lines[i + 1])
               ? believable(lines[i + 1])
               : null);
@@ -83,7 +106,39 @@ int? _total(List<String> lines, String currency) {
     return null;
   }
 
-  return onLineWith(_strongTotals) ?? onLineWith(_weakTotals);
+  final strong = onLineWith(_strongTotals);
+  if (strong != null) return strong;
+  // A bare "Total" can belong to a tax table, so a higher amount elsewhere
+  // means it isn't trusted: an empty amount beats a wrong one.
+  final weak = onLineWith(_weakTotals);
+  return weak != null && _highestPrice(lines, currency) > weak ? null : weak;
+}
+
+/// The highest amount written with the currency's decimals, which rules out
+/// phone numbers and codes, on rows that could be part of the bill. Zero for a
+/// currency with no decimals.
+int _highestPrice(List<String> lines, String currency) {
+  final digits = minorUnitDigits(currency);
+  if (digits == 0) return 0;
+  // Not part of a date, and not a rate or a time.
+  final price = RegExp(
+    '(?<![\\d.,])\\d[\\d.,]*[.,]\\d{$digits}'
+    r'(?![\d.,]*\d|\s*%|\s*[ap]\.?m)',
+    caseSensitive: false,
+  );
+  var highest = 0;
+  for (final line in lines) {
+    if (_notTheBill.any(line.toLowerCase().contains)) continue;
+    for (final match in price.allMatches(line)) {
+      final amount = localAmount(match.group(0)!, currency);
+      if (amount != null &&
+          amount > highest &&
+          amount <= maxTabMinor(currency)) {
+        highest = amount;
+      }
+    }
+  }
+  return highest;
 }
 
 /// The last number on [line], read in the receipt's own style.

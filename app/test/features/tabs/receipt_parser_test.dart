@@ -235,5 +235,143 @@ TOTAL 123456789012345678901234567890
     test('yen has no decimals', () {
       expect(read('Ramen Ichiran\nTOTAL ¥1,980', 'JPY').amountMinor, 1980);
     });
+
+    test('"Auto Pay" is not a total', () {
+      expect(read('Auto Pay 99.00', 'INR').amountMinor, isNull);
+    });
+  });
+
+  // Rows exactly as real ML Kit read the owner's photos (2026-11-01).
+  group('real bills', () {
+    test('Decathlon: Grand Total shares a row with Total Qty', () {
+      final g = read('''
+5685741 SHORY
+BLUE B21A UK
+61099010 1
+tal Qty  GrandTotat
+INR 1298.00
+Dde of payment
+1298.00
+Ezetap Card
+267031132814720E836390647
+Change  INR 0.00
+Category  Rate  Base  Amt
+CGST-LR  2.50% 1236.19  30.90
+SGST-LR  2.50% 1236.19  30.91
+Total  61.81
+70307523172553534
+''', 'INR');
+      expect(g.amountMinor, 129800);
+    });
+
+    test('Nike: Total, with a Total Discount and a card line', () {
+      final g = read('''
+S,295AS
+HSN:54029990
+Discount  12.39
+Total
+5,295.00
+Taxable Value  4487.29
+Tax Aount
+807.71
+Total Discount  12.39
+RATE  Net  CGST  SGST  IGST
+Gross
+18%  4487.29  403-86  403.86
+5,295.00
+Total  5,295.00
+PaymentMode  PaidAmount
+Card  5,295.00
+''', 'INR');
+      expect(g.amountMinor, 529500);
+    });
+
+    test('Ratna Super Market: Net Amount, with a stamp and a phone number', () {
+      final g = read('''
+EEN 18HYA 100 h 657.06  1.0 657.06
+eNs :14 Totai Qty(:17
+5.0 1122.55 28.07 28.07
+2077.68 78.19 78.19
+Net Amount :  2234.00
+Anount Received  0.06-
+Bill Anount
+Balance Pa In  PAID 0.00
+HME DELIVERY WATSAPP NO. : 9326600409
+Your Saving On MRP:365.60
+waP TIME 09.00 AM I0 09.00 PHee
+''', 'INR');
+      expect(g.amountMinor, 223400);
+    });
+  });
+
+  group('labels sharing a row', () {
+    test('the amount after the label is used, not an earlier count', () {
+      expect(
+        read('Total Qty 3  Grand Total  1298.00', 'INR').amountMinor,
+        129800,
+      );
+      expect(read('Total Qty 3  GrandTotal', 'INR').amountMinor, isNull);
+    });
+
+    test('a count after the label is not used as the amount', () {
+      expect(
+        read('Grand Total 1298.00  Total Qty 3', 'INR').amountMinor,
+        isNull,
+      );
+    });
+  });
+
+  group('a plain Total is doubted when a higher amount is elsewhere', () {
+    test("the tax table's Total is not the bill's", () {
+      expect(read('Base 1236.19\nTotal 61.81', 'INR').amountMinor, isNull);
+    });
+
+    test('a Total Discount is never the amount', () {
+      expect(read('Total Discount 12.39', 'INR').amountMinor, isNull);
+    });
+
+    test('cash handed over and change do not cast doubt', () {
+      expect(
+        read('Total 5.48\nCash 20.00\nChange 14.52', 'USD').amountMinor,
+        548,
+      );
+      expect(read('Total 5.48\nTendered 20.00', 'USD').amountMinor, 548);
+    });
+
+    test('cash on a French or Italian bill does not cast doubt', () {
+      expect(read('Total 20,00\nEspèces 50,00', 'EUR').amountMinor, 2000);
+      expect(read('Total 20,00\nContanti 50,00', 'EUR').amountMinor, 2000);
+    });
+
+    test('MRP and savings do not cast doubt', () {
+      expect(
+        read('MRP 2599.00\nTotal 2234.00\nYou saved 365.00', 'INR').amountMinor,
+        223400,
+      );
+    });
+
+    test('phone numbers, dates, rates and times do not cast doubt', () {
+      expect(read('Tel 9326600409\nTotal 5.48', 'USD').amountMinor, 548);
+      expect(read('27.10.2026\nTotal 13.40', 'EUR').amountMinor, 1340);
+      expect(read('VAT 19.00%\nTotal 13.40', 'EUR').amountMinor, 1340);
+      expect(read('Open 09.00 AM\nTotal 5.48', 'USD').amountMinor, 548);
+    });
+
+    test('a strong label is still trusted', () {
+      expect(
+        read('Total MRP 1500.00\nNet Amount 1200.00', 'INR').amountMinor,
+        120000,
+      );
+    });
+
+    test('the date and name still fill in when the amount is doubted', () {
+      final g = read(
+        'Corner Mart\n27/10/2026\nBase 1236.19\nTotal 61.81',
+        'INR',
+      );
+      expect(g.amountMinor, isNull);
+      expect(g.date, DateTime(2026, 10, 27));
+      expect(g.merchant, 'Corner Mart');
+    });
   });
 }
