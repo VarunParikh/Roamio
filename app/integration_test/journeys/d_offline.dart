@@ -24,11 +24,13 @@ void journeyD() {
     await signInWithEmail(tester, ari.email, password);
     await waitFor(tester, find.text('Hey Ari 👋'));
     await openAdventure(tester, 'Ladakh ride');
-    await waitFor(tester, find.text('Squad (2)'));
+    // The leader's invite card is tall, so the squad starts below the fold.
+    await scrollTo(tester, find.text('Squad (2)'));
 
     // The connection drops.
     connection.set(online: false);
-    await waitFor(tester, find.textContaining('You’re offline'));
+    // The banner is at the top of the page; the squad scroll moved it away.
+    await scrollTo(tester, find.textContaining('You’re offline'));
 
     for (final name in ['Fuel', 'Momos', 'Permit']) {
       await addSimpleTab(tester, amount: '600', description: name);

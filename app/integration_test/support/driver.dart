@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,6 +54,9 @@ Future<Shared> launch(
       shared.names.add(names);
     },
   );
+  // A journey that failed while "offline" leaves Firestore's network off for
+  // the whole test process; every journey starts online.
+  await FirebaseFirestore.instance.enableNetwork();
   // A previous run may have left someone signed in on the device.
   if (FirebaseAuth.instance.currentUser != null) {
     await FirebaseAuth.instance.signOut();
