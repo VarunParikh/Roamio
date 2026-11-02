@@ -24,7 +24,8 @@ void journeyD() {
     await signInWithEmail(tester, ari.email, password);
     await waitFor(tester, find.text('Hey Ari 👋'));
     await openAdventure(tester, 'Ladakh ride');
-    await waitFor(tester, find.text('Squad (2)'));
+    // The leader's invite card is tall, so the squad starts below the fold.
+    await scrollTo(tester, find.text('Squad (2)'));
 
     // The connection drops.
     connection.set(online: false);

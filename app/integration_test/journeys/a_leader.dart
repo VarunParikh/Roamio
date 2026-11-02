@@ -73,7 +73,8 @@ void journeyA() {
 
     // Add a pal (no account) to the squad.
     await openAdventure(tester, 'Bangkok squad trip');
-    await waitFor(tester, find.text('Squad (2)'));
+    // The leader's invite card is tall, so the squad starts below the fold.
+    await scrollTo(tester, find.text('Squad (2)'));
     await scrollTo(tester, find.text('Add pal'));
     await tapText(tester, 'Add pal');
     await addPal(tester, nickname: 'Kiko', character: 'Traveller 2');
